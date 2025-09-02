@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Content System Demo - No API Required!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .success-banner {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .demo-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Manual Content System Demo</h1>
+            <p>Advanced Social Media Analytics - No Facebook API Required!</p>
+        </div>
+
+        <div class="success-banner">
+            <h2>✅ Problem Solved!</h2>
+            <p>Your platform now works perfectly without any Facebook API setup. Upload content manually and get all the advanced features!</p>
+        </div>
+
+        <div class="demo-section">
+            <h3>📤 Test Content Upload</h3>
+            <p>Try uploading a sample social media post:</p>
+            
+            <textarea id="testContent" class="form-control" placeholder="🏡 Just listed! Beautiful 3-bedroom home in Windsor-Essex with stunning curb appeal and move-in ready condition. This property features an open-concept layout, updated kitchen, and spacious backyard perfect for entertaining. Located in a quiet neighborhood with excellent schools nearby. Ready to find your dream home? Let's chat! Send me a DM or call today. 📞✨ #WindsorEssexRealEstate #DreamHome #RealEstateExpert #HomeBuying #PropertyListing"></textarea>
+            
+            <button class="btn" onclick="testUpload()">📤 Test Upload</button>
+            <button class="btn btn-success" onclick="createSampleData()">🎯 Create Sample Data</button>
+            
+            <div id="uploadResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎯 Test Brand Voice Analysis</h3>
+            <p>Analyze the writing style of your content:</p>
+            
+            <button class="btn" onclick="testBrandVoice()">🎯 Analyze Brand Voice</button>
+            <button class="btn" onclick="getSampleAnalysis()">📊 View Sample Analysis</button>
+            
+            <div id="brandVoiceResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🧪 Test A/B Testing</h3>
+            <p>Create a simple A/B test:</p>
+            
+            <input type="text" id="testName" class="form-control" placeholder="Test Name (e.g., Property Listing Test)" value="Property Listing Test">
+            
+            <textarea id="variationA" class="form-control" placeholder="Variation A content...">🏡 Just listed! Beautiful home in Windsor-Essex. Contact me for details!</textarea>
+            
+            <textarea id="variationB" class="form-control" placeholder="Variation B content...">🏠 NEW LISTING: Stunning 3-bedroom home in Windsor-Essex with amazing features. Ready to find your dream home? Let's chat!</textarea>
+            
+            <button class="btn" onclick="testABTest()">🧪 Create Test</button>
+            <button class="btn" onclick="viewActiveTests()">📊 View Tests</button>
+            
+            <div id="abTestResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>📈 Test Analytics</h3>
+            <p>View content statistics and insights:</p>
+            
+            <button class="btn" onclick="testAnalytics()">📊 Load Analytics</button>
+            <button class="btn" onclick="testExport()">💾 Test Export</button>
+            
+            <div id="analyticsResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔧 System Status</h3>
+            <p>Check if all services are working:</p>
+            
+            <button class="btn" onclick="checkSystemStatus()">🔍 Check Status</button>
+            
+            <div id="statusResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // API helper function
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            };
+            
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                const response = await fetch(`/api/${endpoint}`, options);
+                const result = await response.json();
+                console.log(`API Call: ${endpoint}`, result);
+                return result;
+            } catch (error) {
+                console.error('API call failed:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Show alert helper
+        function showAlert(type, message, containerId) {
+            const alertClass = type === 'success' ? 'alert-success' : (type === 'error' ? 'alert-error' : 'alert-info');
+            const alertHtml = `<div class="alert ${alertClass}">${message}</div>`;
+            document.getElementById(containerId).innerHTML = alertHtml;
+        }
+
+        // Test content upload
+        async function testUpload() {
+            const content = document.getElementById('testContent').value.trim();
+            
+            if (!content) {
+                showAlert('error', '❌ Please enter some content to test upload.', 'uploadResult');
+                return;
+            }
+            
+            document.getElementById('uploadResult').innerHTML = '<div class="loading">Testing upload...</div>';
+            
+            const data = {
+                text: content,
+                platform: 'instagram',
+                content_type: 'image_with_text'
+            };
+            
+            const result = await apiCall('manual-content/upload', 'POST', data);
+            
+            if (result.success) {
+                showAlert('success', `✅ Upload successful! Content ID: ${result.data.content_id}`, 'uploadResult');
+                
+                // Show processed content details
+                const processed = result.data.processed_content;
+                const details = `
+                    <div class="result-box">
+                        <h4>📊 Processed Content Details:</h4>
+                        <p><strong>Hashtags found:</strong> ${processed.hashtags?.length || 0}</p>
+                        <p><strong>Word count:</strong> ${processed.word_count}</p>
+                        <p><strong>Has CTA:</strong> ${processed.has_cta ? 'Yes' : 'No'}</p>
+                        <p><strong>Sentiment:</strong> ${processed.sentiment}</p>
+                        <p><strong>Content type:</strong> ${processed.content_type}</p>
+                    </div>
+                `;
+                document.getElementById('uploadResult').innerHTML += details;
+            } else {
+                showAlert('error', `❌ Upload failed: ${result.error}`, 'uploadResult');
+            }
+        }
+
+        // Create sample data
+        async function createSampleData() {
+            document.getElementById('uploadResult').innerHTML = '<div class="loading">Creating sample data...</div>';
+            
+            const result = await apiCall('manual-content/sample-data', 'POST');
+            
+            if (result.success) {
+                showAlert('success', `✅ ${result.message}! Created ${result.data.uploaded} sample posts.`, 'uploadResult');
+            } else {
+                showAlert('error', `❌ Failed to create sample data: ${result.error}`, 'uploadResult');
+            }
+        }
+
+        // Test brand voice analysis
+        async function testBrandVoice() {
+            document.getElementById('brandVoiceResult').innerHTML = '<div class="loading">Analyzing brand voice...</div>';
+            
+            const result = await apiCall('manual-content/analyze-voice', 'POST');
+            
+            if (result.success) {
+                const profile = result.data.brand_profile;
+                
+                let html = `
+                    <div class="alert alert-success">✅ Brand voice analysis complete!</div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="number">${profile.dominant_tone}</div>
+                            <div class="label">Tone</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${profile.writing_style}</div>
+                            <div class="label">Style</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${profile.brand_voice_strength}</div>
+                            <div class="label">Strength</div>
+                        </div>
+                    </div>
+                    <div class="result-box">
+                        <h4>🎯 Brand Profile:</h4>
+                        <p><strong>Personality:</strong> ${profile.personality_traits.join(', ')}</p>
+                        <p><strong>Uses Questions:</strong> ${profile.communication_preferences.uses_questions ? 'Yes' : 'No'}</p>
+                        <p><strong>Uses Emojis:</strong> ${profile.communication_preferences.uses_emojis ? 'Yes' : 'No'}</p>
+                    </div>
+                `;
+                
+                document.getElementById('brandVoiceResult').innerHTML = html;
+            } else {
+                showAlert('error', `❌ Analysis failed: ${result.error}`, 'brandVoiceResult');
+            }
+        }
+
+        // Get sample analysis
+        async function getSampleAnalysis() {
+            document.getElementById('brandVoiceResult').innerHTML = '<div class="loading">Loading sample analysis...</div>';
+            
+            const result = await apiCall('alternative-brand-voice/sample-analysis');
+            
+            if (result.success) {
+                const profile = result.data.brand_profile;
+                
+                let html = `
+                    <div class="alert alert-info">📊 Sample Brand Voice Analysis</div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="number">${profile.dominant_tone}</div>
+                            <div class="label">Tone</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${profile.writing_style}</div>
+                            <div class="label">Style</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${profile.brand_voice_strength}</div>
+                            <div class="label">Strength</div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('brandVoiceResult').innerHTML = html;
+            } else {
+                showAlert('error', `❌ Failed to load sample: ${result.error}`, 'brandVoiceResult');
+            }
+        }
+
+        // Test A/B testing
+        async function testABTest() {
+            const testName = document.getElementById('testName').value.trim();
+            const variationA = document.getElementById('variationA').value.trim();
+            const variationB = document.getElementById('variationB').value.trim();
+            
+            if (!testName || !variationA || !variationB) {
+                showAlert('error', '❌ Please fill in all fields for the A/B test.', 'abTestResult');
+                return;
+            }
+            
+            document.getElementById('abTestResult').innerHTML = '<div class="loading">Creating A/B test...</div>';
+            
+            const data = {
+                test_name: testName,
+                mode: 1,
+                variations: [
+                    { content: variationA, name: 'Variation A' },
+                    { content: variationB, name: 'Variation B' }
+                ]
+            };
+            
+            const result = await apiCall('ab-testing/create-test', 'POST', data);
+            
+            if (result.success) {
+                showAlert('success', `✅ A/B test created! Test ID: ${result.data.test_id}`, 'abTestResult');
+                
+                const details = `
+                    <div class="result-box">
+                        <h4>🧪 Test Details:</h4>
+                        <p><strong>Name:</strong> ${testName}</p>
+                        <p><strong>Status:</strong> Ready for Manual Testing</p>
+                        <p><strong>Variations:</strong> 2</p>
+                        <button class="btn" onclick="viewTestDetails('${result.data.test_id}')">📊 View Variations</button>
+                    </div>
+                `;
+                document.getElementById('abTestResult').innerHTML += details;
+            } else {
+                showAlert('error', `❌ Failed to create test: ${result.error}`, 'abTestResult');
+            }
+        }
+
+        // View active tests
+        async function viewActiveTests() {
+            document.getElementById('abTestResult').innerHTML = '<div class="loading">Loading active tests...</div>';
+            
+            const result = await apiCall('ab-testing/active-tests');
+            
+            if (result.success && result.data.length > 0) {
+                let html = '<div class="alert alert-success">✅ Found active tests!</div>';
+                
+                result.data.forEach(test => {
+                    html += `
+                        <div class="result-box">
+                            <h4>${test.test_name}</h4>
+                            <p><strong>Status:</strong> ${test.status}</p>
+                            <p><strong>Created:</strong> ${new Date(test.created_at).toLocaleDateString()}</p>
+                            <button class="btn" onclick="viewTestDetails('${test.test_id}')">📊 View Details</button>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('abTestResult').innerHTML = html;
+            } else {
+                showAlert('info', 'ℹ️ No active tests found. Create one above!', 'abTestResult');
+            }
+        }
+
+        // View test details
+        async function viewTestDetails(testId) {
+            const result = await apiCall(`ab-testing/analyze-results/${testId}`);
+            
+            if (result.success) {
+                const variations = result.data.variations || [];
+                
+                let html = `
+                    <div class="alert alert-info">📊 Test Variations - Ready for Manual Testing</div>
+                `;
+                
+                variations.forEach((variation, index) => {
+                    html += `
+                        <div class="result-box">
+                            <h4>Variation ${String.fromCharCode(65 + index)}</h4>
+                            <p>${variation.content || variation.name}</p>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('abTestResult').innerHTML = html;
+            } else {
+                showAlert('error', `❌ Failed to load test details: ${result.error}`, 'abTestResult');
+            }
+        }
+
+        // Test analytics
+        async function testAnalytics() {
+            document.getElementById('analyticsResult').innerHTML = '<div class="loading">Loading analytics...</div>';
+            
+            const result = await apiCall('manual-content/stats');
+            
+            if (result.success) {
+                const stats = result.data;
+                
+                let html = `
+                    <div class="alert alert-success">✅ Analytics loaded successfully!</div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="number">${stats.total_posts}</div>
+                            <div class="label">Total Posts</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${stats.recent_activity.posts_last_30_days}</div>
+                            <div class="label">Recent Posts</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${Object.keys(stats.hashtag_usage).length}</div>
+                            <div class="label">Hashtags</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${Object.keys(stats.platforms).length}</div>
+                            <div class="label">Platforms</div>
+                        </div>
+                    </div>
+                `;
+                
+                if (Object.keys(stats.platforms).length > 0) {
+                    html += '<div class="result-box"><h4>📱 Platform Distribution:</h4>';
+                    Object.entries(stats.platforms).forEach(([platform, count]) => {
+                        html += `<p><strong>${platform.toUpperCase()}:</strong> ${count} posts</p>`;
+                    });
+                    html += '</div>';
+                }
+                
+                document.getElementById('analyticsResult').innerHTML = html;
+            } else {
+                showAlert('error', `❌ Failed to load analytics: ${result.error}`, 'analyticsResult');
+            }
+        }
+
+        // Test export
+        async function testExport() {
+            const result = await apiCall('manual-content/export?format=json');
+            
+            if (result.success) {
+                showAlert('success', '✅ Export test successful! Data ready for download.', 'analyticsResult');
+                
+                const details = `
+                    <div class="result-box">
+                        <h4>💾 Export Details:</h4>
+                        <p><strong>Format:</strong> JSON</p>
+                        <p><strong>Data Size:</strong> ${JSON.stringify(result.data.content).length} characters</p>
+                        <p><strong>Status:</strong> Ready for download</p>
+                    </div>
+                `;
+                document.getElementById('analyticsResult').innerHTML += details;
+            } else {
+                showAlert('error', `❌ Export test failed: ${result.error}`, 'analyticsResult');
+            }
+        }
+
+        // Check system status
+        async function checkSystemStatus() {
+            document.getElementById('statusResult').innerHTML = '<div class="loading">Checking system status...</div>';
+            
+            const endpoints = [
+                'manual-content/platform-guide',
+                'alternative-brand-voice/training-status',
+                'ab-testing/active-tests'
+            ];
+            
+            let html = '<div class="alert alert-success">✅ System Status Check</div>';
+            
+            for (const endpoint of endpoints) {
+                const result = await apiCall(endpoint);
+                const status = result.success ? '✅ Working' : '❌ Error';
+                const service = endpoint.split('/')[0].replace('-', ' ').toUpperCase();
+                
+                html += `
+                    <div class="result-box">
+                        <h4>${service} Service: ${status}</h4>
+                        ${result.success ? '<p>Service is operational</p>' : `<p>Error: ${result.error}</p>`}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('statusResult').innerHTML = html;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Manual Content System Demo loaded');
+        });
+    </script>
+</body>
+</html>
+
