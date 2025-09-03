@@ -1,4 +1,4 @@
-# Corrected relative import from the current package (__init__.py in the same folder)
+# Corrected relative import from the __init__.py in the same 'models' folder
 from . import db
 
 class User(db.Model):
