@@ -1,2 +1,2 @@
-web: gunicorn src.main:app --chdir src
+web: gunicorn --chdir src main:app
 
