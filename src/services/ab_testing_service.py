@@ -6,31 +6,8 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 import statistics
 
-@dataclass
-class ABTestVariation:
-    """Represents a single variation in an A/B test"""
-    id: str
-    content: str
-    hashtags: List[str]
-    image_prompt: str
-    post_id: Optional[str] = None
-    engagement_data: Optional[Dict] = None
-    created_at: Optional[str] = None
+from src.models.ab_test_model import ABTest, ABTestVariation
 
-@dataclass
-class ABTest:
-    """Represents an A/B test with multiple variations"""
-    id: str
-    name: str
-    content_type: str
-    platform: str
-    variations: List[ABTestVariation]
-    status: str  # 'draft', 'running', 'completed', 'paused'
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    winner_variation_id: Optional[str] = None
-    confidence_level: Optional[float] = None
-    created_at: Optional[str] = None
 
 class ABTestingService:
     """Service for creating and managing A/B tests for social media content"""
@@ -400,91 +377,27 @@ class ABTestingService:
             test.winner_variation_id = variation_scores[0]['variation_id']
             test.confidence_level = confidence
             
-            if confidence > 80:  # High confidence threshold
-                test.status = 'completed'
-                test.end_date = datetime.now().isoformat()
-                self.completed_tests[test_id] = test
-        
+            # Mark test as completed
+            test.status = 'completed'
+            test.end_date = datetime.now().isoformat()
+            self.completed_tests[test_id] = self.active_tests.pop(test_id)
+            
         return {
             'test_id': test_id,
-            'status': test.status,
-            'winner': variation_scores[0] if variation_scores else None,
-            'all_results': variation_scores,
-            'confidence_level': test.confidence_level,
-            'recommendations': self._generate_recommendations(variation_scores)
+            'winner': test.winner_variation_id,
+            'confidence': test.confidence_level,
+            'scores': variation_scores
         }
     
-    def _generate_recommendations(self, variation_scores: List[Dict]) -> List[str]:
-        """Generate recommendations based on test results"""
-        recommendations = []
-        
-        if not variation_scores:
-            return recommendations
-        
-        winner = variation_scores[0]
-        
-        # Analyze what made the winner successful
-        winner_data = winner['raw_data']
-        
-        if winner_data.get('comments', 0) > winner_data.get('likes', 0) * 0.1:
-            recommendations.append("High comment rate suggests engaging, conversation-starting content works well")
-        
-        if winner_data.get('shares', 0) > 0:
-            recommendations.append("Content was shareable - consider similar value-driven posts")
-        
-        if winner_data.get('saves', 0) > 0:
-            recommendations.append("Content was saved - informational/educational content performs well")
-        
-        # Compare with other variations
-        if len(variation_scores) > 1:
-            winner_score = winner['engagement_score']
-            avg_other_scores = statistics.mean([v['engagement_score'] for v in variation_scores[1:]])
-            
-            if winner_score > avg_other_scores * 1.5:
-                recommendations.append("Clear winner - replicate this content style for future posts")
-            elif winner_score > avg_other_scores * 1.2:
-                recommendations.append("Moderate improvement - test similar variations to optimize further")
-            else:
-                recommendations.append("Close results - consider testing with larger audience or longer duration")
-        
-        return recommendations
-    
-    def get_test_summary(self, test_id: str) -> Dict:
-        """Get a summary of an A/B test"""
-        test = self.active_tests.get(test_id) or self.completed_tests.get(test_id)
-        
-        if not test:
-            return {'error': 'Test not found'}
-        
-        return {
-            'id': test.id,
-            'name': test.name,
-            'status': test.status,
-            'platform': test.platform,
-            'variation_count': len(test.variations),
-            'start_date': test.start_date,
-            'end_date': test.end_date,
-            'winner_variation_id': test.winner_variation_id,
-            'confidence_level': test.confidence_level
-        }
-    
-    def get_all_tests(self) -> Dict:
-        """Get all A/B tests"""
-        return {
-            'active_tests': [self.get_test_summary(test_id) for test_id in self.active_tests.keys()],
-            'completed_tests': [self.get_test_summary(test_id) for test_id in self.completed_tests.keys()]
-        }
-    
-    def delete_test(self, test_id: str) -> bool:
-        """Delete an A/B test"""
+    def get_test_status(self, test_id: str) -> Optional[Dict]:
+        """Get the status of a specific A/B test"""
         if test_id in self.active_tests:
-            del self.active_tests[test_id]
-            return True
+            return asdict(self.active_tests[test_id])
         elif test_id in self.completed_tests:
-            del self.completed_tests[test_id]
-            return True
-        return False
-
-# Global instance
-ab_testing_service = ABTestingService()
-
+            return asdict(self.completed_tests[test_id])
+        return None
+    
+    def get_all_tests(self) -> List[Dict]:
+        """Get a list of all active and completed tests"""
+        all_tests = list(self.active_tests.values()) + list(self.completed_tests.values())
+        return [asdict(test) for test in all_tests]
