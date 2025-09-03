@@ -6,3 +6,5 @@ Flask-SQLAlchemy
 flask-cors
 gunicorn
 requests
+psycopg2-binary
+
