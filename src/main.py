@@ -1,49 +1,44 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import os
 
-# Initialize extensions
-db = SQLAlchemy()
+# Corrected relative imports
+from models import db
+from routes.user import user_bp
 
 def create_app():
+    """
+    Creates and configures a Flask application instance.
+    """
     app = Flask(__name__)
+    
+    # Enable CORS for all routes to allow your frontend to connect
     CORS(app)
 
-    # --- Database Configuration ---
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///default.db')
+    # Configure the database URI from an environment variable for security
+    # Render will provide this DATABASE_URL automatically for its Postgres service
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Initialize the app with the extensions
+    # Initialize the database with the app
     db.init_app(app)
 
-    # --- Import and Register Blueprints (Corrected Paths) ---
-    from src.routes.user import user_bp
-    from src.routes.brand_voice_routes import brand_voice_bp
-    from src.routes.social_media import social_media_bp
-    from src.routes.seo_routes import seo_bp
-    from src.routes.ab_testing_routes import ab_testing_bp
-    from src.routes.learning_algorithm_routes import learning_algorithm_bp
-    from src.routes.manual_content_routes import manual_content_bp
-    from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
+    # Register the user blueprint. All routes in user.py will be prefixed with /api
+    # e.g., /users becomes /api/users
+    app.register_blueprint(user_bp, url_prefix='/api')
 
-    app.register_blueprint(user_bp)
-    app.register_blueprint(brand_voice_bp)
-    app.register_blueprint(social_media_bp)
-    app.register_blueprint(seo_bp)
-    app.register_blueprint(ab_testing_bp)
-    app.register_blueprint(learning_algorithm_bp)
-    app.register_blueprint(manual_content_bp)
-    app.register_blueprint(alternative_brand_voice_bp)
-
-    # --- Create Database Tables ---
     with app.app_context():
+        # This command creates the database tables based on your models
+        # It's safe to run on every startup; it won't recreate existing tables
         db.create_all()
 
     return app
 
-# This part is for Gunicorn to find the app
+# The entry point for Gunicorn on Render
 app = create_app()
 
+# This block is for running the app locally for testing (e.g., python src/main.py)
+# It will not be used by Gunicorn in production
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
