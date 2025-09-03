@@ -1,47 +1,49 @@
-from flask import Blueprint, request, jsonify
-from models.user import User
-from main import db
-import logging
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+import os
 
-user_bp = Blueprint('user_bp', __name__)
+# Initialize extensions
+db = SQLAlchemy()
 
-# Registration is disabled for our "Middle Ground" approach.
-# The endpoint is commented out to prevent public access.
-# @user_bp.route('/register', methods=['POST'])
-# def register():
-#     # ... logic would go here ...
-#     pass
+def create_app():
+    app = Flask(__name__)
+    CORS(app)
 
-@user_bp.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    if not data or not data.get('email') or not data.get('password'):
-        return jsonify({"error": "Email and password are required"}), 400
+    # --- Database Configuration ---
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///default.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    try:
-        user = User.query.filter_by(email=data['email']).first()
+    # Initialize the app with the extensions
+    db.init_app(app)
 
-        # IMPORTANT: This is a temporary plain-text password check.
-        # In a real-world app, you would use bcrypt to check a hashed password.
-        if not user or user.password != data['password']:
-            return jsonify({"error": "Invalid credentials"}), 401
+    # --- Import and Register Blueprints (Corrected Paths) ---
+    from src.routes.user import user_bp
+    from src.routes.brand_voice_routes import brand_voice_bp
+    from src.routes.social_media import social_media_bp
+    from src.routes.seo_routes import seo_bp
+    from src.routes.ab_testing_routes import ab_testing_bp
+    from src.routes.learning_algorithm_routes import learning_algorithm_bp
+    from src.routes.manual_content_routes import manual_content_bp
+    from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 
-        logging.info(f"User {user.email} logged in successfully.")
-        return jsonify({
-            "success": True,
-            "message": "Login successful",
-            "user": user.to_dict()
-        })
-    except Exception as e:
-        logging.error(f"Error during login for email {data.get('email')}: {str(e)}")
-        return jsonify({"error": "An internal error occurred during login."}), 500
+    app.register_blueprint(user_bp)
+    app.register_blueprint(brand_voice_bp)
+    app.register_blueprint(social_media_bp)
+    app.register_blueprint(seo_bp)
+    app.register_blueprint(ab_testing_bp)
+    app.register_blueprint(learning_algorithm_bp)
+    app.register_blueprint(manual_content_bp)
+    app.register_blueprint(alternative_brand_voice_bp)
 
+    # --- Create Database Tables ---
+    with app.app_context():
+        db.create_all()
 
-@user_bp.route('/<int:user_id>', methods=['GET'])
-def get_user_profile(user_id):
-    try:
-        user = User.query.get_or_404(user_id)
-        return jsonify(user.to_dict())
-    except Exception as e:
-        logging.error(f"Error fetching profile for user_id {user_id}: {str(e)}")
-        return jsonify({"error": "User not found or internal error."}), 404
+    return app
+
+# This part is for Gunicorn to find the app
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)
