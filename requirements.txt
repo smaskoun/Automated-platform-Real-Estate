@@ -35,6 +35,9 @@ markupsafe==2.1.5
     # via jinja2
 packaging==24.1
     # via gunicorn
+psycopg2-binary==2.9.9
+    # via requirements.in
+
 requests==2.32.3
     # via requirements.in
 sqlalchemy==2.0.31
@@ -47,3 +50,4 @@ urllib3==2.2.2
     # via requests
 werkzeug==3.0.3
     # via flask
+
