@@ -18,14 +18,14 @@ def create_app():
     db.init_app(app)
 
     # --- Import and Register Blueprints (Corrected Paths) ---
-    from routes.user import user_bp
-    from routes.brand_voice_routes import brand_voice_bp
-    from routes.social_media import social_media_bp
-    from routes.seo_routes import seo_bp
-    from routes.ab_testing_routes import ab_testing_bp
-    from routes.learning_algorithm_routes import learning_algorithm_bp
-    from routes.manual_content_routes import manual_content_bp
-    from routes.alternative_brand_voice_routes import alternative_brand_voice_bp
+    from src.routes.user import user_bp
+    from src.routes.brand_voice_routes import brand_voice_bp
+    from src.routes.social_media import social_media_bp
+    from src.routes.seo_routes import seo_bp
+    from src.routes.ab_testing_routes import ab_testing_bp
+    from src.routes.learning_algorithm_routes import learning_algorithm_bp
+    from src.routes.manual_content_routes import manual_content_bp
+    from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 
     app.register_blueprint(user_bp)
     app.register_blueprint(brand_voice_bp)
