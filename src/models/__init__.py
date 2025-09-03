@@ -2,6 +2,8 @@
 
 from flask_sqlalchemy import SQLAlchemy
 
-# Initialize the SQLAlchemy object.
-# This object will be imported by other parts of your application (like main.py and user.py)
+# Initialize the db object
 db = SQLAlchemy()
+
+# Import the User model so it's accessible to the rest of the app
+from .user import User 
