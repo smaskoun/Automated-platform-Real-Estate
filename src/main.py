@@ -1,8 +1,9 @@
+# src/main.py - NEW CORRECTED CODE
+
 from flask import Flask
 from flask_cors import CORS
 import os
 
-# This import now works because of the new src/models/__init__.py file
 from models import db
 from routes.user import user_bp
 
@@ -11,8 +12,12 @@ def create_app():
     Creates and configures a Flask application instance.
     """
     app = Flask(__name__)
-    CORS(app)
 
+    # --- THIS IS THE CORRECTED LINE ---
+    # Configure CORS to specifically allow requests from your live frontend URL.
+    CORS(app, resources={r"/api/*": {"origins": "https://real-estate-frontend-lpug.onrender.com"}} )
+
+    # Configure the database URI from an environment variable
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
