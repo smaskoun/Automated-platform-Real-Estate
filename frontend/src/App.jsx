@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from './App.module.css';
 import axios from 'axios';
-import Dashboard from './components/Dashboard';
+import Dashboard from './components/Dashboard.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
