@@ -33,7 +33,7 @@ def create_app():
     from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 
     app.register_blueprint(user_bp, url_prefix='/users')
-    app.register_blueprint(brand_voice_bp, url_prefix='/brand-voices')
+    app.register_blueprint(brand_voice_bp)
     app.register_blueprint(social_media_bp) # No prefix needed as routes are specific
     app.register_blueprint(seo_bp, url_prefix='/seo')
     app.register_blueprint(ab_testing_bp, url_prefix='/ab-testing')
