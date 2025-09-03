@@ -2,18 +2,18 @@ from flask import Blueprint, request, jsonify
 from src.models.social_media import db, SocialMediaAccount, SocialMediaPost, AIImageGeneration
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 import time
 
+# Create a Blueprint for social media routes
 social_media_bp = Blueprint("social_media", __name__)
 
-# Configuration - In production, these should be environment variables
-HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY", "your_huggingface_api_key")
+# --- Routes for Social Media Accounts ---
 
 @social_media_bp.route("/accounts", methods=["GET"])
 def get_accounts():
-    """Get user's connected social media accounts"""
+    """Get user's connected social media accounts."""
     user_id = request.args.get("user_id", "default_user")
     
     accounts = SocialMediaAccount.query.filter_by(user_id=user_id, is_active=True).all()
@@ -22,11 +22,13 @@ def get_accounts():
         "accounts": [account.to_dict() for account in accounts]
     })
 
+# --- Routes for Social Media Posts ---
+
 @social_media_bp.route("/posts", methods=["GET"])
 def get_posts():
-    """Get user's social media posts"""
+    """Get user's social media posts, with an optional filter for status."""
     user_id = request.args.get("user_id", "default_user")
-    status = request.args.get("status")  # Optional filter by status
+    status = request.args.get("status")
     
     query = db.session.query(SocialMediaPost).join(SocialMediaAccount).filter(
         SocialMediaAccount.user_id == user_id
@@ -43,51 +45,45 @@ def get_posts():
 
 @social_media_bp.route("/posts", methods=["POST"])
 def create_post():
-    """Create a new social media post"""
+    """Create a new social media post."""
     data = request.get_json()
     
-    required_fields = ["account_id", "content"]
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": "Missing required fields"}), 400
+    if not data or "account_id" not in data or "content" not in data:
+        return jsonify({"error": "Missing required fields: 'account_id' and 'content'"}), 400
     
-    # Verify account exists and is active
-    account = SocialMediaAccount.query.filter_by(
-        id=data["account_id"],
-        is_active=True
-    ).first()
-    
+    account = SocialMediaAccount.query.filter_by(id=data["account_id"], is_active=True).first()
     if not account:
-        return jsonify({"error": "Account not found or inactive"}), 404
-    
-    # Create post record
-    post = SocialMediaPost(
-        account_id=data["account_id"],
-        content=data["content"],
-        image_prompt=data.get("image_prompt"),
-        hashtags=json.dumps(data.get("hashtags", [])),
-        scheduled_at=datetime.fromisoformat(data["scheduled_at"]) if data.get("scheduled_at") else None
-    )
+        return jsonify({"error": "Account not found or is inactive"}), 404
     
     try:
+        post = SocialMediaPost(
+            account_id=data["account_id"],
+            content=data["content"],
+            image_prompt=data.get("image_prompt"),
+            hashtags=json.dumps(data.get("hashtags", [])),
+            scheduled_at=datetime.fromisoformat(data["scheduled_at"]) if data.get("scheduled_at") else None
+        )
         db.session.add(post)
         db.session.commit()
         
-        # If image prompt provided, generate image
-        if data.get("image_prompt"):
-            generate_image_for_post(post.id, data["image_prompt"])
+        # If an image prompt is provided, trigger the image generation process
+        if post.image_prompt:
+            # Note: This runs synchronously. For production, consider a background task.
+            generate_image_for_post(post.id, post.image_prompt)
         
         return jsonify({
             "success": True,
             "post": post.to_dict()
-        })
+        }), 201 # Use 201 Created for successful resource creation
+        
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating post: {str(e)}")
-        return jsonify({"error": "Failed to create post"}), 500
+        return jsonify({"error": "An internal error occurred while creating the post"}), 500
 
 @social_media_bp.route("/posts/<int:post_id>/approve", methods=["POST"])
 def approve_post(post_id):
-    """Approve a post for publishing"""
+    """Approve a drafted post for publishing."""
     post = SocialMediaPost.query.get_or_404(post_id)
     
     if post.status != "draft":
@@ -104,15 +100,17 @@ def approve_post(post_id):
         })
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Error approving post: {str(e)}")
+        logging.error(f"Error approving post {post_id}: {str(e)}")
         return jsonify({"error": "Failed to approve post"}), 500
+
+# --- Route for AI Image Generation ---
 
 @social_media_bp.route("/images/generate", methods=["POST"])
 def generate_image():
-    """Generate an AI image from a prompt"""
+    """Generate an AI image from a prompt and store it."""
     data = request.get_json()
     
-    if "prompt" not in data:
+    if not data or "prompt" not in data:
         return jsonify({"error": "Prompt is required"}), 400
     
     prompt = data["prompt"]
@@ -121,10 +119,9 @@ def generate_image():
     model = data.get("model", "stable-diffusion-v1-5")
     provider = data.get("provider", "auto")
     
-    # Create image generation record
     image_gen = AIImageGeneration(
         prompt=prompt,
-        model_used=f"{provider}:{model}",
+        model_used=f"{provider}:{model}", # Initial model name
         status="pending"
     )
     
@@ -132,7 +129,6 @@ def generate_image():
         db.session.add(image_gen)
         db.session.commit()
         
-        # Generate image using AI service
         from src.services.ai_image_service import ai_image_service
         
         start_time = time.time()
@@ -145,56 +141,65 @@ def generate_image():
         )
         generation_time = time.time() - start_time
         
-        # Update image generation record
         image_gen.generation_time = generation_time
         
-        if result["success"]:
-            image_gen.image_url = result["image_url"]
+        if result and result.get("success"):
+            image_gen.image_url = result.get("image_url")
             image_gen.status = "completed"
-        image_gen.model_used = f"{result.get('provider', provider)}:{result.get('model', model)}"
-
+            # This is the line that was fixed
+            image_gen.model_used = f"{result.get('provider', provider)}:{result.get('model', model)}"
         else:
             image_gen.status = "failed"
-            image_gen.error_message = result.get("error", "Unknown error")
+            image_gen.error_message = result.get("error", "Unknown error during generation")
         
         db.session.commit()
         
         return jsonify({
-            "success": result["success"],
-            "image": image_gen.to_dict(),
-            "generation_details": result if result["success"] else None
+            "success": image_gen.status == "completed",
+            "image": image_gen.to_dict()
         })
         
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Error generating image: {str(e)}")
-        return jsonify({"error": "Failed to generate image"}), 500
+        logging.error(f"Critical error in image generation endpoint: {str(e)}")
+        # If image_gen exists, mark it as failed
+        if 'image_gen' in locals() and image_gen.status == "pending":
+            image_gen.status = "failed"
+            image_gen.error_message = "Server exception occurred."
+            db.session.commit()
+        return jsonify({"error": "A critical server error occurred"}), 500
 
-def generate_image_for_post(post_id, prompt, platform="instagram"):
-    """Generate image for a specific post using AI image service"""
+# --- Helper Function ---
+
+def generate_image_for_post(post_id, prompt, platform="instagram", content_type="post"):
+    """
+    Background task to generate an image for a specific post.
+    Logs errors but does not return HTTP responses.
+    """
     try:
         from src.services.ai_image_service import ai_image_service
         
-        # Generate image optimized for the platform
         result = ai_image_service.generate_social_media_image(
             prompt=prompt,
             platform=platform,
             content_type=content_type
         )
         
-        if result["success"]:
-            post = SocialMediaPost.query.get(post_id)
-            if post:
-                post.image_url = result["image_url"]
-                db.session.commit()
-                return result["image_url"]
+        post = SocialMediaPost.query.get(post_id)
+        if not post:
+            logging.error(f"Post with ID {post_id} not found after image generation.")
+            return
+
+        if result and result.get("success"):
+            post.image_url = result.get("image_url")
+            logging.info(f"Successfully generated image for post {post_id}.")
         else:
-            logging.error(f"Failed to generate image for post {post_id}: {result.get("error", "Unknown error")}")
-            return None
-                
+            error_msg = result.get("error", "Unknown error")
+            logging.error(f"Failed to generate image for post {post_id}: {error_msg}")
+        
+        db.session.commit()
+
     except Exception as e:
-        logging.error(f"Error generating image for post {post_id}: {str(e)}")
-        return None
-
-
+        logging.error(f"Exception during image generation for post {post_id}: {str(e)}")
+        db.session.rollback()
 
