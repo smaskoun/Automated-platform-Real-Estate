@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import styles from './App.module.css';
 import axios from 'axios';
-import Dashboard from './components/Dashboard.jsx';
 
-const API_URL = import.meta.env.VITE_API_URL;
+// CORRECTED IMPORT PATH: No './components/' folder
+import Dashboard from './Dashboard.jsx';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://your-backend-app.onrender.com';
 
 function App( ) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,7 +24,7 @@ function App( ) {
         setUser(response.data.user);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed.');
+      setError(err.response?.data?.error || 'Login failed. Please check credentials or server status.');
     }
   };
 
