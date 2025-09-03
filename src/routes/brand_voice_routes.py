@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from src.models.brand_voice import BrandVoice
+from ..models.brand_voice import BrandVoice
 from src.main import db
 import logging
 
