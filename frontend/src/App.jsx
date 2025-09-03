@@ -3,7 +3,7 @@ import styles from './App.module.css';
 import axios from 'axios';
 import Dashboard from './components/Dashboard';
 
-const API_URL = 'https://your-backend-app.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App( ) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
