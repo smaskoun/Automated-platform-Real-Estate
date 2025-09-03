@@ -1,0 +1,8 @@
+# requirements.in
+# These are the direct dependencies of the project.
+
+Flask
+Flask-SQLAlchemy
+flask-cors
+gunicorn
+requests
