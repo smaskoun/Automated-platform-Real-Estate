@@ -151,7 +151,8 @@ def generate_image():
         if result["success"]:
             image_gen.image_url = result["image_url"]
             image_gen.status = "completed"
-            image_gen.model_used = f"{result.get("provider", provider)}:{result.get("model", model)}"
+        image_gen.model_used = f"{result.get('provider', provider)}:{result.get('model', model)}"
+
         else:
             image_gen.status = "failed"
             image_gen.error_message = result.get("error", "Unknown error")
