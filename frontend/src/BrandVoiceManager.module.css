@@ -1,0 +1,110 @@
+.manager {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.loading, .error {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 40px;
+  color: #999;
+}
+.error {
+  color: #ff6b6b;
+}
+
+.formCard, .listCard {
+  background-color: #2d3139;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.formCard h3, .listCard h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.formCard form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.formCard input, .formCard textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #252526;
+  color: #e0e0e0;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.formCard textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.formCard button {
+  align-self: flex-end;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #61dafb;
+  color: #282c34;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.voiceList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.voiceItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #444;
+}
+.voiceItem:last-child {
+  border-bottom: none;
+}
+
+.voiceInfo {
+  flex-grow: 1;
+}
+
+.voiceInfo strong {
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.voiceInfo p {
+  margin: 0;
+  color: #aaa;
+}
+
+.voiceActions {
+  flex-shrink: 0;
+}
+
+.voiceActions button {
+  margin-left: 10px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.deleteButton {
+  background-color: #f44336;
+  color: white;
+}
