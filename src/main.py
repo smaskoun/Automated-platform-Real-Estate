@@ -1,63 +1,57 @@
-# src/main.py
-
-from flask import Flask, jsonify
-from flask_cors import CORS
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import os
 
-# --- Import all blueprints from your route files ---
-# This brings all your feature endpoints into the main application
-from src.routes.user_routes import user_bp
-from src.routes.brand_voice_routes import brand_voice_bp
-from src.routes.social_media import social_media_bp
-from src.routes.ab_testing_routes import ab_testing_bp
-from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
-from src.routes.learning_algorithm_routes import learning_algorithm_bp
-from src.routes.manual_content_routes import manual_content_bp
-from src.routes.seo_routes import seo_bp
-
-# Initialize the database instance
+# Initialize extensions
 db = SQLAlchemy()
 
-# This is the application factory function
 def create_app():
-    """
-    Creates and configures an instance of the Flask application.
-    """
     app = Flask(__name__)
-    CORS(app)  # Enable Cross-Origin Resource Sharing
+    CORS(app)
 
     # --- Database Configuration ---
-    # Using the hardcoded string from your project. For production, this should be an environment variable.
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@host/db'
+    # Use the DATABASE_URL from Render's environment variables
+    # Provide a default for local development if needed
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+        'DATABASE_URL', 'sqlite:///default.db'
+    )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Initialize the database with the app
+    # Initialize the app with the extensions
     db.init_app(app)
 
-    # --- Register All Blueprints ---
-    # This is the crucial step that makes your endpoints live.
-    # Each blueprint is given a URL prefix to organize the API.
+    # --- Import and Register Blueprints ---
+    # Note: These are imported *inside* the function to avoid circular imports
+    from src.routes.user import user_bp
+    from src.routes.brand_voice_routes import brand_voice_bp
+    from src.routes.social_media import social_media_bp
+    from src.routes.seo_routes import seo_bp
+    from src.routes.ab_testing_routes import ab_testing_bp
+    from src.routes.learning_algorithm_routes import learning_algorithm_bp
+    from src.routes.manual_content_routes import manual_content_bp
+    from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
+
     app.register_blueprint(user_bp, url_prefix='/users')
     app.register_blueprint(brand_voice_bp, url_prefix='/brand-voices')
-    app.register_blueprint(social_media_bp) # This blueprint likely has its own prefixes
+    app.register_blueprint(social_media_bp) # No prefix needed as routes are specific
+    app.register_blueprint(seo_bp, url_prefix='/seo')
     app.register_blueprint(ab_testing_bp, url_prefix='/ab-testing')
-    app.register_blueprint(alternative_brand_voice_bp, url_prefix='/alt-brand-voices')
     app.register_blueprint(learning_algorithm_bp, url_prefix='/learning')
     app.register_blueprint(manual_content_bp, url_prefix='/manual-content')
-    app.register_blueprint(seo_bp, url_prefix='/seo')
+    app.register_blueprint(alternative_brand_voice_bp, url_prefix='/alt-brand-voices')
 
-    # A simple root route to confirm the API is running
-    @app.route('/')
-    def index():
-        return jsonify({"status": "API is running", "message": "Welcome to the Automated Real Estate Platform API!"}), 200
+    # --- NEW SECTION TO CREATE DATABASE TABLES ---
+    with app.app_context():
+        print("Checking and creating database tables...")
+        db.create_all()
+        print("Database tables are ready.")
+    # --- END OF NEW SECTION ---
 
     return app
 
-# Create the app instance that Gunicorn will use on Render
+# This part is for Gunicorn to find the app
 app = create_app()
 
-# This block is for local development and won't be used by Gunicorn
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    app.run(debug=True)
