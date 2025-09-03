@@ -1,60 +1,63 @@
-import os
-import sys
-# DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# src/main.py
 
-from flask import Flask, send_from_directory
+from flask import Flask, jsonify
 from flask_cors import CORS
-from src.models.user import db
-from src.models.social_media import SocialMediaAccount, SocialMediaPost, AIImageGeneration, PostingSchedule
-from src.routes.user import user_bp
-from src.routes.social_media import social_media_bp
-from src.routes.seo_routes import seo_bp
+from flask_sqlalchemy import SQLAlchemy
+import os
+
+# --- Import all blueprints from your route files ---
+# This brings all your feature endpoints into the main application
+from src.routes.user_routes import user_bp
 from src.routes.brand_voice_routes import brand_voice_bp
-from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
-from src.routes.manual_content_routes import manual_content_bp
+from src.routes.social_media import social_media_bp
 from src.routes.ab_testing_routes import ab_testing_bp
+from src.routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 from src.routes.learning_algorithm_routes import learning_algorithm_bp
+from src.routes.manual_content_routes import manual_content_bp
+from src.routes.seo_routes import seo_bp
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
+# Initialize the database instance
+db = SQLAlchemy()
 
-# Enable CORS for all routes
-CORS(app, origins="*")
+# This is the application factory function
+def create_app():
+    """
+    Creates and configures an instance of the Flask application.
+    """
+    app = Flask(__name__)
+    CORS(app)  # Enable Cross-Origin Resource Sharing
 
-app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(social_media_bp, url_prefix='/api')
-app.register_blueprint(seo_bp, url_prefix='/api/seo')
-app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voice')
-app.register_blueprint(alternative_brand_voice_bp, url_prefix='/api/alternative-brand-voice')
-app.register_blueprint(manual_content_bp, url_prefix='/api/manual-content')
-app.register_blueprint(ab_testing_bp, url_prefix='/api/ab-testing')
-app.register_blueprint(learning_algorithm_bp, url_prefix='/api/learning')
+    # --- Database Configuration ---
+    # Using the hardcoded string from your project. For production, this should be an environment variable.
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@host/db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# uncomment if you need to use database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(os.path.dirname(__file__), "database", "app.db"))
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["DEBUG"] = False
-db.init_app(app)
-with app.app_context():
-    db.create_all()
+    # Initialize the database with the app
+    db.init_app(app)
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    static_folder_path = app.static_folder
-    if static_folder_path is None:
-            return "Static folder not configured", 404
+    # --- Register All Blueprints ---
+    # This is the crucial step that makes your endpoints live.
+    # Each blueprint is given a URL prefix to organize the API.
+    app.register_blueprint(user_bp, url_prefix='/users')
+    app.register_blueprint(brand_voice_bp, url_prefix='/brand-voices')
+    app.register_blueprint(social_media_bp) # This blueprint likely has its own prefixes
+    app.register_blueprint(ab_testing_bp, url_prefix='/ab-testing')
+    app.register_blueprint(alternative_brand_voice_bp, url_prefix='/alt-brand-voices')
+    app.register_blueprint(learning_algorithm_bp, url_prefix='/learning')
+    app.register_blueprint(manual_content_bp, url_prefix='/manual-content')
+    app.register_blueprint(seo_bp, url_prefix='/seo')
 
-    if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
-        return send_from_directory(static_folder_path, path)
-    else:
-        index_path = os.path.join(static_folder_path, 'index.html')
-        if os.path.exists(index_path):
-            return send_from_directory(static_folder_path, 'index.html')
-        else:
-            return "index.html not found", 404
+    # A simple root route to confirm the API is running
+    @app.route('/')
+    def index():
+        return jsonify({"status": "API is running", "message": "Welcome to the Automated Real Estate Platform API!"}), 200
 
+    return app
 
+# Create the app instance that Gunicorn will use on Render
+app = create_app()
+
+# This block is for local development and won't be used by Gunicorn
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
