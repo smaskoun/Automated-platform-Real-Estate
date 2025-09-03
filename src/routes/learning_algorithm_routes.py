@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from ..services.learning_algorithm_service import learning_algorithm_service
+# CORRECTED IMPORT
+from services.learning_algorithm_service import learning_algorithm_service
 import json
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
@@ -239,7 +240,7 @@ def get_content_optimization():
             optimization_tips.append({
                 'category': 'Content Length',
                 'recommendation': f"Optimal content length is {best_length[0]}",
-                'reason': f"Shows {best_length[1].get('avg_engagement', 0):.1f}% engagement rate",
+                'reason': f"Shows {best_length[1].get('avg_engagement', a):.1f}% engagement rate",
                 'confidence': 'medium'
             })
         
@@ -332,4 +333,3 @@ def export_insights():
         
     except Exception as e:
         return jsonify({'error': f'Failed to export insights: {str(e)}'}), 500
-
