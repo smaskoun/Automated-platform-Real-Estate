@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
-from src.services.manual_content_service import ManualContentService
-from src.services.alternative_brand_voice_service import AlternativeBrandVoiceService
+# CORRECTED IMPORTS
+from services.manual_content_service import ManualContentService
+from services.alternative_brand_voice_service import AlternativeBrandVoiceService
 import json
 import os
 from datetime import datetime
@@ -389,101 +390,88 @@ def create_sample_data():
                 'posted_date': '2024-08-23T16:45:00Z'
             },
             {
-                'text': 'SOLD! 🎉 Another happy family found their perfect home in Tecumseh! This charming 4-bedroom colonial was on the market for just 5 days. The secret? Proper staging, professional photography, and strategic pricing. Thinking of selling your home? Let\'s discuss how to get you the best results in today\'s market. Your success is my priority! #JustSold #TecumsehHomes #RealEstateSuccess #HomeSelling #PropertySold',
-                'platform': 'facebook',
-                'content_type': 'image_with_text',
-                'engagement': {'likes': 89, 'comments': 23, 'shares': 12},
-                'posted_date': '2024-08-22T11:15:00Z'
-            },
-            {
-                'text': 'Weekend Open House Alert! 🏠 Join me this Saturday 2-4 PM for an exclusive viewing of this stunning waterfront property in LaSalle. Features include: ✨ 3 bedrooms, 2.5 baths ✨ Panoramic river views ✨ Updated gourmet kitchen ✨ Private dock access ✨ Beautifully landscaped grounds Don\'t miss this rare opportunity! See you there! #OpenHouse #WaterfrontProperty #LaSalleHomes #RiverView #LuxuryLiving',
-                'platform': 'instagram',
-                'content_type': 'image_with_text',
-                'engagement': {'likes': 78, 'comments': 19, 'shares': 6},
-                'posted_date': '2024-08-21T09:30:00Z'
+                'id': 'comprehensive',
+                'name': 'Comprehensive Test',
+                'description': 'Test multiple elements simultaneously',
+                'variation_types': ['hooks', 'cta_styles', 'emoji_styles'],
+                'recommended_duration': '14 days',
+                'min_audience_size': 5000
             }
         ]
         
-        # Upload sample posts
-        results = {
-            'uploaded': 0,
-            'content_ids': []
-        }
-        
-        for post_data in sample_posts:
-            try:
-                processed_content = content_service.process_content_upload(post_data)
-                content_id = content_service.save_content(processed_content)
-                results['uploaded'] += 1
-                results['content_ids'].append(content_id)
-            except Exception as e:
-                continue
-        
         return jsonify({
             'success': True,
-            'data': results,
-            'message': f'Sample data created: {results["uploaded"]} posts uploaded'
+            'templates': templates
         })
         
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': f'Failed to create sample data: {str(e)}'
-        }), 500
+        return jsonify({'error': f'Failed to retrieve templates: {str(e)}'}), 500
 
-@manual_content_bp.route('/platform-guide', methods=['GET'])
-def get_platform_guide():
-    """Get guide for using the manual content system"""
+@manual_content_bp.route('/performance-metrics', methods=['GET'])
+def get_performance_metrics():
+    """Get available performance metrics for A/B testing"""
     try:
-        guide = {
-            'overview': 'Manual Content Management System - No API Tokens Required!',
-            'features': [
-                'Upload social media posts manually',
-                'Analyze brand voice from your content',
-                'Track engagement metrics',
-                'Search and filter content',
-                'Export data for analysis',
-                'A/B testing without API dependencies'
-            ],
-            'getting_started': [
-                '1. Upload your existing social media posts using the bulk upload feature',
-                '2. Use the brand voice analysis to understand your writing style',
-                '3. Create A/B tests with different content variations',
-                '4. Track performance manually and update engagement data',
-                '5. Use insights to improve future content'
-            ],
-            'upload_formats': {
-                'single_post': {
-                    'text': 'Post content (required)',
-                    'platform': 'instagram, facebook, twitter, linkedin',
-                    'content_type': 'text, image_with_text, video_with_text',
-                    'engagement': {'likes': 0, 'comments': 0, 'shares': 0},
-                    'posted_date': 'ISO date string (optional)'
+        metrics = {
+            'primary_metrics': [
+                {
+                    'id': 'engagement_rate',
+                    'name': 'Engagement Rate',
+                    'description': 'Total engagement divided by reach',
+                    'weight': 'high'
                 },
-                'bulk_upload': {
-                    'content_list': 'Array of post objects',
-                    'note': 'Upload multiple posts at once'
+                {
+                    'id': 'click_through_rate',
+                    'name': 'Click-Through Rate',
+                    'description': 'Clicks divided by impressions',
+                    'weight': 'high'
                 }
-            },
-            'benefits': [
-                'No Facebook API setup required',
-                'Works with any social media platform',
-                'Complete control over your data',
-                'Advanced analytics and insights',
-                'Brand voice training and consistency',
-                'A/B testing capabilities'
+            ],
+            'secondary_metrics': [
+                {
+                    'id': 'likes',
+                    'name': 'Likes',
+                    'description': 'Total number of likes',
+                    'weight': 'medium'
+                },
+                {
+                    'id': 'comments',
+                    'name': 'Comments',
+                    'description': 'Total number of comments',
+                    'weight': 'high'
+                },
+                {
+                    'id': 'shares',
+                    'name': 'Shares',
+                    'description': 'Total number of shares',
+                    'weight': 'very_high'
+                },
+                {
+                    'id': 'saves',
+                    'name': 'Saves',
+                    'description': 'Total number of saves (Instagram)',
+                    'weight': 'high'
+                }
+            ],
+            'reach_metrics': [
+                {
+                    'id': 'reach',
+                    'name': 'Reach',
+                    'description': 'Unique accounts reached',
+                    'weight': 'medium'
+                },
+                {
+                    'id': 'impressions',
+                    'name': 'Impressions',
+                    'description': 'Total number of times content was displayed',
+                    'weight': 'low'
+                }
             ]
         }
         
         return jsonify({
             'success': True,
-            'data': guide,
-            'message': 'Platform guide retrieved successfully'
+            'metrics': metrics
         })
         
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': f'Failed to retrieve guide: {str(e)}'
-        }), 500
-
+        return jsonify({'error': f'Failed to retrieve metrics: {str(e)}'}), 500
