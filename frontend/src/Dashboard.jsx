@@ -1,8 +1,9 @@
 import React from 'react';
 import styles from './Dashboard.module.css';
-import BrandVoiceManager from './BrandVoiceManager'; // We will create this next
 
-// This component will hold the main layout of the logged-in experience
+// CORRECTED IMPORT PATH: No './components/' folder
+import BrandVoiceManager from './BrandVoiceManager.jsx';
+
 function Dashboard({ user, onLogout }) {
   return (
     <div className={styles.dashboard}>
@@ -13,7 +14,6 @@ function Dashboard({ user, onLogout }) {
           <li>Social Media Posts</li>
           <li>SEO Tools</li>
           <li>A/B Testing</li>
-          {/* Add other navigation items here */}
         </ul>
         <div className={styles.userProfile}>
           <span>{user.username}</span>
@@ -25,7 +25,6 @@ function Dashboard({ user, onLogout }) {
           <h1>Brand & Content Generation</h1>
         </header>
         <div className={styles.contentArea}>
-          {/* The BrandVoiceManager component will handle all brand voice logic */}
           <BrandVoiceManager user={user} />
         </div>
       </main>
