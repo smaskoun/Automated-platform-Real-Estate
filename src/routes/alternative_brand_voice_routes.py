@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from src.services.alternative_brand_voice_service import AlternativeBrandVoiceService
+# CORRECTED IMPORT
+from services.alternative_brand_voice_service import AlternativeBrandVoiceService
 import json
 
 alternative_brand_voice_bp = Blueprint('alternative_brand_voice', __name__)
@@ -276,4 +277,3 @@ def get_training_status():
             'success': False,
             'error': f'Failed to get training status: {str(e)}'
         }), 500
-
