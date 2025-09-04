@@ -1,25 +1,26 @@
-from flask_sqlalchemy import SQLAlchemy
+# src/models/social_media.py - CORRECTED VERSION
+
+from . import db  # CORRECTED: Import the shared 'db' object
 from datetime import datetime
 import json
 
-db = SQLAlchemy()
+# REMOVED: The extra 'db = SQLAlchemy()' line is gone.
 
 class SocialMediaAccount(db.Model):
     __tablename__ = 'social_media_accounts'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), nullable=False)  # User identifier
-    platform = db.Column(db.String(50), nullable=False)  # 'facebook' or 'instagram'
-    account_id = db.Column(db.String(100), nullable=False)  # Platform account ID
-    account_name = db.Column(db.String(200), nullable=False)  # Display name
-    access_token = db.Column(db.Text, nullable=False)  # Encrypted access token
-    refresh_token = db.Column(db.Text)  # Refresh token if available
-    token_expires_at = db.Column(db.DateTime)  # Token expiration
+    user_id = db.Column(db.String(100), nullable=False)
+    platform = db.Column(db.String(50), nullable=False)
+    account_id = db.Column(db.String(100), nullable=False)
+    account_name = db.Column(db.String(200), nullable=False)
+    access_token = db.Column(db.Text, nullable=False)
+    refresh_token = db.Column(db.Text)
+    token_expires_at = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     posts = db.relationship('SocialMediaPost', backref='account', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
@@ -37,15 +38,15 @@ class SocialMediaPost(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     account_id = db.Column(db.Integer, db.ForeignKey('social_media_accounts.id'), nullable=False)
-    content = db.Column(db.Text, nullable=False)  # Post text content
-    image_url = db.Column(db.String(500))  # Generated or uploaded image URL
-    image_prompt = db.Column(db.Text)  # AI image generation prompt
-    hashtags = db.Column(db.Text)  # JSON array of hashtags
-    status = db.Column(db.String(50), default='draft')  # draft, approved, scheduled, posted, failed
-    scheduled_at = db.Column(db.DateTime)  # When to post
-    posted_at = db.Column(db.DateTime)  # When actually posted
-    platform_post_id = db.Column(db.String(100))  # ID from social media platform
-    error_message = db.Column(db.Text)  # Error details if posting failed
+    content = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.String(500))
+    image_prompt = db.Column(db.Text)
+    hashtags = db.Column(db.Text)
+    status = db.Column(db.String(50), default='draft')
+    scheduled_at = db.Column(db.DateTime)
+    posted_at = db.Column(db.DateTime)
+    platform_post_id = db.Column(db.String(100))
+    error_message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -70,12 +71,12 @@ class AIImageGeneration(db.Model):
     __tablename__ = 'ai_image_generations'
     
     id = db.Column(db.Integer, primary_key=True)
-    prompt = db.Column(db.Text, nullable=False)  # Image generation prompt
-    image_url = db.Column(db.String(500))  # Generated image URL
-    model_used = db.Column(db.String(100))  # AI model used
-    generation_time = db.Column(db.Float)  # Time taken to generate
-    status = db.Column(db.String(50), default='pending')  # pending, completed, failed
-    error_message = db.Column(db.Text)  # Error details if generation failed
+    prompt = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.String(500))
+    model_used = db.Column(db.String(100))
+    generation_time = db.Column(db.Float)
+    status = db.Column(db.String(50), default='pending')
+    error_message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -95,10 +96,10 @@ class PostingSchedule(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(100), nullable=False)
-    name = db.Column(db.String(200), nullable=False)  # Schedule name
+    name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True)
-    schedule_config = db.Column(db.Text)  # JSON configuration for schedule
+    schedule_config = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -113,4 +114,3 @@ class PostingSchedule(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-
