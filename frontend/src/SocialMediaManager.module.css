@@ -1,1 +1,124 @@
+/* frontend/src/SocialMediaManager.module.css */
+
+.manager {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.loading, .error {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 40px;
+  color: #999;
+}
+.error {
+  color: #ff6b6b;
+}
+
+.formCard, .listCard {
+  background-color: #2d3139;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.formCard h3, .listCard h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.formCard form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.formCard input, .formCard textarea, .formCard select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #252526;
+  color: #e0e0e0;
+  font-size: 16px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.formCard textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.formCard button {
+  align-self: flex-end;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #61dafb;
+  color: #282c34;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.postList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.postItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #444;
+  gap: 20px;
+}
+.postItem:last-child {
+  border-bottom: none;
+}
+
+.postContent {
+  flex-grow: 1;
+}
+
+.postContent p {
+  margin: 0 0 10px 0;
+  white-space: pre-wrap; /* Respects newlines in the content */
+}
+
+.postContent small {
+  color: #aaa;
+  text-transform: capitalize;
+}
+
+.postItem.draft small {
+  color: #f0ad4e;
+}
+.postItem.approved small {
+  color: #5cb85c;
+}
+
+.postActions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+}
+
+.postActions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #5cb85c;
+  color: white;
+}
+
+.deleteButton {
+  background-color: #f44336 !important;
+  color: white;
+}
 
