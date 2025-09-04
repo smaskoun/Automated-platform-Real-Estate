@@ -1,4 +1,4 @@
-// src/BrandVoiceManager.jsx - FINAL CORRECTED VERSION
+// frontend/src/BrandVoiceManager.jsx - NEW VERSION
 
 import React, { useState, useEffect } from 'react';
 import styles from './BrandVoiceManager.module.css';
@@ -13,12 +13,13 @@ function BrandVoiceManager({ user }) {
 
   const [newVoiceName, setNewVoiceName] = useState('');
   const [newVoiceDesc, setNewVoiceDesc] = useState('');
+  // NEW STATE: To hold the content of the example post
+  const [newPostExample, setNewPostExample] = useState('');
 
   const fetchVoices = async () => {
     setIsLoading(true);
     setError('');
     try {
-      // CORRECTED: Added a trailing slash to the URL
       const response = await axios.get(`${API_BASE_URL}/brand-voices/`, {
         params: { user_id: user.id }
       });
@@ -40,36 +41,38 @@ function BrandVoiceManager({ user }) {
   const handleCreateVoice = async (e) => {
     e.preventDefault();
     try {
-      // CORRECTED: Added a trailing slash to the URL
+      // UPDATED: Send the new 'post_example' field to the backend
       await axios.post(`${API_BASE_URL}/brand-voices/`, {
         user_id: user.id,
         name: newVoiceName,
         description: newVoiceDesc,
+        post_example: newPostExample,
       });
+      // Reset all form fields
       setNewVoiceName('');
       setNewVoiceDesc('');
+      setNewPostExample('');
       fetchVoices();
     } catch (err) {
       console.error("Create error:", err);
-      alert("Failed to create brand voice.");
+      alert("Failed to create source content.");
     }
   };
 
   const handleDeleteVoice = async (voiceId) => {
-    if (window.confirm("Are you sure you want to delete this brand voice?")) {
+    if (window.confirm("Are you sure you want to delete this source content?")) {
       try {
-        // CORRECTED: Added a trailing slash to the URL
         await axios.delete(`${API_BASE_URL}/brand-voices/${voiceId}/`);
         fetchVoices();
       } catch (err) {
         console.error("Delete error:", err);
-        alert("Failed to delete brand voice.");
+        alert("Failed to delete source content.");
       }
     }
   };
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading brand voices...</div>;
+    return <div className={styles.loading}>Loading Source Content...</div>;
   }
 
   if (error) {
@@ -79,27 +82,36 @@ function BrandVoiceManager({ user }) {
   return (
     <div className={styles.manager}>
       <div className={styles.formCard}>
-        <h3>Create New Brand Voice</h3>
+        <h3>Add New Source Content</h3>
         <form onSubmit={handleCreateVoice}>
           <input
             type="text"
-            placeholder="Brand Voice Name (e.g., 'Professional & Witty')"
+            placeholder="Content Title (e.g., 'Just Listed - 123 Main St')"
             value={newVoiceName}
             onChange={(e) => setNewVoiceName(e.target.value)}
             required
           />
-          <textarea
-            placeholder="Describe the brand voice... (e.g., 'Uses clear, concise language...')"
+          <input
+            type="text"
+            placeholder="Short Description (e.g., 'Successful post from May 2024')"
             value={newVoiceDesc}
             onChange={(e) => setNewVoiceDesc(e.target.value)}
             required
           />
-          <button type="submit">Create Voice</button>
+          {/* NEW TEXTAREA: For pasting the full post content */}
+          <textarea
+            placeholder="Paste the full content of your successful post here..."
+            value={newPostExample}
+            onChange={(e) => setNewPostExample(e.target.value)}
+            required
+            rows="8"
+          />
+          <button type="submit">Add Content</button>
         </form>
       </div>
 
       <div className={styles.listCard}>
-        <h3>Your Brand Voices</h3>
+        <h3>Your Source Content Library</h3>
         {voices.length > 0 ? (
           <ul className={styles.voiceList}>
             {voices.map((voice) => (
@@ -107,6 +119,8 @@ function BrandVoiceManager({ user }) {
                 <div className={styles.voiceInfo}>
                   <strong>{voice.name}</strong>
                   <p>{voice.description}</p>
+                  {/* UPDATED: Display the example post content */}
+                  <pre className={styles.postExample}>{voice.post_example}</pre>
                 </div>
                 <div className={styles.voiceActions}>
                   <button onClick={() => handleDeleteVoice(voice.id)} className={styles.deleteButton}>Delete</button>
@@ -115,7 +129,7 @@ function BrandVoiceManager({ user }) {
             ))}
           </ul>
         ) : (
-          <p>You haven't created any brand voices yet. Use the form above to get started.</p>
+          <p>You haven't added any source content yet. Use the form above to get started.</p>
         )}
       </div>
     </div>
