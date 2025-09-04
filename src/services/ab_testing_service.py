@@ -1,3 +1,5 @@
+# src/services/ab_testing_service.py - CORRECTED IMPORT
+
 import random
 import json
 import uuid
@@ -6,7 +8,8 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 import statistics
 
-from src.models.ab_test_model import ABTest, ABTestVariation
+# CORRECTED: Changed from 'from src.models...' to a relative import
+from models.ab_test_model import ABTest, ABTestVariation
 
 
 class ABTestingService:
