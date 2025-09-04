@@ -1,4 +1,4 @@
-# src/services/ab_testing_service.py - CORRECTED IMPORT
+# src/services/ab_testing_service.py - FINAL CORRECTED VERSION
 
 import random
 import json
@@ -263,7 +263,7 @@ class ABTestingService:
                 id=f"hashtag_{strategy}",
                 content=base_content['content'],
                 hashtags=variation_hashtags,
-                image_prompt=base_content.get('image_prompt', ''),
+                image__prompt=base_content.get('image_prompt', ''),
                 created_at=datetime.now().isoformat()
             )
             variations.append(variation)
@@ -404,3 +404,7 @@ class ABTestingService:
         """Get a list of all active and completed tests"""
         all_tests = list(self.active_tests.values()) + list(self.completed_tests.values())
         return [asdict(test) for test in all_tests]
+
+# --- THIS IS THE NEW LINE TO ADD ---
+# Create a single, shared instance of the service for the whole application to use
+ab_testing_service = ABTestingService()
