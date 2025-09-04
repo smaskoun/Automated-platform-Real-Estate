@@ -1,76 +1,80 @@
-// src/BrandVoiceManager.jsx - NEW CORRECTED CODE
+// src/BrandVoiceManager.jsx - FINAL VERSION
 
 import React, { useState, useEffect } from 'react';
 import styles from './BrandVoiceManager.module.css';
 import axios from 'axios';
 
-// Use the environment variable we created for the API base URL.
+// Use the environment variable for the API base URL.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function BrandVoiceManager({ user }) {
-  // Renamed 'voices' to 'items' for clarity. This will hold the list of users.
-  const [items, setItems] = useState([]);
+  const [voices, setVoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemDesc, setNewItemDesc] = useState('');
+  const [newVoiceName, setNewVoiceName] = useState('');
+  const [newVoiceDesc, setNewVoiceDesc] = useState('');
 
-  // This function now fetches USERS from your real backend.
-  const fetchItems = async () => {
+  // This function now fetches REAL Brand Voices.
+  const fetchVoices = async () => {
     setIsLoading(true);
     setError('');
     try {
-      // Use the correct endpoint from your backend: /users
-      const response = await axios.get(`${API_BASE_URL}/users`);
-      setItems(response.data || []);
+      // Use the correct endpoint we defined in the new main.py: /api/brand-voices
+      const response = await axios.get(`${API_BASE_URL}/brand-voices`, {
+        // We will pass the mock user's ID to fetch their voices
+        params: { user_id: user.id }
+      });
+      // Assuming the backend returns an object like { "brand_voices": [...] }
+      setVoices(response.data.brand_voices || []);
     } catch (err) {
-      setError('Failed to fetch data. Please check the backend connection and CORS settings.');
+      setError('Failed to fetch brand voices. Please ensure the backend is running and the API is correct.');
       console.error("Fetch error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fetch the data when the component first loads.
+  // Fetch voices when the component loads.
   useEffect(() => {
-    fetchItems();
-  }, []);
+    if (user && user.id) {
+      fetchVoices();
+    }
+  }, [user]);
 
-  // This function now CREATES a new USER.
-  const handleCreateItem = async (e) => {
+  // This function now CREATES a real Brand Voice.
+  const handleCreateVoice = async (e) => {
     e.preventDefault();
     try {
-      // Use the correct endpoint and field names for creating a user.
-      await axios.post(`${API_BASE_URL}/users`, {
-        username: newItemName,
-        email: newItemDesc, // We use the description field as the email for this test.
+      await axios.post(`${API_BASE_URL}/brand-voices`, {
+        user_id: user.id,
+        name: newVoiceName,
+        description: newVoiceDesc,
       });
-      setNewItemName('');
-      setNewItemDesc('');
-      fetchItems(); // Refresh the list to show the new user.
+      setNewVoiceName('');
+      setNewVoiceDesc('');
+      fetchVoices(); // Refresh the list.
     } catch (err) {
       console.error("Create error:", err);
-      alert("Failed to create user. The username or email might already exist.");
+      alert("Failed to create brand voice.");
     }
   };
 
-  // This function now DELETES a USER.
-  const handleDeleteItem = async (itemId) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+  // This function now DELETES a real Brand Voice.
+  const handleDeleteVoice = async (voiceId) => {
+    if (window.confirm("Are you sure you want to delete this brand voice?")) {
       try {
-        // Use the correct endpoint for deleting a user.
-        await axios.delete(`${API_BASE_URL}/users/${itemId}`);
-        fetchItems(); // Refresh the list.
+        await axios.delete(`${API_BASE_URL}/brand-voices/${voiceId}`);
+        fetchVoices(); // Refresh the list.
       } catch (err) {
         console.error("Delete error:", err);
-        alert("Failed to delete user.");
+        alert("Failed to delete brand voice.");
       }
     }
   };
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading data from backend...</div>;
+    return <div className={styles.loading}>Loading brand voices...</div>;
   }
 
   if (error) {
@@ -80,44 +84,43 @@ function BrandVoiceManager({ user }) {
   return (
     <div className={styles.manager}>
       <div className={styles.formCard}>
-        <h3>Create New User</h3>
-        <form onSubmit={handleCreateItem}>
+        <h3>Create New Brand Voice</h3>
+        <form onSubmit={handleCreateVoice}>
           <input
             type="text"
-            placeholder="Username"
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
+            placeholder="Brand Voice Name (e.g., 'Professional & Witty')"
+            value={newVoiceName}
+            onChange={(e) => setNewVoiceName(e.target.value)}
             required
           />
           <textarea
-            placeholder="Email"
-            value={newItemDesc}
-            onChange={(e) => setNewItemDesc(e.target.value)}
+            placeholder="Describe the brand voice... (e.g., 'Uses clear, concise language...')"
+            value={newVoiceDesc}
+            onChange={(e) => setNewVoiceDesc(e.target.value)}
             required
           />
-          <button type="submit">Create User</button>
+          <button type="submit">Create Voice</button>
         </form>
       </div>
 
       <div className={styles.listCard}>
-        <h3>Existing Users</h3>
-        {items.length > 0 ? (
+        <h3>Your Brand Voices</h3>
+        {voices.length > 0 ? (
           <ul className={styles.voiceList}>
-            {items.map((item) => (
-              <li key={item.id} className={styles.voiceItem}>
+            {voices.map((voice) => (
+              <li key={voice.id} className={styles.voiceItem}>
                 <div className={styles.voiceInfo}>
-                  {/* Use the actual fields from your user model: username and email */}
-                  <strong>{item.username}</strong>
-                  <p>{item.email}</p>
+                  <strong>{voice.name}</strong>
+                  <p>{voice.description}</p>
                 </div>
                 <div className={styles.voiceActions}>
-                  <button onClick={() => handleDeleteItem(item.id)} className={styles.deleteButton}>Delete</button>
+                  <button onClick={() => handleDeleteVoice(voice.id)} className={styles.deleteButton}>Delete</button>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p>No users found. Use the form above to create one.</p>
+          <p>You haven't created any brand voices yet. Use the form above to get started.</p>
         )}
       </div>
     </div>
