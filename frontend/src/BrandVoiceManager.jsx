@@ -1,10 +1,9 @@
-// src/BrandVoiceManager.jsx - FINAL VERSION
+// src/BrandVoiceManager.jsx - FINAL CORRECTED VERSION
 
 import React, { useState, useEffect } from 'react';
 import styles from './BrandVoiceManager.module.css';
 import axios from 'axios';
 
-// Use the environment variable for the API base URL.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function BrandVoiceManager({ user }) {
@@ -15,17 +14,14 @@ function BrandVoiceManager({ user }) {
   const [newVoiceName, setNewVoiceName] = useState('');
   const [newVoiceDesc, setNewVoiceDesc] = useState('');
 
-  // This function now fetches REAL Brand Voices.
   const fetchVoices = async () => {
     setIsLoading(true);
     setError('');
     try {
-      // Use the correct endpoint we defined in the new main.py: /api/brand-voices
-      const response = await axios.get(`${API_BASE_URL}/brand-voices`, {
-        // We will pass the mock user's ID to fetch their voices
+      // CORRECTED: Added a trailing slash to the URL
+      const response = await axios.get(`${API_BASE_URL}/brand-voices/`, {
         params: { user_id: user.id }
       });
-      // Assuming the backend returns an object like { "brand_voices": [...] }
       setVoices(response.data.brand_voices || []);
     } catch (err) {
       setError('Failed to fetch brand voices. Please ensure the backend is running and the API is correct.');
@@ -35,37 +31,36 @@ function BrandVoiceManager({ user }) {
     }
   };
 
-  // Fetch voices when the component loads.
   useEffect(() => {
     if (user && user.id) {
       fetchVoices();
     }
   }, [user]);
 
-  // This function now CREATES a real Brand Voice.
   const handleCreateVoice = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE_URL}/brand-voices`, {
+      // CORRECTED: Added a trailing slash to the URL
+      await axios.post(`${API_BASE_URL}/brand-voices/`, {
         user_id: user.id,
         name: newVoiceName,
         description: newVoiceDesc,
       });
       setNewVoiceName('');
       setNewVoiceDesc('');
-      fetchVoices(); // Refresh the list.
+      fetchVoices();
     } catch (err) {
       console.error("Create error:", err);
       alert("Failed to create brand voice.");
     }
   };
 
-  // This function now DELETES a real Brand Voice.
   const handleDeleteVoice = async (voiceId) => {
     if (window.confirm("Are you sure you want to delete this brand voice?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/brand-voices/${voiceId}`);
-        fetchVoices(); // Refresh the list.
+        // CORRECTED: Added a trailing slash to the URL
+        await axios.delete(`${API_BASE_URL}/brand-voices/${voiceId}/`);
+        fetchVoices();
       } catch (err) {
         console.error("Delete error:", err);
         alert("Failed to delete brand voice.");
