@@ -1,24 +1,32 @@
+# src/routes/brand_voice_routes.py - FINAL CORRECTED VERSION
+
 from flask import Blueprint, request, jsonify
+from models import db  # Correct: Import db from the models package
 from models.brand_voice import BrandVoice
-from main import db
 import logging
 
+# The name 'brand_voice_bp' must match what is imported in main.py
 brand_voice_bp = Blueprint('brand_voice_bp', __name__)
 
-@brand_voice_bp.route("/brand-voices", methods=["GET"])
+# CORRECTED ROUTE: Changed from "/brand-voices" to "/"
+# The final URL will be /api/brand-voices/
+@brand_voice_bp.route("/", methods=["GET"])
 def get_brand_voices():
     user_id = request.args.get('user_id')
     if not user_id:
         return jsonify({"error": "user_id query parameter is required"}), 400
     
     try:
+        # Use the User ID to filter voices for that specific user
         voices = BrandVoice.query.filter_by(user_id=int(user_id)).all()
         return jsonify({"brand_voices": [v.to_dict() for v in voices]})
     except Exception as e:
         logging.error(f"Error fetching brand voices for user_id {user_id}: {str(e)}")
         return jsonify({"error": "Failed to fetch brand voices due to an internal error."}), 500
 
-@brand_voice_bp.route("/brand-voices", methods=["POST"])
+# CORRECTED ROUTE: Changed from "/brand-voices" to "/"
+# The final URL will be /api/brand-voices/
+@brand_voice_bp.route("/", methods=["POST"])
 def create_brand_voice():
     data = request.get_json()
     if not data or 'name' not in data or 'description' not in data or 'user_id' not in data:
@@ -39,7 +47,9 @@ def create_brand_voice():
         logging.error(f"Error creating brand voice: {str(e)}")
         return jsonify({"error": "Failed to create brand voice."}), 500
 
-@brand_voice_bp.route("/brand-voices/<int:voice_id>", methods=["DELETE"])
+# CORRECTED ROUTE: Changed from "/brand-voices/<int:voice_id>" to "/<int:voice_id>"
+# The final URL will be /api/brand-voices/<id>
+@brand_voice_bp.route("/<int:voice_id>", methods=["DELETE"])
 def delete_brand_voice(voice_id):
     try:
         voice = BrandVoice.query.get_or_404(voice_id)
@@ -52,11 +62,10 @@ def delete_brand_voice(voice_id):
         logging.error(f"Error deleting brand voice {voice_id}: {str(e)}")
         return jsonify({"error": "Failed to delete brand voice."}), 500
 
-# Placeholder for future AI content generation feature
-@brand_voice_bp.route("/brand-voices/<int:voice_id>/generate", methods=["POST"])
+# CORRECTED ROUTE: Changed from "/brand-voices/<int:voice_id>/generate" to "/<int:voice_id>/generate"
+# The final URL will be /api/brand-voices/<id>/generate
+@brand_voice_bp.route("/<int:voice_id>/generate", methods=["POST"])
 def generate_content_from_voice(voice_id):
-    # This is where the logic to call an AI service would go.
-    # For now, it returns a placeholder.
     data = request.get_json()
     topic = data.get("topic", "a relevant topic")
     return jsonify({
