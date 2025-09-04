@@ -1,14 +1,15 @@
+# src/routes/social_media.py - CORRECTED VERSION
+
 from flask import Blueprint, request, jsonify
-from models.social_media import db, SocialMediaAccount, SocialMediaPost, AIImageGeneration
-# Assuming you have an ai_image_service, otherwise this will need adjustment
-# from services.ai_image_service import ai_image_service 
+from models import db  # Corrected: Import db from the models package
+from models.social_media import SocialMediaAccount, SocialMediaPost, AIImageGeneration
 import json
 from datetime import datetime
 import logging
-import time
 
 social_media_bp = Blueprint("social_media", __name__)
 
+# This route will be at /api/social-media/social-accounts
 @social_media_bp.route("/social-accounts", methods=["GET"])
 def get_accounts():
     user_id = request.args.get("user_id")
@@ -17,6 +18,7 @@ def get_accounts():
     accounts = SocialMediaAccount.query.filter_by(user_id=user_id, is_active=True).all()
     return jsonify({"accounts": [account.to_dict() for account in accounts]})
 
+# This route will be at /api/social-media/posts
 @social_media_bp.route("/posts", methods=["GET"])
 def get_posts():
     user_id = request.args.get("user_id")
@@ -32,6 +34,7 @@ def get_posts():
     posts = query.order_by(SocialMediaPost.created_at.desc()).all()
     return jsonify({"posts": [post.to_dict() for post in posts]})
 
+# This route will be at /api/social-media/posts
 @social_media_bp.route("/posts", methods=["POST"])
 def create_post():
     data = request.get_json()
@@ -60,6 +63,7 @@ def create_post():
         logging.error(f"Error creating post: {str(e)}")
         return jsonify({"error": "Failed to create post"}), 500
 
+# This route will be at /api/social-media/posts/<id>/approve
 @social_media_bp.route("/posts/<int:post_id>/approve", methods=["POST"])
 def approve_post(post_id):
     post = SocialMediaPost.query.get_or_404(post_id)
@@ -76,13 +80,13 @@ def approve_post(post_id):
         logging.error(f"Error approving post: {str(e)}")
         return jsonify({"error": "Failed to approve post"}), 500
 
+# This route will be at /api/social-media/images/generate
 @social_media_bp.route("/images/generate", methods=["POST"])
 def generate_image():
-    # This is a placeholder as the AI service might not be fully configured
     data = request.get_json()
     if "prompt" not in data:
         return jsonify({"error": "Prompt is required"}), 400
     return jsonify({
         "message": "Image generation not fully implemented.",
         "image_url": "https://via.placeholder.com/1080" # Placeholder image
-    } ), 501
+    }  ), 501
