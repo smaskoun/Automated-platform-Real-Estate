@@ -1,4 +1,4 @@
-// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT
+// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT (Final Version with UI Fix)
 
 import React, { useState, useEffect } from 'react';
 import styles from './SocialMediaManager.module.css';
@@ -9,9 +9,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 function SocialMediaManager({ user }) {
   const [posts, setPosts] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [brandVoices, setBrandVoices] = useState([]); // State for Brand Voices
+  const [brandVoices, setBrandVoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false); // State for AI generation
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
 
   // Form state
@@ -24,7 +24,6 @@ function SocialMediaManager({ user }) {
   const [topic, setTopic] = useState('');
   const [selectedBrandVoice, setSelectedBrandVoice] = useState('');
 
-  // Function to fetch all necessary data
   const fetchData = async () => {
     setIsLoading(true);
     setError('');
@@ -32,7 +31,7 @@ function SocialMediaManager({ user }) {
       const [accountsRes, postsRes, brandVoicesRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/social-media/social-accounts`, { params: { user_id: user.id } }),
         axios.get(`${API_BASE_URL}/social-media/posts`, { params: { user_id: user.id } }),
-        axios.get(`${API_BASE_URL}/brand-voices/`, { params: { user_id: user.id } }) // Fetch Brand Voices
+        axios.get(`${API_BASE_URL}/brand-voices/`, { params: { user_id: user.id } })
       ]);
       
       setAccounts(accountsRes.data.accounts || []);
@@ -60,7 +59,6 @@ function SocialMediaManager({ user }) {
     }
   }, [user]);
 
-  // --- NEW: Handle AI Content Generation ---
   const handleGenerateContent = async () => {
     if (!topic || !selectedBrandVoice) {
       alert("Please provide a topic and select a brand voice.");
@@ -75,7 +73,6 @@ function SocialMediaManager({ user }) {
         brand_voice_id: selectedBrandVoice,
       });
       
-      // Populate content and hashtags with AI response
       setContent(response.data.content || '');
       setHashtags(response.data.hashtags || []);
 
@@ -87,11 +84,11 @@ function SocialMediaManager({ user }) {
     }
   };
 
-  // Handle form submission for a new post
+  // --- MODIFIED: This function now saves the generated post ---
   const handleCreatePost = async (e) => {
     e.preventDefault();
-    if (!selectedAccount) {
-      alert("Please select a social media account.");
+    if (!selectedAccount || !content) {
+      alert("Please select an account and ensure there is content to post.");
       return;
     }
     try {
@@ -99,17 +96,21 @@ function SocialMediaManager({ user }) {
         account_id: selectedAccount,
         content: content,
         image_prompt: imagePrompt,
-        hashtags: hashtags, // Use the hashtags from state
+        hashtags: hashtags, // Send the array of hashtags
+        user_id: user.id, // Pass user_id
+        status: 'draft' // Set initial status
       });
+      
       // Reset form and refresh data
+      alert("Post created successfully as a draft!");
       setContent('');
       setImagePrompt('');
       setTopic('');
       setHashtags([]);
-      fetchData();
+      fetchData(); // Refresh the list of posts
     } catch (err) {
       console.error("Create post error:", err);
-      alert("Failed to create post.");
+      alert("Failed to create the post.");
     }
   };
 
@@ -117,16 +118,11 @@ function SocialMediaManager({ user }) {
     return <div className={styles.loading}>Loading social media dashboard...</div>;
   }
 
-  if (error) {
-    return <div className={styles.error}>{error}</div>;
-  }
-
   return (
     <div className={styles.manager}>
       <div className={styles.formCard}>
         <h3>Create New Social Media Post</h3>
         
-        {/* --- AI Generation Section --- */}
         <div className={styles.aiSection}>
           <h4>✨ AI Content Generator</h4>
           <input
@@ -145,8 +141,9 @@ function SocialMediaManager({ user }) {
             {isGenerating ? 'Generating...' : 'Generate with AI'}
           </button>
         </div>
+        
+        {error && <div className={styles.error}>{error}</div>}
 
-        {/* --- Post Creation Form --- */}
         <form onSubmit={handleCreatePost}>
           <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} required>
             <option value="" disabled>Select an Account to Post To</option>
@@ -165,11 +162,20 @@ function SocialMediaManager({ user }) {
             type="text"
             placeholder="Describe the image you want (e.g., 'modern kitchen')"
             value={imagePrompt}
-            onChange={(e) => setImagePrompt(e.g.target.value)}
+            onChange={(e) => setImagePrompt(e.target.value)}
           />
-          <div className={styles.hashtags}>
-            {hashtags.map((tag, index) => <span key={index} className={styles.tag}>{tag}</span>)}
+          
+          {/* --- NEW: Hashtag container --- */}
+          <div className={styles.hashtagContainer}>
+            {hashtags.length > 0 ? (
+              hashtags.map((tag, index) => (
+                <span key={index} className={styles.hashtagItem}>{tag}</span>
+              ))
+            ) : (
+              <p className={styles.noHashtags}>Hashtags will appear here...</p>
+            )}
           </div>
+
           <button type="submit">Create & Schedule Post</button>
         </form>
       </div>
@@ -182,11 +188,7 @@ function SocialMediaManager({ user }) {
               <li key={post.id} className={`${styles.postItem} ${styles[post.status]}`}>
                 <div className={styles.postContent}>
                   <p>{post.content}</p>
-                  <small>Status: {post.status}</small>
-                </div>
-                <div className={styles.postActions}>
-                  <button>Approve</button>
-                  <button className={styles.deleteButton}>Delete</button>
+                  <small>Status: {post.status} | Account: {post.account_name}</small>
                 </div>
               </li>
             ))}
