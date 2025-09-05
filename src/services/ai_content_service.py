@@ -1,4 +1,4 @@
-# src/services/ai_content_service.py - FINAL VERSION (Location-Aware, GPT-4)
+# src/services/ai_content_service.py - FINAL VERSION (Location, GPT-4, Image Prompt)
 
 import os
 import json
@@ -20,13 +20,13 @@ class AIContentService:
 
         try:
             system_prompt = """
-            You are a world-class social media strategist for the real estate industry, specializing in the Windsor-Essex, Ontario, Canada market.
-            Your goal is to create a viral-worthy post that maximizes engagement and follows SEO best practices for this specific local area.
-            You must generate a JSON object with two keys: "content" and "hashtags".
+            You are a world-class social media strategist and creative director for the real estate industry, specializing in the Windsor-Essex, Ontario, Canada market.
+            Your goal is to create a complete social media package that maximizes engagement.
+            You must generate a JSON object with three keys: "content", "hashtags", and "image_prompt".
             """
 
             user_prompt = f"""
-            Generate a social media post using these instructions.
+            Generate a social media post package using these instructions.
 
             1.  **Primary Topic:**
                 "{topic}"
@@ -45,14 +45,13 @@ class AIContentService:
                 - **Engagement Tips:** {performance_insights.get('engagement_optimization_tips', 'Focus on a clear call-to-action.')}
                 - **Hashtags:** Your generated hashtags should be inspired by this list of historically effective tags and must be relevant to Windsor-Essex: {performance_insights.get('recommended_hashtags', '["#windsorrealestate", "#yqg", "#essexcounty"]')}
 
-            5.  **Output Requirements:**
-                - The final output must be a single JSON object.
-                - The "content" field should contain the full post text.
-                - The "hashtags" field should contain a list of 7-10 highly relevant local hashtags (e.g., #yqg, #windsorontario, #lasalleon, #essexcounty).
+            5.  **Output Requirements (JSON Object):**
+                - "content": The full post text, ready to be published.
+                - "hashtags": A list of 7-10 highly relevant local hashtags.
+                - "image_prompt": A detailed, descriptive prompt for an AI image generator (like Midjourney or DALL-E) to create a visually stunning and relevant image for this post. The prompt should be creative and evocative. Example: "Photorealistic image of a luxurious, modern kitchen with marble countertops and sunlight streaming through large windows, overlooking a lush green backyard in a suburban Ontario home, golden hour lighting."
             """
 
             response = openai.chat.completions.create(
-                # --- MODEL UPGRADED TO GPT-4 TURBO ---
                 model="gpt-4-turbo",
                 response_format={"type": "json_object"},
                 messages=[
