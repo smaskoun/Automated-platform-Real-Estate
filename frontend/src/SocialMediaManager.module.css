@@ -1,8 +1,9 @@
-/* frontend/src/SocialMediaManager.module.css */
+/* frontend/src/SocialMediaManager.module.css - FULL REPLACEMENT */
 
 .manager {
   max-width: 900px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .loading, .error {
@@ -13,6 +14,11 @@
 }
 .error {
   color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  border: 1px solid #ff6b6b;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
 }
 
 .formCard, .listCard {
@@ -33,14 +39,48 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  margin-top: 20px; /* Add space below AI section */
 }
+
+/* --- NEW: AI Generator Section Styles --- */
+.aiSection {
+  background-color: #252526;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.aiSection h4 {
+  margin: 0;
+  color: #61dafb;
+}
+.aiSection button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #61dafb;
+  color: #282c34;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.aiSection button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+.aiSection button:hover:not(:disabled) {
+  background-color: #88eaff;
+}
+
 
 .formCard input, .formCard textarea, .formCard select {
   width: 100%;
   padding: 12px;
   border-radius: 5px;
   border: 1px solid #555;
-  background-color: #252526;
+  background-color: #3a3f47;
   color: #e0e0e0;
   font-size: 16px;
   box-sizing: border-box;
@@ -52,16 +92,42 @@
   resize: vertical;
 }
 
-.formCard button {
+.formCard button[type="submit"] {
   align-self: flex-end;
-  padding: 10px 20px;
+  padding: 12px 25px;
   border: none;
   border-radius: 5px;
-  background-color: #61dafb;
-  color: #282c34;
+  background-color: #5cb85c;
+  color: white;
   font-weight: bold;
   cursor: pointer;
+  font-size: 16px;
 }
+
+/* --- NEW: Hashtag Display Styles --- */
+.hashtagContainer {
+  display: flex;
+  flex-wrap: wrap; /* This is the key property */
+  gap: 8px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #252526;
+  min-height: 40px;
+}
+.hashtagItem {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.noHashtags {
+  color: #888;
+  font-style: italic;
+  margin: auto 0;
+}
+
 
 .postList {
   list-style: none;
@@ -87,7 +153,7 @@
 
 .postContent p {
   margin: 0 0 10px 0;
-  white-space: pre-wrap; /* Respects newlines in the content */
+  white-space: pre-wrap;
 }
 
 .postContent small {
@@ -121,4 +187,3 @@
   background-color: #f44336 !important;
   color: white;
 }
-
