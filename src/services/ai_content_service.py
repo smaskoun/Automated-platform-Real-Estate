@@ -1,4 +1,4 @@
-# src/services/ai_content_service.py
+# src/services/ai_content_service.py - FULL REPLACEMENT
 
 import os
 import json
@@ -47,7 +47,8 @@ class AIContentService:
             """
 
             response = openai.chat.completions.create(
-                model="gpt-4-turbo",
+                # --- THIS IS THE ONLY LINE THAT HAS CHANGED ---
+                model="gpt-3.5-turbo",
                 response_format={"type": "json_object"},
                 messages=[
                     {"role": "system", "content": system_prompt},
