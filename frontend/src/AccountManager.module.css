@@ -1,0 +1,83 @@
+/* frontend/src/components/AccountManager.module.css (NEW FILE) */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card {
+  background-color: #2d3139;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.card h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.form {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.form input, .form select {
+  flex-grow: 1;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #3a3f47;
+  color: #e0e0e0;
+  font-size: 16px;
+}
+
+.form button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  background-color: #61dafb;
+  color: #282c34;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.accountList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.accountList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #444;
+}
+
+.accountList li:last-child {
+  border-bottom: none;
+}
+
+.platform {
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Platform-specific colors */
+.facebook { background-color: #1877F2; }
+.instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+.googlebusinessprofile { background-color: #4285F4; }
+
+.error {
+  color: #ff6b6b;
+}
