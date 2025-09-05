@@ -1,4 +1,4 @@
-# src/services/ai_content_service.py - FULL REPLACEMENT
+# src/services/ai_content_service.py - FINAL VERSION (Location-Aware, GPT-4)
 
 import os
 import json
@@ -20,35 +20,40 @@ class AIContentService:
 
         try:
             system_prompt = """
-            You are a world-class social media strategist for the real estate industry. Your goal is to create a viral-worthy post that maximizes engagement and follows SEO best practices. You must generate a JSON object with two keys: "content" and "hashtags".
+            You are a world-class social media strategist for the real estate industry, specializing in the Windsor-Essex, Ontario, Canada market.
+            Your goal is to create a viral-worthy post that maximizes engagement and follows SEO best practices for this specific local area.
+            You must generate a JSON object with two keys: "content" and "hashtags".
             """
 
             user_prompt = f"""
-            Generate a social media post using these instructions:
+            Generate a social media post using these instructions.
 
             1.  **Primary Topic:**
                 "{topic}"
 
-            2.  **Tone and Style Guide (Strictly follow this):**
+            2.  **Target Market:**
+                Windsor-Essex, Ontario, Canada. All content, landmarks, and hashtags must be relevant to this area.
+
+            3.  **Tone and Style Guide (Strictly follow this):**
                 Emulate the tone, voice, and structure of this example:
                 --- EXAMPLE START ---
                 {brand_voice_example}
                 --- EXAMPLE END ---
 
-            3.  **Performance Optimization Rules (Apply these insights):**
+            4.  **Performance Optimization Rules (Apply these insights):**
                 - **Content Style:** {performance_insights.get('content_style_suggestions', 'General best practices apply.')}
                 - **Engagement Tips:** {performance_insights.get('engagement_optimization_tips', 'Focus on a clear call-to-action.')}
-                - **Hashtags:** Your generated hashtags should be inspired by this list of historically effective tags: {performance_insights.get('recommended_hashtags', '["#realestate", "#property", "#home"]')}
+                - **Hashtags:** Your generated hashtags should be inspired by this list of historically effective tags and must be relevant to Windsor-Essex: {performance_insights.get('recommended_hashtags', '["#windsorrealestate", "#yqg", "#essexcounty"]')}
 
-            4.  **Output Requirements:**
+            5.  **Output Requirements:**
                 - The final output must be a single JSON object.
                 - The "content" field should contain the full post text.
-                - The "hashtags" field should contain a list of 7-10 highly relevant hashtags.
+                - The "hashtags" field should contain a list of 7-10 highly relevant local hashtags (e.g., #yqg, #windsorontario, #lasalleon, #essexcounty).
             """
 
             response = openai.chat.completions.create(
-                # --- THIS IS THE ONLY LINE THAT HAS CHANGED ---
-                model="gpt-3.5-turbo",
+                # --- MODEL UPGRADED TO GPT-4 TURBO ---
+                model="gpt-4-turbo",
                 response_format={"type": "json_object"},
                 messages=[
                     {"role": "system", "content": system_prompt},
