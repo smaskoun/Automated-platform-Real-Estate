@@ -1,4 +1,4 @@
-// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT (Final Version with UI Fix)
+// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT (With AI Image Prompt)
 
 import React, { useState, useEffect } from 'react';
 import styles from './SocialMediaManager.module.css';
@@ -17,8 +17,8 @@ function SocialMediaManager({ user }) {
   // Form state
   const [selectedAccount, setSelectedAccount] = useState('');
   const [content, setContent] = useState('');
-  const [imagePrompt, setImagePrompt] = useState('');
-  const [hashtags, setHashtags] = useState([]); // State for hashtags
+  const [imagePrompt, setImagePrompt] = useState(''); // This will now be set by the AI
+  const [hashtags, setHashtags] = useState([]);
 
   // AI Generation state
   const [topic, setTopic] = useState('');
@@ -73,8 +73,11 @@ function SocialMediaManager({ user }) {
         brand_voice_id: selectedBrandVoice,
       });
       
+      // --- THIS IS THE MODIFIED PART ---
+      // Populate all three fields from the AI response
       setContent(response.data.content || '');
       setHashtags(response.data.hashtags || []);
+      setImagePrompt(response.data.image_prompt || ''); // Set the image prompt
 
     } catch (err) {
       setError('AI content generation failed.');
@@ -84,7 +87,6 @@ function SocialMediaManager({ user }) {
     }
   };
 
-  // --- MODIFIED: This function now saves the generated post ---
   const handleCreatePost = async (e) => {
     e.preventDefault();
     if (!selectedAccount || !content) {
@@ -96,18 +98,17 @@ function SocialMediaManager({ user }) {
         account_id: selectedAccount,
         content: content,
         image_prompt: imagePrompt,
-        hashtags: hashtags, // Send the array of hashtags
-        user_id: user.id, // Pass user_id
-        status: 'draft' // Set initial status
+        hashtags: hashtags,
+        user_id: user.id,
+        status: 'draft'
       });
       
-      // Reset form and refresh data
       alert("Post created successfully as a draft!");
       setContent('');
       setImagePrompt('');
       setTopic('');
       setHashtags([]);
-      fetchData(); // Refresh the list of posts
+      fetchData();
     } catch (err) {
       console.error("Create post error:", err);
       alert("Failed to create the post.");
@@ -158,14 +159,14 @@ function SocialMediaManager({ user }) {
             required
             rows={8}
           />
+          {/* This input is now controlled by the AI */}
           <input
             type="text"
-            placeholder="Describe the image you want (e.g., 'modern kitchen')"
+            placeholder="AI-generated image prompt will appear here..."
             value={imagePrompt}
             onChange={(e) => setImagePrompt(e.target.value)}
           />
           
-          {/* --- NEW: Hashtag container --- */}
           <div className={styles.hashtagContainer}>
             {hashtags.length > 0 ? (
               hashtags.map((tag, index) => (
