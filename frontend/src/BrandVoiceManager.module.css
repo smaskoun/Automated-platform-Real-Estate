@@ -1,4 +1,4 @@
-/* frontend/src/BrandVoiceManager.module.css - FINAL LAYOUT FIX */
+/* frontend/src/BrandVoiceManager.module.css - FINAL LAYOUT FIX V2 */
 
 .manager {
   max-width: 900px;
@@ -16,25 +16,37 @@
   color: #ff6b6b;
 }
 
-.card {
+.formCard, .listCard {
   background-color: #2d3139;
   padding: 25px;
   border-radius: 8px;
   margin-bottom: 30px;
 }
 
-.card h3 {
+.formCard h3, .listCard h3 {
   margin-top: 0;
   border-bottom: 1px solid #444;
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
 
-/* --- THIS IS THE CORRECTED FORM STYLE --- */
+/* --- NEW STYLES FOR THE CORRECTED FORM STRUCTURE --- */
 .form {
   display: flex;
-  flex-direction: column; /* Stack elements vertically */
-  gap: 15px;             /* Add space between form elements */
+  flex-direction: column;
+  gap: 20px; /* Increased gap for better spacing */
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Space between label and input */
+}
+
+.formGroup label {
+  font-weight: bold;
+  color: #ccc;
+  font-size: 14px;
 }
 
 .form input, .form textarea {
@@ -54,8 +66,8 @@
   resize: vertical;
 }
 
-.form button {
-  align-self: flex-end; /* Keep button to the right */
+.submitButton {
+  align-self: flex-end;
   padding: 12px 25px;
   border: none;
   border-radius: 5px;
@@ -64,7 +76,10 @@
   font-weight: bold;
   cursor: pointer;
   font-size: 16px;
+  margin-top: 10px; /* Add some space above the button */
 }
+
+/* --- Styles for the library list below --- */
 
 .voiceList {
   list-style: none;
