@@ -1,110 +1,98 @@
-.manager {
+/* frontend/src/BrandVoiceManager.module.css - FULL REPLACEMENT */
+
+.container {
   max-width: 900px;
   margin: 0 auto;
+  padding: 20px;
 }
 
-.loading, .error {
-  text-align: center;
-  font-size: 1.2rem;
-  padding: 40px;
-  color: #999;
-}
-.error {
-  color: #ff6b6b;
-}
-
-.formCard, .listCard {
+.card {
   background-color: #2d3139;
   padding: 25px;
   border-radius: 8px;
   margin-bottom: 30px;
 }
 
-.formCard h3, .listCard h3 {
+.card h3 {
   margin-top: 0;
   border-bottom: 1px solid #444;
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
 
-.formCard form {
+.form {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.formCard input, .formCard textarea {
+.form input, .form textarea {
   width: 100%;
   padding: 12px;
   border-radius: 5px;
   border: 1px solid #555;
-  background-color: #252526;
+  background-color: #3a3f47;
   color: #e0e0e0;
   font-size: 16px;
   box-sizing: border-box;
+  font-family: inherit;
 }
 
-.formCard textarea {
-  min-height: 100px;
+.form textarea {
+  min-height: 150px;
   resize: vertical;
 }
 
-.formCard button {
+.form button {
   align-self: flex-end;
-  padding: 10px 20px;
+  padding: 12px 25px;
   border: none;
   border-radius: 5px;
   background-color: #61dafb;
   color: #282c34;
   font-weight: bold;
   cursor: pointer;
+  font-size: 16px;
 }
 
-.voiceList {
+.libraryList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.voiceItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.libraryItem {
   padding: 20px;
   border-bottom: 1px solid #444;
+  position: relative;
 }
-.voiceItem:last-child {
+
+.libraryItem:last-child {
   border-bottom: none;
 }
 
-.voiceInfo {
-  flex-grow: 1;
+.libraryItem h4 {
+  margin: 0 0 5px 0;
+  color: #61dafb;
 }
 
-.voiceInfo strong {
-  font-size: 1.1rem;
-  display: block;
-  margin-bottom: 5px;
-}
-
-.voiceInfo p {
-  margin: 0;
-  color: #aaa;
-}
-
-.voiceActions {
-  flex-shrink: 0;
-}
-
-.voiceActions button {
-  margin-left: 10px;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.libraryItem p {
+  margin: 0 0 10px 0;
+  color: #ccc;
+  line-height: 1.6;
+  /* --- THIS IS THE FIX --- */
+  word-wrap: break-word; /* Ensures long text without spaces wraps */
+  white-space: pre-wrap; /* Respects newlines and wraps text */
 }
 
 .deleteButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   background-color: #f44336;
   color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
 }
