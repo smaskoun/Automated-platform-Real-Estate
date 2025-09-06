@@ -1,4 +1,4 @@
-# src/main.py - FULL REPLACEMENT (with DB Reset Logic)
+# src/main.py - FINAL, SAFE VERSION
 
 from flask import Flask
 from flask_cors import CORS
@@ -19,15 +19,11 @@ def create_app():
     db.init_app(app)
     CORS(app)
 
-    # --- Database Reset and Creation Logic ---
+    # --- Database Creation Logic (Reset code has been removed) ---
     with app.app_context():
-        # This will drop all existing tables and recreate them based on your models.
-        # It's safe for development but be careful in production.
-        print("Dropping all database tables...")
-        db.drop_all()
-        print("Creating all database tables...")
+        # This will now only create tables if they don't already exist.
+        # It will NOT delete any of your existing data.
         db.create_all()
-        print("Database tables created successfully.")
 
     # Register blueprints
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
