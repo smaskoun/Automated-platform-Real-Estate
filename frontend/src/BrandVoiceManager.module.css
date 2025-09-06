@@ -1,4 +1,4 @@
-/* frontend/src/BrandVoiceManager.module.css - FULL REPLACEMENT (Corrected) */
+/* frontend/src/BrandVoiceManager.module.css - FINAL LAYOUT FIX */
 
 .manager {
   max-width: 900px;
@@ -16,24 +16,25 @@
   color: #ff6b6b;
 }
 
-.formCard, .listCard {
+.card {
   background-color: #2d3139;
   padding: 25px;
   border-radius: 8px;
   margin-bottom: 30px;
 }
 
-.formCard h3, .listCard h3 {
+.card h3 {
   margin-top: 0;
   border-bottom: 1px solid #444;
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
 
+/* --- THIS IS THE CORRECTED FORM STYLE --- */
 .form {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  flex-direction: column; /* Stack elements vertically */
+  gap: 15px;             /* Add space between form elements */
 }
 
 .form input, .form textarea {
@@ -54,7 +55,7 @@
 }
 
 .form button {
-  align-self: flex-end;
+  align-self: flex-end; /* Keep button to the right */
   padding: 12px 25px;
   border: none;
   border-radius: 5px;
@@ -111,18 +112,15 @@
   cursor: pointer;
 }
 
-/* --- THIS IS THE CORRECTED FIX --- */
 .postExample {
   background-color: #252526;
   padding: 15px;
   border-radius: 5px;
   color: #e0e0e0;
-  font-family: inherit; /* Use the same font as the rest of the app */
+  font-family: inherit;
   font-size: 15px;
   line-height: 1.6;
-  
-  /* These properties override the <pre> tag's default behavior */
-  white-space: pre-wrap;       /* Allows text to wrap */
-  word-wrap: break-word;       /* Breaks long words or hashtags */
-  overflow-wrap: break-word;   /* Modern equivalent for word-wrap */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
