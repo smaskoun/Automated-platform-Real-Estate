@@ -1,4 +1,4 @@
-// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT (With AI Image Prompt)
+// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT
 
 import React, { useState, useEffect } from 'react';
 import styles from './SocialMediaManager.module.css';
@@ -17,7 +17,7 @@ function SocialMediaManager({ user }) {
   // Form state
   const [selectedAccount, setSelectedAccount] = useState('');
   const [content, setContent] = useState('');
-  const [imagePrompt, setImagePrompt] = useState(''); // This will now be set by the AI
+  const [imagePrompt, setImagePrompt] = useState('');
   const [hashtags, setHashtags] = useState([]);
 
   // AI Generation state
@@ -73,11 +73,9 @@ function SocialMediaManager({ user }) {
         brand_voice_id: selectedBrandVoice,
       });
       
-      // --- THIS IS THE MODIFIED PART ---
-      // Populate all three fields from the AI response
       setContent(response.data.content || '');
       setHashtags(response.data.hashtags || []);
-      setImagePrompt(response.data.image_prompt || ''); // Set the image prompt
+      setImagePrompt(response.data.image_prompt || '');
 
     } catch (err) {
       setError('AI content generation failed.');
@@ -159,7 +157,6 @@ function SocialMediaManager({ user }) {
             required
             rows={8}
           />
-          {/* This input is now controlled by the AI */}
           <input
             type="text"
             placeholder="AI-generated image prompt will appear here..."
@@ -189,6 +186,14 @@ function SocialMediaManager({ user }) {
               <li key={post.id} className={`${styles.postItem} ${styles[post.status]}`}>
                 <div className={styles.postContent}>
                   <p>{post.content}</p>
+                  {/* --- THIS IS THE FIX --- */}
+                  {post.hashtags && post.hashtags.length > 0 && (
+                    <div className={styles.savedHashtagContainer}>
+                      {post.hashtags.map((tag, index) => (
+                        <span key={index} className={styles.savedHashtagItem}>{tag}</span>
+                      ))}
+                    </div>
+                  )}
                   <small>Status: {post.status} | Account: {post.account_name}</small>
                 </div>
               </li>
