@@ -1,4 +1,4 @@
-/* frontend/src/components/AccountManager.module.css (NEW FILE) */
+/* frontend/src/components/AccountManager.module.css - FULL REPLACEMENT */
 
 .container {
   max-width: 900px;
@@ -65,6 +65,12 @@
   border-bottom: none;
 }
 
+.accountInfo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 .platform {
   padding: 5px 12px;
   border-radius: 15px;
@@ -73,11 +79,96 @@
   color: white;
 }
 
-/* Platform-specific colors */
 .facebook { background-color: #1877F2; }
 .instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
 .googlebusinessprofile { background-color: #4285F4; }
 
 .error {
   color: #ff6b6b;
+}
+
+/* --- NEW STYLES FOR BUTTONS AND MODAL --- */
+
+.accountActions {
+  display: flex;
+  gap: 10px;
+}
+
+.accountActions button {
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.editButton {
+  background-color: #f0ad4e; /* Orange */
+  color: white;
+}
+
+.deleteButton {
+  background-color: #f44336; /* Red */
+  color: white;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #2d3139;
+  padding: 30px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.modalContent h3 {
+  margin-top: 0;
+}
+
+.modalContent form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modalContent input, .modalContent select {
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #3a3f47;
+  color: #e0e0e0;
+  font-size: 16px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.modalActions button {
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modalActions .cancelButton {
+  background-color: #555;
+  color: white;
 }
