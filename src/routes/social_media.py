@@ -1,4 +1,4 @@
-# src/routes/social_media.py - FULL REPLACEMENT (with Account Creation)
+# src/routes/social_media.py - FULL REPLACEMENT (with Edit and Delete)
 
 from flask import Blueprint, request, jsonify
 from models import db
@@ -19,10 +19,9 @@ def get_accounts():
     user_id = request.args.get("user_id")
     if not user_id:
         return jsonify({"error": "user_id is required"}), 400
-    accounts = SocialMediaAccount.query.filter_by(user_id=user_id, is_active=True).all()
+    accounts = SocialMediaAccount.query.filter_by(user_id=user_id).order_by(SocialMediaAccount.created_at.desc()).all()
     return jsonify({"accounts": [account.to_dict() for account in accounts]})
 
-# --- NEW: Route to create a social account ---
 @social_media_bp.route("/social-accounts", methods=["POST"])
 def create_account():
     data = request.get_json()
@@ -33,7 +32,6 @@ def create_account():
     if not all([user_id, account_name, platform]):
         return jsonify({"error": "user_id, account_name, and platform are required"}), 400
 
-    # Check for duplicate account name for the same user
     existing_account = SocialMediaAccount.query.filter_by(user_id=user_id, account_name=account_name).first()
     if existing_account:
         return jsonify({"error": "An account with this name already exists."}), 409
@@ -42,7 +40,7 @@ def create_account():
         user_id=user_id,
         account_name=account_name,
         platform=platform,
-        is_active=True # Default to active
+        is_active=True
     )
     try:
         db.session.add(new_account)
@@ -53,8 +51,41 @@ def create_account():
         logging.error(f"Error creating social account: {str(e)}")
         return jsonify({"error": "Failed to create account"}), 500
 
-# --- AI Post Generation ---
+# --- NEW: Route to update an account ---
+@social_media_bp.route("/social-accounts/<int:account_id>", methods=["PUT"])
+def update_account(account_id):
+    account = SocialMediaAccount.query.get_or_404(account_id)
+    data = request.get_json()
+    
+    # You can update any field you want here
+    if 'account_name' in data:
+        account.account_name = data['account_name']
+    if 'platform' in data:
+        account.platform = data['platform']
+    
+    try:
+        db.session.commit()
+        return jsonify({"success": True, "account": account.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating account: {str(e)}")
+        return jsonify({"error": "Failed to update account"}), 500
 
+# --- NEW: Route to delete an account ---
+@social_media_bp.route("/social-accounts/<int:account_id>", methods=["DELETE"])
+def delete_account(account_id):
+    account = SocialMediaAccount.query.get_or_404(account_id)
+    try:
+        db.session.delete(account)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Account deleted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error deleting account: {str(e)}")
+        return jsonify({"error": "Failed to delete account"}), 500
+
+# --- AI Post Generation (No changes needed here) ---
+# ... (The rest of the file remains the same)
 @social_media_bp.route("/posts/generate", methods=["POST"])
 def generate_ai_post():
     data = request.get_json()
@@ -84,22 +115,19 @@ def generate_ai_post():
         logging.error(f"Error during AI post generation: {str(e)}")
         return jsonify({"error": "An unexpected error occurred during post generation."}), 500
 
-# --- Post Management ---
-
+# --- Post Management (No changes needed here) ---
 @social_media_bp.route("/posts", methods=["GET"])
 def get_posts():
     user_id = request.args.get("user_id")
     if not user_id:
         return jsonify({"error": "user_id is required"}), 400
     
-    # Join with SocialMediaAccount to get the account name
     posts = db.session.query(SocialMediaPost, SocialMediaAccount.account_name)\
         .join(SocialMediaAccount, SocialMediaPost.account_id == SocialMediaAccount.id)\
         .filter(SocialMediaAccount.user_id == user_id)\
         .order_by(SocialMediaPost.created_at.desc())\
         .all()
 
-    # Format the response to include the account name
     posts_data = []
     for post, account_name in posts:
         post_dict = post.to_dict()
