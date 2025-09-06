@@ -1,19 +1,29 @@
-/* frontend/src/BrandVoiceManager.module.css - FULL REPLACEMENT */
+/* frontend/src/BrandVoiceManager.module.css - FULL REPLACEMENT (Corrected) */
 
-.container {
+.manager {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
 }
 
-.card {
+.loading, .error {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 40px;
+  color: #999;
+}
+.error {
+  color: #ff6b6b;
+}
+
+.formCard, .listCard {
   background-color: #2d3139;
   padding: 25px;
   border-radius: 8px;
   margin-bottom: 30px;
 }
 
-.card h3 {
+.formCard h3, .listCard h3 {
   margin-top: 0;
   border-bottom: 1px solid #444;
   padding-bottom: 15px;
@@ -39,7 +49,7 @@
 }
 
 .form textarea {
-  min-height: 150px;
+  min-height: 120px;
   resize: vertical;
 }
 
@@ -55,45 +65,64 @@
   font-size: 16px;
 }
 
-.libraryList {
+.voiceList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.libraryItem {
+.voiceItem {
   padding: 20px;
   border-bottom: 1px solid #444;
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
 }
 
-.libraryItem:last-child {
+.voiceItem:last-child {
   border-bottom: none;
 }
 
-.libraryItem h4 {
-  margin: 0 0 5px 0;
+.voiceInfo {
+  flex-grow: 1;
+}
+
+.voiceInfo strong {
+  font-size: 1.2rem;
   color: #61dafb;
 }
 
-.libraryItem p {
-  margin: 0 0 10px 0;
+.voiceInfo p {
+  margin: 5px 0 15px 0;
   color: #ccc;
-  line-height: 1.6;
-  /* --- THIS IS THE FIX --- */
-  white-space: pre-wrap;   /* This respects newlines and wraps text */
-  word-wrap: break-word;   /* This forces long words/hashtags to break */
-  overflow-wrap: break-word; /* Modern equivalent for word-wrap */
+}
+
+.voiceActions {
+  flex-shrink: 0;
 }
 
 .deleteButton {
-  position: absolute;
-  top: 20px;
-  right: 20px;
   background-color: #f44336;
   color: white;
   border: none;
   border-radius: 5px;
   padding: 8px 12px;
   cursor: pointer;
+}
+
+/* --- THIS IS THE CORRECTED FIX --- */
+.postExample {
+  background-color: #252526;
+  padding: 15px;
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-family: inherit; /* Use the same font as the rest of the app */
+  font-size: 15px;
+  line-height: 1.6;
+  
+  /* These properties override the <pre> tag's default behavior */
+  white-space: pre-wrap;       /* Allows text to wrap */
+  word-wrap: break-word;       /* Breaks long words or hashtags */
+  overflow-wrap: break-word;   /* Modern equivalent for word-wrap */
 }
