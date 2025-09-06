@@ -1,48 +1,51 @@
-# src/main.py - FINAL CORRECTED VERSION
+# src/main.py - FULL REPLACEMENT (with DB Reset Logic)
 
-import os
 from flask import Flask
 from flask_cors import CORS
-
 from models import db
-from routes.user import user_bp
+from config import Config
+import logging
+
+# Import all your blueprints
 from routes.brand_voice_routes import brand_voice_bp
-from routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 from routes.social_media import social_media_bp
-from routes.seo_routes import seo_bp
-from routes.ab_testing_routes import ab_testing_bp
+# Add other blueprint imports here if you have them
 
 def create_app():
     app = Flask(__name__)
-
-    # --- THIS IS THE CORRECTED LINE ---
-    # We now explicitly allow all common HTTP methods.
-    CORS(
-        app, 
-        resources={r"/api/*": {"origins": "https://real-estate-frontend-lpug.onrender.com"}},
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        supports_credentials=True
-     )
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+    app.config.from_object(Config)
+    
+    # Initialize extensions
     db.init_app(app)
+    CORS(app)
 
-    app.register_blueprint(user_bp, url_prefix='/api/users')
-    app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
-    app.register_blueprint(alternative_brand_voice_bp, url_prefix='/api/alternatives')
-    app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
-    app.register_blueprint(seo_bp, url_prefix='/api/seo')
-    app.register_blueprint(ab_testing_bp, url_prefix='/api/ab-testing')
-
+    # --- Database Reset and Creation Logic ---
     with app.app_context():
+        # This will drop all existing tables and recreate them based on your models.
+        # It's safe for development but be careful in production.
+        print("Dropping all database tables...")
+        db.drop_all()
+        print("Creating all database tables...")
         db.create_all()
+        print("Database tables created successfully.")
+
+    # Register blueprints
+    app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
+    app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
+    # Register other blueprints here
+
+    # Basic logging setup
+    logging.basicConfig(level=logging.INFO)
+
+    @app.route('/')
+    def index():
+        return "Backend is running!"
 
     return app
 
+# This part is for running the app with Gunicorn on Render
 app = create_app()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # This is for local development, not used by Render
+    app.run(debug=True)
