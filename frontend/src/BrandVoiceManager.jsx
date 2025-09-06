@@ -1,4 +1,4 @@
-// frontend/src/BrandVoiceManager.jsx - NEW VERSION
+// frontend/src/BrandVoiceManager.jsx - FULL REPLACEMENT (with corrected form structure)
 
 import React, { useState, useEffect } from 'react';
 import styles from './BrandVoiceManager.module.css';
@@ -13,7 +13,6 @@ function BrandVoiceManager({ user }) {
 
   const [newVoiceName, setNewVoiceName] = useState('');
   const [newVoiceDesc, setNewVoiceDesc] = useState('');
-  // NEW STATE: To hold the content of the example post
   const [newPostExample, setNewPostExample] = useState('');
 
   const fetchVoices = async () => {
@@ -25,7 +24,7 @@ function BrandVoiceManager({ user }) {
       });
       setVoices(response.data.brand_voices || []);
     } catch (err) {
-      setError('Failed to fetch brand voices. Please ensure the backend is running and the API is correct.');
+      setError('Failed to fetch brand voices.');
       console.error("Fetch error:", err);
     } finally {
       setIsLoading(false);
@@ -41,14 +40,12 @@ function BrandVoiceManager({ user }) {
   const handleCreateVoice = async (e) => {
     e.preventDefault();
     try {
-      // UPDATED: Send the new 'post_example' field to the backend
       await axios.post(`${API_BASE_URL}/brand-voices/`, {
         user_id: user.id,
         name: newVoiceName,
         description: newVoiceDesc,
         post_example: newPostExample,
       });
-      // Reset all form fields
       setNewVoiceName('');
       setNewVoiceDesc('');
       setNewPostExample('');
@@ -83,30 +80,42 @@ function BrandVoiceManager({ user }) {
     <div className={styles.manager}>
       <div className={styles.formCard}>
         <h3>Add New Source Content</h3>
-        <form onSubmit={handleCreateVoice}>
-          <input
-            type="text"
-            placeholder="Content Title (e.g., 'Just Listed - 123 Main St')"
-            value={newVoiceName}
-            onChange={(e) => setNewVoiceName(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Short Description (e.g., 'Successful post from May 2024')"
-            value={newVoiceDesc}
-            onChange={(e) => setNewVoiceDesc(e.target.value)}
-            required
-          />
-          {/* NEW TEXTAREA: For pasting the full post content */}
-          <textarea
-            placeholder="Paste the full content of your successful post here..."
-            value={newPostExample}
-            onChange={(e) => setNewPostExample(e.target.value)}
-            required
-            rows="8"
-          />
-          <button type="submit">Add Content</button>
+        {/* --- THIS FORM STRUCTURE IS CLEANER AND MORE RELIABLE --- */}
+        <form onSubmit={handleCreateVoice} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label htmlFor="voiceName">Content Title</label>
+            <input
+              id="voiceName"
+              type="text"
+              placeholder="e.g., 'Just Listed - 123 Main St'"
+              value={newVoiceName}
+              onChange={(e) => setNewVoiceName(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="voiceDesc">Short Description</label>
+            <input
+              id="voiceDesc"
+              type="text"
+              placeholder="e.g., 'Successful post from May 2024'"
+              value={newVoiceDesc}
+              onChange={(e) => setNewVoiceDesc(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="postExample">Full Post Content</label>
+            <textarea
+              id="postExample"
+              placeholder="Paste the full content of your successful post here..."
+              value={newPostExample}
+              onChange={(e) => setNewPostExample(e.target.value)}
+              required
+              rows="8"
+            />
+          </div>
+          <button type="submit" className={styles.submitButton}>Add Content</button>
         </form>
       </div>
 
@@ -119,7 +128,6 @@ function BrandVoiceManager({ user }) {
                 <div className={styles.voiceInfo}>
                   <strong>{voice.name}</strong>
                   <p>{voice.description}</p>
-                  {/* UPDATED: Display the example post content */}
                   <pre className={styles.postExample}>{voice.post_example}</pre>
                 </div>
                 <div className={styles.voiceActions}>
