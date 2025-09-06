@@ -187,3 +187,21 @@
   background-color: #f44336 !important;
   color: white;
 }
+/* Add these new styles to the VERY END of your existing file */
+
+.savedHashtagContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.savedHashtagItem {
+  background-color: #4a4a4a;
+  color: #ddd;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
