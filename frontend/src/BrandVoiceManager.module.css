@@ -81,8 +81,9 @@
   color: #ccc;
   line-height: 1.6;
   /* --- THIS IS THE FIX --- */
-  word-wrap: break-word; /* Ensures long text without spaces wraps */
-  white-space: pre-wrap; /* Respects newlines and wraps text */
+  white-space: pre-wrap;   /* This respects newlines and wraps text */
+  word-wrap: break-word;   /* This forces long words/hashtags to break */
+  overflow-wrap: break-word; /* Modern equivalent for word-wrap */
 }
 
 .deleteButton {
