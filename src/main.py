@@ -1,52 +1,12 @@
-# src/main.py - FINAL TEST VERSION
-
 from flask import Flask
 from flask_cors import CORS
 from models import db
 from config import Config
 import logging
-import os
-import requests
-from dotenv import load_dotenv
 
 # Import all your blueprints
 from routes.brand_voice_routes import brand_voice_bp
 from routes.social_media import social_media_bp
-
-# --- SPECIAL META API TEST CODE ---
-def run_meta_test():
-    """
-    A simple, safe test to check if a Meta access token is valid.
-    """
-    load_dotenv() # Ensure environment variables are loaded
-    print("\n\n--- Starting Meta API Connection Test ---")
-    user_access_token = os.getenv("META_USER_ACCESS_TOKEN")
-
-    if not user_access_token:
-        print("ERROR: META_USER_ACCESS_TOKEN is not set.")
-        print("--- Test Finished ---")
-        return
-
-    print("Successfully found the access token.")
-    url = f"https://graph.facebook.com/v18.0/me?fields=id,name&access_token={user_access_token}"
-    print(f"Attempting to connect to URL: {url[:60]}..." )
-
-    try:
-        response = requests.get(url)
-        response_data = response.json()
-        if response.status_code == 200:
-            print("\nSUCCESS! Connection to Meta API is working.")
-            print("API Response:")
-            print(response_data)
-        else:
-            print("\nERROR: Failed to connect to Meta API.")
-            print(f"Status Code: {response.status_code}")
-            print("API Error Response:")
-            print(response_data)
-    except Exception as e:
-        print(f"\nCRITICAL ERROR: An exception occurred: {e}")
-    print("--- Test Finished ---\n\n")
-
 
 def create_app():
     app = Flask(__name__)
@@ -54,10 +14,9 @@ def create_app():
     db.init_app(app)
     CORS(app)
 
+    # This will create tables if they don't exist, but won't delete them.
     with app.app_context():
         db.create_all()
-        # --- RUN THE TEST FROM WITHIN THE APP CONTEXT ---
-        run_meta_test()
 
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
     app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
@@ -69,9 +28,9 @@ def create_app():
         
     return app
 
-# This part is for running the app with Gunicorn on Render
+# This is the entry point for Gunicorn on Render
 app = create_app()
 
-# The if __name__ == '__main__' block is not run by Gunicorn
+# This block is for local development and is not used by Gunicorn
 if __name__ == '__main__':
     app.run(debug=True)
