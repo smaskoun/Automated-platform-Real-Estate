@@ -1,4 +1,4 @@
-# src/main.py - SPECIAL TEST VERSION
+# src/main.py - FINAL TEST VERSION
 
 from flask import Flask
 from flask_cors import CORS
@@ -12,23 +12,6 @@ from dotenv import load_dotenv
 # Import all your blueprints
 from routes.brand_voice_routes import brand_voice_bp
 from routes.social_media import social_media_bp
-
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object(Config)
-    db.init_app(app)
-    CORS(app)
-    with app.app_context():
-        db.create_all()
-    app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
-    app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
-    logging.basicConfig(level=logging.INFO)
-    @app.route('/')
-    def index():
-        return "Backend is running!"
-    return app
-
-app = create_app()
 
 # --- SPECIAL META API TEST CODE ---
 def run_meta_test():
@@ -64,7 +47,31 @@ def run_meta_test():
         print(f"\nCRITICAL ERROR: An exception occurred: {e}")
     print("--- Test Finished ---\n\n")
 
-# This will run the test function when the script is executed directly
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    db.init_app(app)
+    CORS(app)
+
+    with app.app_context():
+        db.create_all()
+        # --- RUN THE TEST FROM WITHIN THE APP CONTEXT ---
+        run_meta_test()
+
+    app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
+    app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
+    logging.basicConfig(level=logging.INFO)
+    
+    @app.route('/')
+    def index():
+        return "Backend is running!"
+        
+    return app
+
+# This part is for running the app with Gunicorn on Render
+app = create_app()
+
+# The if __name__ == '__main__' block is not run by Gunicorn
 if __name__ == '__main__':
-    run_meta_test()
     app.run(debug=True)
