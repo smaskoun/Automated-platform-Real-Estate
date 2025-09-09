@@ -1,50 +1,30 @@
 // frontend/src/Dashboard.jsx - FULL REPLACEMENT
 
-import React, { useState } from 'react';
+import React from 'react';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import styles from './Dashboard.module.css';
-import BrandVoiceManager from './BrandVoiceManager.jsx';
-import SocialMediaManager from './SocialMediaManager.jsx';
-import AccountManager from './AccountManager.jsx'; // Import the new component
 
 function Dashboard({ user, onLogout }) {
-  const [activeView, setActiveView] = useState('accounts'); // Default to the new Accounts page
-
-  const renderView = () => {
-    switch (activeView) {
-      case 'brand-voices':
-        return <BrandVoiceManager user={user} />;
-      case 'social-media':
-        return <SocialMediaManager user={user} />;
-      case 'accounts': // Add the new case for accounts
-        return <AccountManager user={user} />;
-      default:
-        return <AccountManager user={user} />; // Default to accounts view
-    }
-  };
+  const location = useLocation(); // Hook to get the current URL path
 
   return (
     <div className={styles.dashboard}>
       <nav className={styles.sidebar}>
         <h1 className={styles.logo}>Real Estate AI</h1>
         <ul>
-          {/* Add the new "Accounts" button */}
-          <li 
-            className={activeView === 'accounts' ? styles.active : ''}
-            onClick={() => setActiveView('accounts')}
-          >
-            Accounts
+          {/* Each item is now a <Link> component */}
+          <li className={location.pathname === '/' ? styles.active : ''}>
+            <Link to="/">Accounts</Link>
           </li>
-          <li 
-            className={activeView === 'brand-voices' ? styles.active : ''}
-            onClick={() => setActiveView('brand-voices')}
-          >
-            Brand Voices
+          <li className={location.pathname === '/brand-voices' ? styles.active : ''}>
+            <Link to="/brand-voices">Brand Voices</Link>
           </li>
-          <li 
-            className={activeView === 'social-media' ? styles.active : ''}
-            onClick={() => setActiveView('social-media')}
-          >
-            Social Media Posts
+          <li className={location.pathname === '/social-media' ? styles.active : ''}>
+            <Link to="/social-media">Social Media Posts</Link>
+          </li>
+          {/* NEW LINK FOR MARKET ANALYSIS */}
+          <li className={location.pathname === '/market-analysis' ? styles.active : ''}>
+            <Link to="/market-analysis">Market Analysis</Link>
           </li>
           <li className={styles.disabled} title="Coming Soon">
             SEO Tools
@@ -59,7 +39,8 @@ function Dashboard({ user, onLogout }) {
         </div>
       </nav>
       <main className={styles.mainContent}>
-        {renderView()}
+        {/* Outlet renders the component for the current route */}
+        <Outlet />
       </main>
     </div>
   );
