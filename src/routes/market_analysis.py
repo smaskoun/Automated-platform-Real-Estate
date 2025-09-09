@@ -1,55 +1,59 @@
 from flask import Blueprint, jsonify
 import requests
+from datetime import datetime
 
 market_analysis_bp = Blueprint('market_analysis_bp', __name__)
 
-# This is the direct API endpoint the CREA website uses to get its data.
-# Calling this is much more reliable than scraping the HTML page.
-CREA_API_URL = "https://stats.crea.ca/api/stats/board/wind"
-
 REQUEST_HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64 ) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Referer': 'https://stats.crea.ca/board/wind', # It's good practice to say where the request is coming from
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
-@market_analysis_bp.route('/crea-stats', methods=['GET'] )
-def get_crea_data():
+# --- WECAR Tech API Data Processing ---
+@market_analysis_bp.route('/wecar-stats', methods=['GET'])
+def get_wecar_data():
     try:
-        print(f"INFO: Calling CREA API directly at {CREA_API_URL}")
-        response = requests.get(CREA_API_URL, headers=REQUEST_HEADERS, timeout=20)
+        # Get the current year and month to build the URL dynamically
+        now = datetime.now()
+        year = now.year
+        # Get the 3-letter, lowercase month (e.g., 'sep', 'aug')
+        month_abbr = now.strftime('%b').lower()
+
+        # Build the URL to the summary.json file for the current month
+        wecar_api_url = f"https://wecartech.com/wecfiles/stats_new/{year}/{month_abbr}/summary.json"
+        
+        print(f"INFO: Calling WECAR API at: {wecar_api_url}" )
+        response = requests.get(wecar_api_url, headers=REQUEST_HEADERS, timeout=20)
+        
+        # If the current month's data isn't up yet, try last month
+        if response.status_code == 404:
+            print(f"INFO: Current month '{month_abbr}' not found. Trying previous month.")
+            # A simple way to get last month's year and month abbreviation
+            last_month_date = now.replace(day=1) - timedelta(days=1)
+            year = last_month_date.year
+            month_abbr = last_month_date.strftime('%b').lower()
+            wecar_api_url = f"https://wecartech.com/wecfiles/stats_new/{year}/{month_abbr}/summary.json"
+            print(f"INFO: Trying WECAR API at: {wecar_api_url}" )
+            response = requests.get(wecar_api_url, headers=REQUEST_HEADERS, timeout=20)
+
         response.raise_for_status()
-        
         api_data = response.json()
-        print("INFO: CREA API data received successfully.")
+        print("INFO: WECAR API data received successfully.")
 
-        # The API returns a list of data points. We need to find the ones we want.
-        results = api_data.get("Results", [])
-        
-        processed_data = {}
-        for item in results:
-            if item.get("key") == "Sales":
-                processed_data['total_sales'] = item.get("value")
-            elif item.get("key") == "AveragePrice":
-                # The API returns the price without a '$', so we add it for display
-                price_value = float(item.get("value", 0))
-                processed_data['average_price'] = f"${price_value:,.0f}"
-            elif item.get("key") == "NewListings":
-                processed_data['new_listings'] = item.get("value")
-
-        # The report period is also in the API response
-        processed_data['report_period'] = api_data.get("ReportPeriod", "Latest Report")
-
-        if not processed_data:
-            print("ERROR: Could not find key metrics in the CREA API response.")
-            return jsonify({"error": "Could not parse data from CREA API."}), 500
+        # The JSON structure is straightforward. We just need to format it for the frontend.
+        processed_data = {
+            'report_period': api_data.get('Date', 'Latest Report'),
+            'average_price': f"${int(api_data.get('AveragePrice', 0)):,}", # Format as currency
+            'total_sales': api_data.get('Sales', 'N/A'),
+            'new_listings': api_data.get('NewListings', 'N/A')
+        }
 
         return jsonify(processed_data)
 
     except Exception as e:
-        print(f"CRITICAL: An exception occurred in get_crea_data: {e}")
-        return jsonify({"error": "Failed to fetch or process CREA API data."}), 500
+        print(f"CRITICAL: An exception occurred in get_wecar_data: {e}")
+        return jsonify({"error": "Failed to fetch or process WECAR data."}), 500
 
-# The dummy CMHC data for reliability
+# We will keep the CMHC route but use dummy data for max reliability
 @market_analysis_bp.route('/cmhc-rental-market', methods=['GET'])
 def get_cmhc_data():
     print("INFO: Returning dummy data for CMHC.")
