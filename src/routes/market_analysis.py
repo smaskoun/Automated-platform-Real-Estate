@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta # <<< THIS IS THE FIX
 
 market_analysis_bp = Blueprint('market_analysis_bp', __name__)
 
