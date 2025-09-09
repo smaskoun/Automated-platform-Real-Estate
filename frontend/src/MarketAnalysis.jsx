@@ -3,7 +3,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const MarketAnalysis = () => {
-    const [source, setSource] = useState('crea'); // Default to CREA now
+    const [source, setSource] = useState('wecar'); // Default to WECAR now
     const [marketData, setMarketData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,8 +18,8 @@ const MarketAnalysis = () => {
 
         if (source === 'cmhc') {
             path = '/api/market-analysis/cmhc-rental-market';
-        } else if (source === 'crea') {
-            path = '/api/market-analysis/crea-stats';
+        } else if (source === 'wecar') {
+            path = '/api/market-analysis/wecar-stats';
         }
 
         try {
@@ -52,12 +52,12 @@ const MarketAnalysis = () => {
         );
     };
     
-    const renderCREAReport = () => {
+    const renderWECARReport = () => {
         if (!marketData || !marketData.average_price) return null;
         return (
             <div>
-                <h3 className="text-2xl font-semibold mb-4">CREA Market Report</h3>
-                <p className="text-md mb-4 text-gray-600">Report: {marketData.report_period || 'Latest Month'}</p>
+                <h3 className="text-2xl font-semibold mb-4">WECAR Live Market Report</h3>
+                <p className="text-md mb-4 text-gray-600">Report for: {marketData.report_period || 'Latest Month'}</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-blue-100 p-4 rounded-lg text-center">
                         <h4 className="text-lg font-bold">Average Price</h4>
@@ -85,7 +85,7 @@ const MarketAnalysis = () => {
                     onChange={(e) => setSource(e.target.value)}
                     className="p-2 border rounded"
                 >
-                    <option value="crea">CREA Sales Stats</option>
+                    <option value="wecar">WECAR Live Stats</option>
                     <option value="cmhc">CMHC Rental Stats (Sample)</option>
                 </select>
                 <button
@@ -101,7 +101,7 @@ const MarketAnalysis = () => {
 
             <div className="mt-6">
                 {marketData && source === 'cmhc' && renderCMHCReport()}
-                {marketData && source === 'crea' && renderCREAReport()}
+                {marketData && source === 'wecar' && renderWECARReport()}
             </div>
         </div>
     );
