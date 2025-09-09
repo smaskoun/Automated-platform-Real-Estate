@@ -1,14 +1,14 @@
-// src/App.jsx - UPDATED CODE
+// src/App.jsx - CORRECTED CODE
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './Dashboard.jsx';
-import MarketAnalysis from './components/MarketAnalysis.jsx'; // Assuming you created this file in components/
+import MarketAnalysis from './MarketAnalysis.jsx'; // <<< THIS LINE IS NOW FIXED
 
 // We will create a "mock" user to pass to the dashboard,
 // since we are skipping the real login process for now.
 const mockUser = { id: 1, username: 'Test User' };
 
-function App( ) {
+function App() {
   return (
     <Router>
       <div>
