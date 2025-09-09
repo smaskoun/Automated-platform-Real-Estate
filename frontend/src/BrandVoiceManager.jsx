@@ -1,4 +1,4 @@
-// frontend/src/BrandVoiceManager.jsx - FULL REPLACEMENT (with corrected form structure)
+// frontend/src/BrandVoiceManager.jsx - FULL REPLACEMENT (with API path fix)
 
 import React, { useState, useEffect } from 'react';
 import styles from './BrandVoiceManager.module.css';
@@ -19,7 +19,8 @@ function BrandVoiceManager({ user }) {
     setIsLoading(true);
     setError('');
     try {
-      const response = await axios.get(`${API_BASE_URL}/brand-voices/`, {
+      // FIXED URL
+      const response = await axios.get(`${API_BASE_URL}/api/brand-voices/`, {
         params: { user_id: user.id }
       });
       setVoices(response.data.brand_voices || []);
@@ -40,7 +41,8 @@ function BrandVoiceManager({ user }) {
   const handleCreateVoice = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE_URL}/brand-voices/`, {
+      // FIXED URL
+      await axios.post(`${API_BASE_URL}/api/brand-voices/`, {
         user_id: user.id,
         name: newVoiceName,
         description: newVoiceDesc,
@@ -59,7 +61,8 @@ function BrandVoiceManager({ user }) {
   const handleDeleteVoice = async (voiceId) => {
     if (window.confirm("Are you sure you want to delete this source content?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/brand-voices/${voiceId}/`);
+        // FIXED URL
+        await axios.delete(`${API_BASE_URL}/api/brand-voices/${voiceId}/`);
         fetchVoices();
       } catch (err) {
         console.error("Delete error:", err);
@@ -80,7 +83,6 @@ function BrandVoiceManager({ user }) {
     <div className={styles.manager}>
       <div className={styles.formCard}>
         <h3>Add New Source Content</h3>
-        {/* --- THIS FORM STRUCTURE IS CLEANER AND MORE RELIABLE --- */}
         <form onSubmit={handleCreateVoice} className={styles.form}>
           <div className={styles.formGroup}>
             <label htmlFor="voiceName">Content Title</label>
