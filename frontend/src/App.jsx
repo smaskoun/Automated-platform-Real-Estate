@@ -1,41 +1,32 @@
-// src/App.jsx - CORRECTED CODE
+// frontend/src/App.jsx - FINAL INTEGRATED CODE
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Dashboard from './Dashboard.jsx';
-import MarketAnalysis from './MarketAnalysis.jsx'; // <<< THIS LINE IS NOW FIXED
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// We will create a "mock" user to pass to the dashboard,
-// since we are skipping the real login process for now.
+// Import all page components
+import Dashboard from './Dashboard.jsx';
+import AccountManager from './AccountManager.jsx';
+import BrandVoiceManager from './BrandVoiceManager.jsx';
+import SocialMediaManager from './SocialMediaManager.jsx';
+import MarketAnalysis from './MarketAnalysis.jsx';
+
+// We will create a "mock" user to pass to the dashboard.
 const mockUser = { id: 1, username: 'Test User' };
 
 function App() {
   return (
     <Router>
-      <div>
-        {/* Simple Navigation */}
-        <nav className="bg-gray-800 text-white p-4">
-          <ul className="flex space-x-4">
-            <li>
-              <Link to="/">Dashboard</Link>
-            </li>
-            <li>
-              <Link to="/market-analysis">Market Analysis</Link>
-            </li>
-          </ul>
-        </nav>
-
-        {/* Route Definitions */}
-        <Routes>
-          <Route 
-            path="/" 
-            element={<Dashboard user={mockUser} onLogout={() => {}} />} 
-          />
-          <Route 
-            path="/market-analysis" 
-            element={<MarketAnalysis />} 
-          />
-        </Routes>
-      </div>
+      <Routes>
+        {/* The Dashboard component now acts as a layout for all other pages */}
+        <Route path="/" element={<Dashboard user={mockUser} onLogout={() => {}} />}>
+          {/* The default page shown at the "/" path */}
+          <Route index element={<AccountManager user={mockUser} />} />
+          
+          {/* Other pages nested inside the dashboard */}
+          <Route path="brand-voices" element={<BrandVoiceManager user={mockUser} />} />
+          <Route path="social-media" element={<SocialMediaManager user={mockUser} />} />
+          <Route path="market-analysis" element={<MarketAnalysis />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }
