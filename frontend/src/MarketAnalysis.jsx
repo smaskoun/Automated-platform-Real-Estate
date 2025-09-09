@@ -13,17 +13,22 @@ const MarketAnalysis = () => {
         setError('');
         setMarketData(null);
 
-        let url = '';
+        // <<< START OF CHANGES
+        const API_URL = import.meta.env.VITE_API_BASE_URL;
+        let path = '';
+        // <<< END OF CHANGES
+
         if (source === 'cmhc') {
-            url = '/api/market-analysis/cmhc-rental-market';
+            path = '/api/market-analysis/cmhc-rental-market';
         } else if (source === 'statcan') {
-            url = '/api/market-analysis/statcan-housing-starts';
+            path = '/api/market-analysis/statcan-housing-starts';
         } else if (source === 'wecar') {
-            url = '/api/market-analysis/wecar-sales';
+            path = '/api/market-analysis/wecar-sales';
         }
 
         try {
-            const response = await axios.get(url);
+            // <<< MODIFIED LINE
+            const response = await axios.get(`${API_URL}${path}`);
             setMarketData(response.data);
         } catch (err) {
             setError('Failed to fetch data. Please try again later.');
@@ -150,4 +155,3 @@ const MarketAnalysis = () => {
 };
 
 export default MarketAnalysis;
-
