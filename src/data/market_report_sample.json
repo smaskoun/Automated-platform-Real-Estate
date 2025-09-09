@@ -1,1 +1,30 @@
+{
+  "report_period": "Windsor-Essex Market Report (Sample for August 2025)",
+  "summary": {
+    "average_price": "$550,123",
+    "median_price": "$510,000",
+    "total_sales": "450",
+    "new_listings": "1,100",
+    "active_listings": "2,500",
+    "months_of_supply": "5.6",
+    "sales_to_new_listings_ratio": "40.9%"
+  },
+  "breakdown": [
+    {
+      "property_type": "Single Family",
+      "sales": "350",
+      "average_price": "$610,500"
+    },
+    {
+      "property_type": "Townhouse/Condo",
+      "sales": "75",
+      "average_price": "$425,000"
+    },
+    {
+      "property_type": "Other",
+      "sales": "25",
+      "average_price": "$350,000"
+    }
+  ]
+}
 
