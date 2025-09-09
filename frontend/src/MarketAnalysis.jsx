@@ -3,7 +3,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const MarketAnalysis = () => {
-    const [source, setSource] = useState('cmhc');
+    const [source, setSource] = useState('crea'); // Default to CREA now
     const [marketData, setMarketData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,8 +18,8 @@ const MarketAnalysis = () => {
 
         if (source === 'cmhc') {
             path = '/api/market-analysis/cmhc-rental-market';
-        } else if (source === 'jumprealty') {
-            path = '/api/market-analysis/jumprealty-stats';
+        } else if (source === 'crea') {
+            path = '/api/market-analysis/crea-stats';
         }
 
         try {
@@ -35,14 +35,9 @@ const MarketAnalysis = () => {
 
     const renderCMHCReport = () => {
         if (!marketData || !marketData.windsor) return null;
-
-        const rentData = [
-            { name: 'Average Rent', Windsor: marketData.windsor.avg_rent_total, Ontario: marketData.ontario.avg_rent_total },
-        ];
-
         return (
             <div>
-                <h3 className="text-2xl font-semibold mb-4">CMHC Rental Market Report</h3>
+                <h3 className="text-2xl font-semibold mb-4">CMHC Rental Market Report (Sample)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     <div className="bg-gray-100 p-4 rounded-lg text-center">
                         <h4 className="text-lg font-bold">Windsor Vacancy Rate</h4>
@@ -53,27 +48,15 @@ const MarketAnalysis = () => {
                         <p className="text-3xl">{marketData.ontario.vacancy_rate_pct}%</p>
                     </div>
                 </div>
-                <h4 className="text-xl font-semibold mb-2">Average Rent Comparison</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={rentData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="Windsor" fill="#8884d8" />
-                        <Bar dataKey="Ontario" fill="#82ca9d" />
-                    </BarChart>
-                </ResponsiveContainer>
             </div>
         );
     };
     
-    const renderJumpRealtyReport = () => {
+    const renderCREAReport = () => {
         if (!marketData || !marketData.average_price) return null;
         return (
             <div>
-                <h3 className="text-2xl font-semibold mb-4">Jump Realty Market Report</h3>
+                <h3 className="text-2xl font-semibold mb-4">CREA Market Report</h3>
                 <p className="text-md mb-4 text-gray-600">Report: {marketData.report_period || 'Latest Month'}</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-blue-100 p-4 rounded-lg text-center">
@@ -102,8 +85,8 @@ const MarketAnalysis = () => {
                     onChange={(e) => setSource(e.target.value)}
                     className="p-2 border rounded"
                 >
-                    <option value="cmhc">CMHC Rental Market</option>
-                    <option value="jumprealty">Jump Realty Market Stats</option>
+                    <option value="crea">CREA Sales Stats</option>
+                    <option value="cmhc">CMHC Rental Stats (Sample)</option>
                 </select>
                 <button
                     onClick={handleGenerateReport}
@@ -118,7 +101,7 @@ const MarketAnalysis = () => {
 
             <div className="mt-6">
                 {marketData && source === 'cmhc' && renderCMHCReport()}
-                {marketData && source === 'jumprealty' && renderJumpRealtyReport()}
+                {marketData && source === 'crea' && renderCREAReport()}
             </div>
         </div>
     );
