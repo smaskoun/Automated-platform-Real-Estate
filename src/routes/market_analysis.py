@@ -2,101 +2,119 @@ from flask import Blueprint, jsonify
 import pandas as pd
 import requests
 import io
-import pdfplumber
 import re
+from bs4 import BeautifulSoup # We need a new library for parsing HTML
 
 market_analysis_bp = Blueprint('market_analysis_bp', __name__)
 
+# Define a browser-like header to avoid being blocked
 REQUEST_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
-# --- CMHC Data Processing ---
+# --- CMHC Data Processing (More Robust) ---
 @market_analysis_bp.route('/cmhc-rental-market', methods=['GET'])
 def get_cmhc_data():
-    # This is a more stable landing page URL
-    landing_url = "https://www.cmhc-schl.gc.ca/en/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables"
     try:
-        print("INFO: Fetching CMHC landing page..." )
-        response = requests.get(landing_url, headers=REQUEST_HEADERS, timeout=20)
-        response.raise_for_status()
-        print("INFO: CMHC landing page fetched.")
+        print("INFO: Fetching CMHC data...")
+        # This is a more stable URL to the main data page
+        cmhc_page_url = "https://www.cmhc-schl.gc.ca/en/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables"
+        page_response = requests.get(cmhc_page_url, headers=REQUEST_HEADERS, timeout=20 )
+        page_response.raise_for_status()
 
-        # Find the latest .xlsx file link on the page
-        match = re.search(r'href="([^"]+rental-market-data-2023\.xlsx)"', response.text)
-        if not match:
-            print("ERROR: Could not find the CMHC Excel file link on the landing page.")
-            return jsonify({"error": "Could not find CMHC data file link."}), 404
+        # Find the link to the most recent Excel file on the page
+        soup = BeautifulSoup(page_response.content, 'html.parser')
+        excel_link = soup.find('a', href=re.compile(r'\.xlsx$', re.IGNORECASE))
         
-        file_url = match.group(1)
-        if not file_url.startswith('http' ):
-            file_url = "https://www.cmhc-schl.gc.ca" + file_url
+        if not excel_link:
+            print("ERROR: Could not find the CMHC Excel file link on the page.")
+            return jsonify({"error": "Could not find CMHC data file link."}), 404
 
-        print(f"INFO: Found CMHC file URL: {file_url}" )
+        file_url = excel_link['href']
+        if not file_url.startswith('http' ):
+            # Handle relative URLs if necessary
+            from urllib.parse import urljoin
+            file_url = urljoin(cmhc_page_url, file_url)
+
+        print(f"INFO: Found CMHC file URL: {file_url}")
         file_response = requests.get(file_url, headers=REQUEST_HEADERS, timeout=20)
         file_response.raise_for_status()
         
-        df = pd.read_excel(io.BytesIO(file_response.content), sheet_name='2023')
+        df = pd.read_excel(io.BytesIO(file_response.content), sheet_name='2023') # Assuming 2023 sheet for now
         df.columns = df.columns.str.strip()
         
-        # (Rest of the processing logic is the same)
         windsor_row = df[df.iloc[:, 0].str.contains('Windsor', na=False)].iloc[0]
         ontario_row = df[df.iloc[:, 0].str.contains('Ontario', na=False)].iloc[0]
+        
         data = {
-            'windsor': {'vacancy_rate_pct': windsor_row.get('Vacancy Rate (%)'), 'avg_rent_total': windsor_row.get('Total')},
-            'ontario': {'vacancy_rate_pct': ontario_row.get('Vacancy Rate (%)'), 'avg_rent_total': ontario_row.get('Total')}
+            'windsor': { 'vacancy_rate_pct': windsor_row.get('Vacancy Rate (%)'), 'avg_rent_total': windsor_row.get('Total') },
+            'ontario': { 'vacancy_rate_pct': ontario_row.get('Vacancy Rate (%)'), 'avg_rent_total': ontario_row.get('Total') }
         }
         return jsonify(data)
 
     except Exception as e:
         print(f"CRITICAL: An exception occurred in get_cmhc_data: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Failed to fetch or process CMHC data."}), 500
 
-# --- WECAR Data Processing ---
-@market_analysis_bp.route('/wecar-sales', methods=['GET'])
-def get_wecar_data():
-    # Corrected URL for market updates
-    stats_page_url = "https://windsorrealestate.com/news/category/market-updates/"
+# --- Jump Realty Data Processing ---
+def parse_jumprealty_text(text):
+    """Extracts key metrics from a Jump Realty blog post."""
+    data = {}
+    
+    # Use regex to find the key metrics. These patterns are more flexible.
+    avg_price_match = re.search(r'average sales price.*?was (\$[\d,]+)', text, re.IGNORECASE)
+    if avg_price_match:
+        data['average_price'] = avg_price_match.group(1)
+
+    sales_match = re.search(r'(\d+)\s+homes were sold', text, re.IGNORECASE)
+    if sales_match:
+        data['total_sales'] = sales_match.group(1)
+
+    listings_match = re.search(r'(\d+)\s+new listings', text, re.IGNORECASE)
+    if not listings_match: # Try another common pattern
+        listings_match = re.search(r'(\d+)\s+listings were available', text, re.IGNORECASE)
+    if listings_match:
+        data['new_listings'] = listings_match.group(1)
+        
+    return data if data else None
+
+@market_analysis_bp.route('/jumprealty-stats', methods=['GET'])
+def get_jumprealty_data():
     try:
-        print("INFO: Fetching WECAR page..." )
-        response = requests.get(stats_page_url, headers=REQUEST_HEADERS, timeout=20)
+        print("INFO: Fetching Jump Realty market updates page...")
+        # This is the main category page for market reports
+        updates_page_url = "https://jumprealty.ca/blog/category/market-reports"
+        response = requests.get(updates_page_url, headers=REQUEST_HEADERS, timeout=20 )
         response.raise_for_status()
-        print("INFO: WECAR page fetched successfully.")
+        print("INFO: Jump Realty page fetched successfully.")
+
+        # Find the link to the very first (most recent) blog post
+        soup = BeautifulSoup(response.content, 'html.parser')
+        latest_post_link = soup.find('h2', class_='entry-title').find('a')
+
+        if not latest_post_link or not latest_post_link.has_attr('href'):
+            print("ERROR: Could not find the link to the latest post on Jump Realty.")
+            return jsonify({"error": "Could not find latest Jump Realty post."}), 404
         
-        match = re.search(r'href="(https?://windsorrealestate\.com/wp-content/uploads/[^"]+\.pdf )"', response.text)
-        if not match:
-            print("ERROR: Could not find a PDF link on the WECAR market updates page.")
-            return jsonify({"error": "Could not find the latest WECAR report PDF link."}), 404
-            
-        pdf_url = match.group(1)
-        print(f"INFO: Found WECAR PDF URL: {pdf_url}")
+        post_url = latest_post_link['href']
+        print(f"INFO: Found latest post URL: {post_url}")
+
+        # Now fetch the content of the latest blog post
+        post_response = requests.get(post_url, headers=REQUEST_HEADERS, timeout=20)
+        post_response.raise_for_status()
+
+        post_soup = BeautifulSoup(post_response.content, 'html.parser')
+        post_content = post_soup.find('div', class_='entry-content').get_text()
+
+        data = parse_jumprealty_text(post_content)
         
-        pdf_response = requests.get(pdf_url, headers=REQUEST_HEADERS, timeout=20)
-        pdf_response.raise_for_status()
-        
-        with io.BytesIO(pdf_response.content) as pdf_file:
-            # (Parsing logic is the same)
-            with pdfplumber.open(pdf_file) as pdf:
-                text = ""
-                for page in pdf.pages:
-                    text += page.extract_text()
-            data = {}
-            # ... (rest of parsing logic)
-            return jsonify({"report_period": "Latest", "average_price": "$550,000 (dummy)", "total_sales": "500 (dummy)"}) # Dummy data for now
+        if data:
+            data['report_period'] = latest_post_link.get_text() # Add the title as the report period
+            return jsonify(data)
+        else:
+            print("ERROR: Could not parse key metrics from the Jump Realty post.")
+            return jsonify({"error": "Could not parse data from Jump Realty post."}), 500
 
     except Exception as e:
-        print(f"CRITICAL: An exception occurred in get_wecar_data: {e}")
-        return jsonify({"error": f"Failed to fetch or process WECAR PDF: {str(e)}"}), 500
-
-# --- Statistics Canada Data Processing ---
-@market_analysis_bp.route('/statcan-housing-starts', methods=['GET'])
-def get_statcan_data():
-    # This is a dummy implementation because the StatCan site is very difficult to scrape reliably.
-    # In a real project, we would use their official API or a saved data file.
-    print("INFO: Returning dummy data for StatCan.")
-    dummy_data = [
-        {"date": "2023-01", "windsor_starts": 50, "ontario_starts": 5000},
-        {"date": "2023-02", "windsor_starts": 60, "ontario_starts": 5500},
-        {"date": "2023-03", "windsor_starts": 70, "ontario_starts": 6000},
-    ]
-    return jsonify(dummy_data)
+        print(f"CRITICAL: An exception occurred in get_jumprealty_data: {e}")
+        return jsonify({"error": "Failed to fetch or process Jump Realty data."}), 500
