@@ -1,4 +1,4 @@
-// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT
+// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT (with API path fix)
 
 import React, { useState, useEffect } from 'react';
 import styles from './SocialMediaManager.module.css';
@@ -28,10 +28,11 @@ function SocialMediaManager({ user }) {
     setIsLoading(true);
     setError('');
     try {
+      // FIXED URLs
       const [accountsRes, postsRes, brandVoicesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/social-media/social-accounts`, { params: { user_id: user.id } }),
-        axios.get(`${API_BASE_URL}/social-media/posts`, { params: { user_id: user.id } }),
-        axios.get(`${API_BASE_URL}/brand-voices/`, { params: { user_id: user.id } })
+        axios.get(`${API_BASE_URL}/api/social-media/social-accounts`, { params: { user_id: user.id } }),
+        axios.get(`${API_BASE_URL}/api/social-media/posts`, { params: { user_id: user.id } }),
+        axios.get(`${API_BASE_URL}/api/brand-voices/`, { params: { user_id: user.id } })
       ]);
       
       setAccounts(accountsRes.data.accounts || []);
@@ -67,7 +68,8 @@ function SocialMediaManager({ user }) {
     setIsGenerating(true);
     setError('');
     try {
-      const response = await axios.post(`${API_BASE_URL}/social-media/posts/generate`, {
+      // FIXED URL
+      const response = await axios.post(`${API_BASE_URL}/api/social-media/posts/generate`, {
         user_id: user.id,
         topic: topic,
         brand_voice_id: selectedBrandVoice,
@@ -92,7 +94,8 @@ function SocialMediaManager({ user }) {
       return;
     }
     try {
-      await axios.post(`${API_BASE_URL}/social-media/posts`, {
+      // FIXED URL
+      await axios.post(`${API_BASE_URL}/api/social-media/posts`, {
         account_id: selectedAccount,
         content: content,
         image_prompt: imagePrompt,
@@ -186,7 +189,6 @@ function SocialMediaManager({ user }) {
               <li key={post.id} className={`${styles.postItem} ${styles[post.status]}`}>
                 <div className={styles.postContent}>
                   <p>{post.content}</p>
-                  {/* --- THIS IS THE FIX --- */}
                   {post.hashtags && post.hashtags.length > 0 && (
                     <div className={styles.savedHashtagContainer}>
                       {post.hashtags.map((tag, index) => (
