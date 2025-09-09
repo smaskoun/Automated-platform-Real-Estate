@@ -72,3 +72,5 @@ urllib3==2.2.2
     # via requests
 werkzeug==3.0.3
     # via flask
+beautifulsoup4==4.12.3
+
