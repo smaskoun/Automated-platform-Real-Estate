@@ -1,70 +1,55 @@
 from flask import Blueprint, jsonify
 import requests
-from bs4 import BeautifulSoup
-import os
 
 market_analysis_bp = Blueprint('market_analysis_bp', __name__)
 
+# This is the direct API endpoint the CREA website uses to get its data.
+# Calling this is much more reliable than scraping the HTML page.
+CREA_API_URL = "https://stats.crea.ca/api/stats/board/wind"
+
 REQUEST_HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64 ) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Referer': 'https://stats.crea.ca/board/wind', # It's good practice to say where the request is coming from
 }
 
-# --- CREA Data Processing ---
-@market_analysis_bp.route('/crea-stats', methods=['GET'])
+@market_analysis_bp.route('/crea-stats', methods=['GET'] )
 def get_crea_data():
-    crea_url = "https://stats.crea.ca/board/wind"
     try:
-        print(f"INFO: Fetching CREA data from {crea_url}" )
-        response = requests.get(crea_url, headers=REQUEST_HEADERS, timeout=20)
+        print(f"INFO: Calling CREA API directly at {CREA_API_URL}")
+        response = requests.get(CREA_API_URL, headers=REQUEST_HEADERS, timeout=20)
         response.raise_for_status()
-        print("INFO: CREA data fetched successfully.")
-
-        soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Find the main statistics table
-        table = soup.find('table')
-        if not table:
-            print("ERROR: Could not find the data table on the CREA page.")
-            return jsonify({"error": "Could not find data table on CREa page."}), 404
+        api_data = response.json()
+        print("INFO: CREA API data received successfully.")
 
-        # Extract data from the table rows
-        data = {}
-        rows = table.find_all('tr')
+        # The API returns a list of data points. We need to find the ones we want.
+        results = api_data.get("Results", [])
         
-        # The data we want is usually in the first few rows.
-        # This is specific to the page's structure as of Sept 2025.
-        # Example: Find the row for "Sales" and get its value
-        for row in rows:
-            cells = row.find_all('td')
-            if len(cells) > 1:
-                metric_name = cells[0].get_text(strip=True)
-                metric_value = cells[1].get_text(strip=True)
-                
-                if 'Sales' in metric_name:
-                    data['total_sales'] = metric_value
-                elif 'Average Price' in metric_name:
-                    data['average_price'] = metric_value
-                elif 'New Listings' in metric_name:
-                    data['new_listings'] = metric_value
-        
-        # Get the report period from the page title or a header
-        report_period_header = soup.find('h1')
-        if report_period_header:
-            data['report_period'] = report_period_header.get_text(strip=True)
-        else:
-            data['report_period'] = "Latest Report"
+        processed_data = {}
+        for item in results:
+            if item.get("key") == "Sales":
+                processed_data['total_sales'] = item.get("value")
+            elif item.get("key") == "AveragePrice":
+                # The API returns the price without a '$', so we add it for display
+                price_value = float(item.get("value", 0))
+                processed_data['average_price'] = f"${price_value:,.0f}"
+            elif item.get("key") == "NewListings":
+                processed_data['new_listings'] = item.get("value")
 
-        if not data:
-            print("ERROR: Could not parse key metrics from the CREA table.")
-            return jsonify({"error": "Could not parse data from CREA table."}), 500
+        # The report period is also in the API response
+        processed_data['report_period'] = api_data.get("ReportPeriod", "Latest Report")
 
-        return jsonify(data)
+        if not processed_data:
+            print("ERROR: Could not find key metrics in the CREA API response.")
+            return jsonify({"error": "Could not parse data from CREA API."}), 500
+
+        return jsonify(processed_data)
 
     except Exception as e:
         print(f"CRITICAL: An exception occurred in get_crea_data: {e}")
-        return jsonify({"error": "Failed to fetch or process CREA data."}), 500
+        return jsonify({"error": "Failed to fetch or process CREA API data."}), 500
 
-# We will keep the CMHC route but use dummy data for max reliability
+# The dummy CMHC data for reliability
 @market_analysis_bp.route('/cmhc-rental-market', methods=['GET'])
 def get_cmhc_data():
     print("INFO: Returning dummy data for CMHC.")
