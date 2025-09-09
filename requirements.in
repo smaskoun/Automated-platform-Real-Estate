@@ -9,3 +9,7 @@ requests
 psycopg2-binary
 openai
 python-dotenv
+pandas
+openpyxl
+pdfplumber
+beautifulsoup4
