@@ -1,4 +1,4 @@
-// frontend/src/components/AccountManager.jsx - FULL REPLACEMENT (with Edit/Delete)
+// frontend/src/components/AccountManager.jsx - FULL REPLACEMENT (with API path fix )
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -16,14 +16,15 @@ function AccountManager({ user }) {
   const [platform, setPlatform] = useState('Facebook');
 
   // State for editing
-  const [editingAccount, setEditingAccount] = useState(null); // Holds the account being edited
+  const [editingAccount, setEditingAccount] = useState(null);
   const [editName, setEditName] = useState('');
   const [editPlatform, setEditPlatform] = useState('');
 
   const fetchAccounts = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/social-media/social-accounts`, {
+      // FIXED URL
+      const response = await axios.get(`${API_BASE_URL}/api/social-media/social-accounts`, {
         params: { user_id: user.id }
       });
       setAccounts(response.data.accounts || []);
@@ -48,7 +49,8 @@ function AccountManager({ user }) {
       return;
     }
     try {
-      await axios.post(`${API_BASE_URL}/social-media/social-accounts`, {
+      // FIXED URL
+      await axios.post(`${API_BASE_URL}/api/social-media/social-accounts`, {
         user_id: user.id,
         account_name: accountName,
         platform: platform,
@@ -60,11 +62,11 @@ function AccountManager({ user }) {
     }
   };
 
-  // --- NEW: Function to handle deleting an account ---
   const handleDeleteAccount = async (accountId) => {
     if (window.confirm("Are you sure you want to delete this account? All associated posts will also be deleted.")) {
       try {
-        await axios.delete(`${API_BASE_URL}/social-media/social-accounts/${accountId}`);
+        // FIXED URL
+        await axios.delete(`${API_BASE_URL}/api/social-media/social-accounts/${accountId}`);
         fetchAccounts(); // Refresh the list
       } catch (err) {
         alert('Failed to delete account.');
@@ -72,23 +74,21 @@ function AccountManager({ user }) {
     }
   };
 
-  // --- NEW: Function to start editing an account ---
   const handleStartEdit = (account) => {
     setEditingAccount(account);
     setEditName(account.account_name);
     setEditPlatform(account.platform);
   };
 
-  // --- NEW: Function to cancel editing ---
   const handleCancelEdit = () => {
     setEditingAccount(null);
   };
 
-  // --- NEW: Function to save the edited account ---
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API_BASE_URL}/social-media/social-accounts/${editingAccount.id}`, {
+      // FIXED URL
+      await axios.put(`${API_BASE_URL}/api/social-media/social-accounts/${editingAccount.id}`, {
         account_name: editName,
         platform: editPlatform,
       });
@@ -101,7 +101,6 @@ function AccountManager({ user }) {
 
   return (
     <div className={styles.container}>
-      {/* --- NEW: Edit Modal --- */}
       {editingAccount && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -163,7 +162,6 @@ function AccountManager({ user }) {
                       {acc.platform}
                     </span>
                   </div>
-                  {/* --- NEW: Edit and Delete Buttons --- */}
                   <div className={styles.accountActions}>
                     <button onClick={() => handleStartEdit(acc)} className={styles.editButton}>Edit</button>
                     <button onClick={() => handleDeleteAccount(acc.id)} className={styles.deleteButton}>Delete</button>
