@@ -40,7 +40,8 @@ def get_cmhc_data():
         file_response = requests.get(file_url, headers=REQUEST_HEADERS, timeout=20)
         file_response.raise_for_status()
         
-        df = pd.read_excel(io.BytesIO(file_response.content), sheet_name='2023') # Assuming 2023 sheet for now
+        # Use the first sheet as it's usually the most recent summary
+        df = pd.read_excel(io.BytesIO(file_response.content), sheet_name=0)
         df.columns = df.columns.str.strip()
         
         windsor_row = df[df.iloc[:, 0].str.contains('Windsor', na=False)].iloc[0]
@@ -58,48 +59,33 @@ def get_cmhc_data():
 
 # --- Jump Realty Data Processing ---
 def parse_jumprealty_text(text):
-    """Extracts key metrics from a Jump Realty blog post."""
     data = {}
-    
-    # Use regex to find the key metrics. These patterns are more flexible.
     avg_price_match = re.search(r'average sales price.*?was (\$[\d,]+)', text, re.IGNORECASE)
-    if avg_price_match:
-        data['average_price'] = avg_price_match.group(1)
-
+    if avg_price_match: data['average_price'] = avg_price_match.group(1)
     sales_match = re.search(r'(\d+)\s+homes were sold', text, re.IGNORECASE)
-    if sales_match:
-        data['total_sales'] = sales_match.group(1)
-
+    if sales_match: data['total_sales'] = sales_match.group(1)
     listings_match = re.search(r'(\d+)\s+new listings', text, re.IGNORECASE)
-    if not listings_match: # Try another common pattern
-        listings_match = re.search(r'(\d+)\s+listings were available', text, re.IGNORECASE)
-    if listings_match:
-        data['new_listings'] = listings_match.group(1)
-        
+    if not listings_match: listings_match = re.search(r'(\d+)\s+listings were available', text, re.IGNORECASE)
+    if listings_match: data['new_listings'] = listings_match.group(1)
     return data if data else None
 
 @market_analysis_bp.route('/jumprealty-stats', methods=['GET'])
 def get_jumprealty_data():
     try:
         print("INFO: Fetching Jump Realty market updates page...")
-        # This is the main category page for market reports
         updates_page_url = "https://jumprealty.ca/blog/category/market-reports"
         response = requests.get(updates_page_url, headers=REQUEST_HEADERS, timeout=20 )
         response.raise_for_status()
-        print("INFO: Jump Realty page fetched successfully.")
 
-        # Find the link to the very first (most recent) blog post
         soup = BeautifulSoup(response.content, 'html.parser')
         latest_post_link = soup.find('h2', class_='entry-title').find('a')
 
         if not latest_post_link or not latest_post_link.has_attr('href'):
-            print("ERROR: Could not find the link to the latest post on Jump Realty.")
             return jsonify({"error": "Could not find latest Jump Realty post."}), 404
         
         post_url = latest_post_link['href']
         print(f"INFO: Found latest post URL: {post_url}")
 
-        # Now fetch the content of the latest blog post
         post_response = requests.get(post_url, headers=REQUEST_HEADERS, timeout=20)
         post_response.raise_for_status()
 
@@ -109,10 +95,9 @@ def get_jumprealty_data():
         data = parse_jumprealty_text(post_content)
         
         if data:
-            data['report_period'] = latest_post_link.get_text() # Add the title as the report period
+            data['report_period'] = latest_post_link.get_text()
             return jsonify(data)
         else:
-            print("ERROR: Could not parse key metrics from the Jump Realty post.")
             return jsonify({"error": "Could not parse data from Jump Realty post."}), 500
 
     except Exception as e:
