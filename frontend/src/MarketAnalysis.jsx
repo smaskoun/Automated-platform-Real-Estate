@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const MarketAnalysis = () => {
     const [source, setSource] = useState('cmhc');
@@ -13,21 +13,16 @@ const MarketAnalysis = () => {
         setError('');
         setMarketData(null);
 
-        // <<< START OF CHANGES
         const API_URL = import.meta.env.VITE_API_BASE_URL;
         let path = '';
-        // <<< END OF CHANGES
 
         if (source === 'cmhc') {
             path = '/api/market-analysis/cmhc-rental-market';
-        } else if (source === 'statcan') {
-            path = '/api/market-analysis/statcan-housing-starts';
-        } else if (source === 'wecar') {
-            path = '/api/market-analysis/wecar-sales';
+        } else if (source === 'jumprealty') {
+            path = '/api/market-analysis/jumprealty-stats';
         }
 
         try {
-            // <<< MODIFIED LINE
             const response = await axios.get(`${API_URL}${path}`);
             setMarketData(response.data);
         } catch (err) {
@@ -39,13 +34,10 @@ const MarketAnalysis = () => {
     };
 
     const renderCMHCReport = () => {
-        if (!marketData) return null;
+        if (!marketData || !marketData.windsor) return null;
 
         const rentData = [
-            { name: 'Bachelor', Windsor: marketData.windsor.avg_rent_bachelor, Ontario: marketData.ontario.avg_rent_bachelor },
-            { name: '1-Bedroom', Windsor: marketData.windsor.avg_rent_1_bedroom, Ontario: marketData.ontario.avg_rent_1_bedroom },
-            { name: '2-Bedroom', Windsor: marketData.windsor.avg_rent_2_bedroom, Ontario: marketData.ontario.avg_rent_2_bedroom },
-            { name: '3-Bedroom+', Windsor: marketData.windsor.avg_rent_3_bedroom_plus, Ontario: marketData.ontario.avg_rent_3_bedroom_plus },
+            { name: 'Average Rent', Windsor: marketData.windsor.avg_rent_total, Ontario: marketData.ontario.avg_rent_total },
         ];
 
         return (
@@ -77,32 +69,12 @@ const MarketAnalysis = () => {
         );
     };
     
-    const renderStatCanReport = () => {
-        if (!marketData || marketData.length === 0) return null;
+    const renderJumpRealtyReport = () => {
+        if (!marketData || !marketData.average_price) return null;
         return (
             <div>
-                <h3 className="text-2xl font-semibold mb-4">Statistics Canada - Housing Starts</h3>
-                 <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={marketData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="windsor_starts" name="Windsor Starts" stroke="#8884d8" />
-                        <Line type="monotone" dataKey="ontario_starts" name="Ontario Starts" stroke="#82ca9d" />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        );
-    };
-
-    const renderWECARReport = () => {
-        if (!marketData) return null;
-        return (
-            <div>
-                <h3 className="text-2xl font-semibold mb-4">WECAR Monthly Market Report</h3>
-                <p className="text-md mb-4 text-gray-600">Report for: {marketData.report_period || 'Latest Month'}</p>
+                <h3 className="text-2xl font-semibold mb-4">Jump Realty Market Report</h3>
+                <p className="text-md mb-4 text-gray-600">Report: {marketData.report_period || 'Latest Month'}</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-blue-100 p-4 rounded-lg text-center">
                         <h4 className="text-lg font-bold">Average Price</h4>
@@ -131,8 +103,7 @@ const MarketAnalysis = () => {
                     className="p-2 border rounded"
                 >
                     <option value="cmhc">CMHC Rental Market</option>
-                    <option value="statcan">Statistics Canada - Housing Starts</option>
-                    <option value="wecar">WECAR - Market Activity</option>
+                    <option value="jumprealty">Jump Realty Market Stats</option>
                 </select>
                 <button
                     onClick={handleGenerateReport}
@@ -147,8 +118,7 @@ const MarketAnalysis = () => {
 
             <div className="mt-6">
                 {marketData && source === 'cmhc' && renderCMHCReport()}
-                {marketData && source === 'statcan' && renderStatCanReport()}
-                {marketData && source === 'wecar' && renderWECARReport()}
+                {marketData && source === 'jumprealty' && renderJumpRealtyReport()}
             </div>
         </div>
     );
