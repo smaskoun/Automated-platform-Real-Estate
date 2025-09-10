@@ -1,9 +1,7 @@
-// frontend/src/SocialMediaManager.jsx - FULL REPLACEMENT (with API path fix)
-
 import React, { useState, useEffect } from 'react';
-import styles from './SocialMediaManager.module.css';
 import axios from 'axios';
 
+// This is the variable that holds your backend URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function SocialMediaManager({ user }) {
@@ -28,7 +26,7 @@ function SocialMediaManager({ user }) {
     setIsLoading(true);
     setError('');
     try {
-      // FIXED URLs
+      // --- FIX: Added API_BASE_URL to all calls ---
       const [accountsRes, postsRes, brandVoicesRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/social-media/social-accounts`, { params: { user_id: user.id } }),
         axios.get(`${API_BASE_URL}/api/social-media/posts`, { params: { user_id: user.id } }),
@@ -68,7 +66,7 @@ function SocialMediaManager({ user }) {
     setIsGenerating(true);
     setError('');
     try {
-      // FIXED URL
+      // --- FIX: Added API_BASE_URL ---
       const response = await axios.post(`${API_BASE_URL}/api/social-media/posts/generate`, {
         user_id: user.id,
         topic: topic,
@@ -94,7 +92,7 @@ function SocialMediaManager({ user }) {
       return;
     }
     try {
-      // FIXED URL
+      // --- FIX: Added API_BASE_URL ---
       await axios.post(`${API_BASE_URL}/api/social-media/posts`, {
         account_id: selectedAccount,
         content: content,
@@ -117,37 +115,41 @@ function SocialMediaManager({ user }) {
   };
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading social media dashboard...</div>;
+    return <div className="text-center p-8">Loading social media dashboard...</div>;
   }
 
   return (
-    <div className={styles.manager}>
-      <div className={styles.formCard}>
-        <h3>Create New Social Media Post</h3>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Left Column: Form Card */}
+      <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md space-y-6">
+        <h3 className="text-xl font-bold">Create New Social Media Post</h3>
         
-        <div className={styles.aiSection}>
-          <h4>✨ AI Content Generator</h4>
+        {/* AI Generator Section */}
+        <div className="p-4 bg-gray-50 rounded-lg border space-y-3">
+          <h4 className="text-lg font-semibold">✨ AI Content Generator</h4>
           <input
             type="text"
-            placeholder="Enter post topic (e.g., 'New 2-bed condo downtown')"
+            placeholder="Enter post topic..."
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
-          <select value={selectedBrandVoice} onChange={(e) => setSelectedBrandVoice(e.target.value)}>
+          <select value={selectedBrandVoice} onChange={(e) => setSelectedBrandVoice(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md">
             <option value="" disabled>Select a Brand Voice</option>
             {brandVoices.map(bv => (
               <option key={bv.id} value={bv.id}>{bv.name}</option>
             ))}
           </select>
-          <button type="button" onClick={handleGenerateContent} disabled={isGenerating}>
+          <button type="button" onClick={handleGenerateContent} disabled={isGenerating} className="w-full px-4 py-2 font-semibold text-white bg-purple-600 rounded-md shadow-sm hover:bg-purple-700 disabled:bg-gray-400">
             {isGenerating ? 'Generating...' : 'Generate with AI'}
           </button>
         </div>
         
-        {error && <div className={styles.error}>{error}</div>}
+        {error && <div className="p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
 
-        <form onSubmit={handleCreatePost}>
-          <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} required>
+        {/* Post Creation Form */}
+        <form onSubmit={handleCreatePost} className="space-y-4">
+          <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
             <option value="" disabled>Select an Account to Post To</option>
             {accounts.map(acc => (
               <option key={acc.id} value={acc.id}>{acc.account_name} ({acc.platform})</option>
@@ -159,50 +161,65 @@ function SocialMediaManager({ user }) {
             onChange={(e) => setContent(e.target.value)}
             required
             rows={8}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
           <input
             type="text"
             placeholder="AI-generated image prompt will appear here..."
             value={imagePrompt}
             onChange={(e) => setImagePrompt(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
           
-          <div className={styles.hashtagContainer}>
-            {hashtags.length > 0 ? (
-              hashtags.map((tag, index) => (
-                <span key={index} className={styles.hashtagItem}>{tag}</span>
-              ))
-            ) : (
-              <p className={styles.noHashtags}>Hashtags will appear here...</p>
-            )}
+          <div className="p-3 bg-gray-50 rounded-md min-h-[60px]">
+            <p className="text-sm font-medium text-gray-700 mb-2">Generated Hashtags:</p>
+            <div className="flex flex-wrap gap-2">
+              {hashtags.length > 0 ? (
+                hashtags.map((tag, index) => (
+                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">{tag}</span>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">Hashtags will appear here...</p>
+              )}
+            </div>
           </div>
 
-          <button type="submit">Create & Schedule Post</button>
+          <button type="submit" className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700">
+            Create & Schedule Post
+          </button>
         </form>
       </div>
 
-      <div className={styles.listCard}>
-        <h3>Scheduled & Draft Posts</h3>
+      {/* Right Column: List Card */}
+      <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-bold mb-4">Scheduled & Draft Posts</h3>
         {posts.length > 0 ? (
-          <ul className={styles.postList}>
+          <ul className="space-y-4">
             {posts.map((post) => (
-              <li key={post.id} className={`${styles.postItem} ${styles[post.status]}`}>
-                <div className={styles.postContent}>
-                  <p>{post.content}</p>
-                  {post.hashtags && post.hashtags.length > 0 && (
-                    <div className={styles.savedHashtagContainer}>
-                      {post.hashtags.map((tag, index) => (
-                        <span key={index} className={styles.savedHashtagItem}>{tag}</span>
-                      ))}
-                    </div>
-                  )}
-                  <small>Status: {post.status} | Account: {post.account_name}</small>
+              <li key={post.id} className={`p-4 rounded-lg border ${post.status === 'draft' ? 'bg-yellow-50' : 'bg-green-50'}`}>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-800">{post.content}</p>
+                    {post.hashtags && post.hashtags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {post.hashtags.map((tag, index) => (
+                          <span key={index} className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="ml-4 text-right">
+                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${post.status === 'draft' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>
+                      {post.status}
+                    </span>
+                    <p className="text-xs text-gray-500 mt-1">{post.account_name}</p>
+                  </div>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p>No posts found. Use the form to create one.</p>
+          <p>No posts found. Use the form on the left to create one.</p>
         )}
       </div>
     </div>
