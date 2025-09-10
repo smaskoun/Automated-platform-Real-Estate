@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 
-// This is the variable that holds your backend URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// A component for the main statistic cards
 const StatCard = ({ title, value, change, changeColor }) => (
   <div className="bg-white p-4 rounded-lg shadow-md text-center">
     <h4 className="text-md font-medium text-gray-500">{title}</h4>
@@ -20,50 +18,41 @@ const StatCard = ({ title, value, change, changeColor }) => (
 
 function MarketAnalysis() {
   const [marketData, setMarketData] = useState(null);
-  const [loading, setLoading] = useState(true); // Start in loading state
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchMarketData = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/market-analysis/local-market-report`);
+      // Call the new automated WECAR endpoint
+      const response = await axios.get(`${API_BASE_URL}/api/market-analysis/wecar-market-report`);
       setMarketData(response.data);
     } catch (err) {
-      setError('Failed to fetch market data.');
+      setError('Failed to fetch live market data.');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
   
-  // Fetch data automatically when the component loads
   useEffect(() => {
     fetchMarketData();
   }, []);
 
   const renderReport = () => {
-    // --- THIS IS THE FIX ---
-    // First, handle the loading and error states.
-    if (loading) return <p className="text-center p-8">Loading report...</p>;
+    if (loading) return <p className="text-center p-8">Fetching live market data...</p>;
     if (error) return <p className="text-center p-8 text-red-500">{error}</p>;
-    
-    // Then, handle the case where there is no data AFTER loading has finished.
-    // This prevents the crash.
     if (!marketData) return <p className="text-center p-8">No data available.</p>;
-    // --- END OF FIX ---
 
-    // If we get here, it's safe to assume marketData is a valid object.
     const { key_metrics, sales_by_type, year_over_year_change } = marketData;
 
-    // Format numbers for display
     const formatCurrency = (num) => `$${new Intl.NumberFormat('en-US').format(num)}`;
     const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
     const formatPriceK = (num) => `$${(num / 1000).toFixed(0)}K`;
 
     return (
       <div className="space-y-8">
-        {/* Enhanced Stat Cards with YoY Change */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard 
             title="Average Price" 
@@ -89,7 +78,6 @@ function MarketAnalysis() {
           />
         </div>
 
-        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h4 className="text-lg font-bold mb-4">Sales by Property Type</h4>
@@ -128,7 +116,7 @@ function MarketAnalysis() {
     <div>
       <h1 className="text-3xl font-bold mb-2">Windsor-Essex Market Analysis</h1>
       <p className="text-md text-gray-500 mb-6">
-        {loading ? 'Loading report...' : (marketData ? marketData.report_period : 'Report Details')}
+        {loading ? 'Fetching latest WECAR report...' : (marketData ? marketData.report_period : 'Report Details')}
       </p>
       {renderReport()}
     </div>
