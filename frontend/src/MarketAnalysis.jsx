@@ -20,7 +20,7 @@ const StatCard = ({ title, value, change, changeColor }) => (
 
 function MarketAnalysis() {
   const [marketData, setMarketData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start in loading state
   const [error, setError] = useState('');
 
   const fetchMarketData = async () => {
@@ -43,10 +43,17 @@ function MarketAnalysis() {
   }, []);
 
   const renderReport = () => {
-    if (isLoading) return <p className="text-center">Loading report...</p>;
-    if (error) return <p className="text-center text-red-500">{error}</p>;
-    if (!marketData) return <p className="text-center">No data available.</p>;
+    // --- THIS IS THE FIX ---
+    // First, handle the loading and error states.
+    if (loading) return <p className="text-center p-8">Loading report...</p>;
+    if (error) return <p className="text-center p-8 text-red-500">{error}</p>;
+    
+    // Then, handle the case where there is no data AFTER loading has finished.
+    // This prevents the crash.
+    if (!marketData) return <p className="text-center p-8">No data available.</p>;
+    // --- END OF FIX ---
 
+    // If we get here, it's safe to assume marketData is a valid object.
     const { key_metrics, sales_by_type, year_over_year_change } = marketData;
 
     // Format numbers for display
@@ -56,7 +63,7 @@ function MarketAnalysis() {
 
     return (
       <div className="space-y-8">
-        {/* --- NEW: Enhanced Stat Cards with YoY Change --- */}
+        {/* Enhanced Stat Cards with YoY Change */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard 
             title="Average Price" 
@@ -121,7 +128,7 @@ function MarketAnalysis() {
     <div>
       <h1 className="text-3xl font-bold mb-2">Windsor-Essex Market Analysis</h1>
       <p className="text-md text-gray-500 mb-6">
-        {marketData ? marketData.report_period : 'Loading report...'}
+        {loading ? 'Loading report...' : (marketData ? marketData.report_period : 'Report Details')}
       </p>
       {renderReport()}
     </div>
