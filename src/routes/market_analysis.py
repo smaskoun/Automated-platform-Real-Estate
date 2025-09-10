@@ -1,37 +1,53 @@
 from flask import Blueprint, jsonify
-import json
-import os # <-- We still need the 'os' module
+import requests
+from datetime import datetime, timedelta
 
 market_analysis_bp = Blueprint('market_analysis_bp', __name__)
 
-@market_analysis_bp.route('/local-market-report', methods=['GET'])
-def get_local_market_report():
+# --- WECAR Automated Data Fetching ---
+@market_analysis_bp.route('/wecar-market-report', methods=['GET'])
+def get_wecar_market_report():
     """
-    API endpoint to fetch the local market report from a JSON file.
-    This method uses an absolute path to ensure file is found on any server.
+    API endpoint to fetch the latest available market report from WECAR's data source.
+    It tries the current month first, then falls back to the previous month.
     """
+    base_url = "https://wecartech.com/wecfiles/stats_new"
+    headers = {'User-Agent': 'Mozilla/5.0'} # Act like a browser
+    
+    today = datetime.now( )
+    
+    # --- Attempt 1: Try the current month ---
+    current_year = today.year
+    current_month_short = today.strftime('%b').lower() # e.g., 'sep'
+    url_current = f"{base_url}/{current_year}/{current_month_short}/summary.json"
+    
+    print(f"INFO: Attempting to fetch data for current month from: {url_current}")
+    
     try:
-        # --- THIS IS THE FINAL, ROBUST FIX ---
-        # Get the absolute directory of the current file (e.g., /.../src/routes)
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        # Navigate up one level to the 'src' directory, then into the 'data' directory
-        # This creates a foolproof path: /.../src/data/market_report_sample.json
-        file_path = os.path.join(current_dir, '..', 'data', 'market_report_sample.json')
-        
-        # The 'normpath' function cleans up the path (e.g., handles the '..')
-        file_path = os.path.normpath(file_path)
+        response = requests.get(url_current, headers=headers, timeout=10)
+        response.raise_for_status() # This will raise an error for 4xx or 5xx status
+        print("INFO: Current month data found and fetched successfully.")
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        print(f"INFO: Could not fetch data for current month ({e}). Trying previous month.")
 
-        print(f"Attempting to open file at absolute path: {file_path}") # Add logging
+    # --- Attempt 2: Fallback to the previous month ---
+    # Calculate the previous month
+    first_day_of_current_month = today.replace(day=1)
+    last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
+    
+    prev_year = last_day_of_previous_month.year
+    prev_month_short = last_day_of_previous_month.strftime('%b').lower()
+    url_previous = f"{base_url}/{prev_year}/{prev_month_short}/summary.json"
 
-        with open(file_path, 'r') as f:
-            data = json.load(f)
-        
-        return jsonify(data)
-        
-    except FileNotFoundError:
-        print(f"ERROR: market_report_sample.json not found at path: {file_path}")
-        return jsonify({"error": "Market report data file not found on the server."}), 404
-    except Exception as e:
-        print(f"CRITICAL: An error occurred loading the local market report: {e}")
-        return jsonify({"error": "An unexpected error occurred on the server."}), 500
+    print(f"INFO: Attempting to fetch data for previous month from: {url_previous}")
+
+    try:
+        response = requests.get(url_previous, headers=headers, timeout=10)
+        response.raise_for_status()
+        print("INFO: Previous month data found and fetched successfully.")
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        print(f"CRITICAL: Could not fetch data for previous month either ({e}).")
+        return jsonify({"error": "Failed to fetch the latest market report from WECAR."}), 500
+
