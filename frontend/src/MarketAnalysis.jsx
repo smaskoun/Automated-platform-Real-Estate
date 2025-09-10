@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-// Import the LabelList component to add labels to our bars
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 
 const MarketAnalysis = () => {
@@ -27,14 +26,6 @@ const MarketAnalysis = () => {
         }
     };
 
-    // A small helper component for the key metric cards for better styling
-    const MetricCard = ({ title, value, bgColor }) => (
-        <div className={`${bgColor} p-4 rounded-lg text-center`}>
-            <h4 className="text-lg font-bold text-gray-700">{title}</h4>
-            <p className="text-3xl text-black">{value}</p>
-        </div>
-    );
-
     const renderReport = () => {
         if (!marketData) return null;
 
@@ -50,12 +41,24 @@ const MarketAnalysis = () => {
                 <h3 className="text-2xl font-semibold mb-2">Windsor-Essex Market Report</h3>
                 <p className="text-md mb-6 text-gray-500">{report_period}</p>
 
-                {/* --- IMPROVED: Key Metrics Grid --- */}
+                {/* --- NEW: Direct-Styled Key Metrics Grid --- */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <MetricCard title="Average Price" value={summary.average_price} bgColor="bg-blue-100" />
-                    <MetricCard title="Total Sales" value={summary.total_sales} bgColor="bg-green-100" />
-                    <MetricCard title="New Listings" value={summary.new_listings} bgColor="bg-yellow-100" />
-                    <MetricCard title="Months of Supply" value={summary.months_of_supply} bgColor="bg-indigo-100" />
+                    <div className="bg-blue-100 p-4 rounded-lg text-center shadow">
+                        <h4 className="text-lg font-bold text-gray-800">Average Price</h4>
+                        <p className="text-3xl text-black font-semibold">{summary.average_price}</p>
+                    </div>
+                    <div className="bg-green-100 p-4 rounded-lg text-center shadow">
+                        <h4 className="text-lg font-bold text-gray-800">Total Sales</h4>
+                        <p className="text-3xl text-black font-semibold">{summary.total_sales}</p>
+                    </div>
+                    <div className="bg-yellow-100 p-4 rounded-lg text-center shadow">
+                        <h4 className="text-lg font-bold text-gray-800">New Listings</h4>
+                        <p className="text-3xl text-black font-semibold">{summary.new_listings}</p>
+                    </div>
+                    <div className="bg-indigo-100 p-4 rounded-lg text-center shadow">
+                        <h4 className="text-lg font-bold text-gray-800">Months of Supply</h4>
+                        <p className="text-3xl text-black font-semibold">{summary.months_of_supply}</p>
+                    </div>
                 </div>
 
                 {/* Container for the charts */}
@@ -71,8 +74,7 @@ const MarketAnalysis = () => {
                                 <Tooltip />
                                 <Legend />
                                 <Bar dataKey="sales" name="Number of Sales" fill="#8884d8">
-                                    {/* --- NEW: Adds labels on top of the bars --- */}
-                                    <LabelList dataKey="sales" position="top" />
+                                    <LabelList dataKey="sales" position="top" style={{ fill: 'white' }} />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
@@ -92,11 +94,11 @@ const MarketAnalysis = () => {
                                 />
                                 <Legend />
                                 <Bar dataKey="average_price_numeric" name="Average Price" fill="#82ca9d">
-                                    {/* --- NEW: Adds labels on top of the bars --- */}
                                     <LabelList 
                                         dataKey="average_price_numeric" 
                                         position="top" 
                                         formatter={(value) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value)}
+                                        style={{ fill: 'white' }}
                                     />
                                 </Bar>
                             </BarChart>
