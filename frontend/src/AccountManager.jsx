@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// This is the variable that holds your backend URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // A simple, reusable button component for consistent styling
 const Button = ({ onClick, children, className, type = "button" }) => (
   <button
@@ -29,7 +32,8 @@ function AccountManager({ user }) {
   const fetchAccounts = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/social-media/social-accounts`, {
+      // --- FIX: Added API_BASE_URL ---
+      const response = await axios.get(`${API_BASE_URL}/api/social-media/social-accounts`, {
         params: { user_id: user.id }
       });
       setAccounts(response.data.accounts || []);
@@ -51,7 +55,8 @@ function AccountManager({ user }) {
     e.preventDefault();
     if (!accountName || !platform) return;
     try {
-      await axios.post(`/api/social-media/social-accounts`, {
+      // --- FIX: Added API_BASE_URL ---
+      await axios.post(`${API_BASE_URL}/api/social-media/social-accounts`, {
         user_id: user.id,
         account_name: accountName,
         platform: platform,
@@ -66,7 +71,8 @@ function AccountManager({ user }) {
   const handleDeleteAccount = async (accountId) => {
     if (window.confirm("Are you sure you want to delete this account?")) {
       try {
-        await axios.delete(`/api/social-media/social-accounts/${accountId}`);
+        // --- FIX: Added API_BASE_URL ---
+        await axios.delete(`${API_BASE_URL}/api/social-media/social-accounts/${accountId}`);
         fetchAccounts();
       } catch (err) {
         alert('Failed to delete account.');
@@ -85,7 +91,8 @@ function AccountManager({ user }) {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`/api/social-media/social-accounts/${editingAccount.id}`, {
+      // --- FIX: Added API_BASE_URL ---
+      await axios.put(`${API_BASE_URL}/api/social-media/social-accounts/${editingAccount.id}`, {
         account_name: editName,
         platform: editPlatform,
       });
@@ -167,7 +174,6 @@ function AccountManager({ user }) {
                 <div className="flex space-x-2">
                   <Button onClick={() => handleStartEdit(acc)} className="bg-yellow-500 hover:bg-yellow-600 text-sm">Edit</Button>
                   <Button onClick={() => handleDeleteAccount(acc.id)} className="bg-red-600 hover:bg-red-700 text-sm">Delete</Button>
-
                 </div>
               </li>
             )) : <p>No accounts found. Add one using the form above.</p>}
