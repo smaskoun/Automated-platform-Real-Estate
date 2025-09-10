@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, jsonify
 import json
-import os # <-- Import the 'os' module
+import os # <-- We still need the 'os' module
 
 market_analysis_bp = Blueprint('market_analysis_bp', __name__)
 
@@ -8,23 +8,30 @@ market_analysis_bp = Blueprint('market_analysis_bp', __name__)
 def get_local_market_report():
     """
     API endpoint to fetch the local market report from a JSON file.
-    This method is 100% reliable as it does not depend on external websites.
+    This method uses an absolute path to ensure file is found on any server.
     """
     try:
-        # --- THIS IS THE FIX ---
-        # Construct a reliable path to the data file relative to the app's root
-        # This works correctly on both local machines and production servers like Render
-        file_path = os.path.join(current_app.root_path, 'data', 'market_report_sample.json')
+        # --- THIS IS THE FINAL, ROBUST FIX ---
+        # Get the absolute directory of the current file (e.g., /.../src/routes)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
         
+        # Navigate up one level to the 'src' directory, then into the 'data' directory
+        # This creates a foolproof path: /.../src/data/market_report_sample.json
+        file_path = os.path.join(current_dir, '..', 'data', 'market_report_sample.json')
+        
+        # The 'normpath' function cleans up the path (e.g., handles the '..')
+        file_path = os.path.normpath(file_path)
+
+        print(f"Attempting to open file at absolute path: {file_path}") # Add logging
+
         with open(file_path, 'r') as f:
             data = json.load(f)
         
         return jsonify(data)
         
     except FileNotFoundError:
-        print("ERROR: market_report_sample.json not found at path:", file_path)
+        print(f"ERROR: market_report_sample.json not found at path: {file_path}")
         return jsonify({"error": "Market report data file not found on the server."}), 404
     except Exception as e:
         print(f"CRITICAL: An error occurred loading the local market report: {e}")
         return jsonify({"error": "An unexpected error occurred on the server."}), 500
-
