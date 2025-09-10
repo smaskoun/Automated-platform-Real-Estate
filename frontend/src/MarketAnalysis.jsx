@@ -1,135 +1,131 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 
-const MarketAnalysis = () => {
-    const [marketData, setMarketData] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+// This is the variable that holds your backend URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-    const handleGenerateReport = async () => {
-        setLoading(true);
-        setError('');
-        setMarketData(null);
+// A component for the main statistic cards
+const StatCard = ({ title, value, change, changeColor }) => (
+  <div className="bg-white p-4 rounded-lg shadow-md text-center">
+    <h4 className="text-md font-medium text-gray-500">{title}</h4>
+    <p className="text-3xl font-bold mt-1">{value}</p>
+    {change !== undefined && (
+      <p className={`text-sm font-semibold mt-1 ${changeColor}`}>
+        {change > 0 ? '▲' : '▼'} {Math.abs(change)}% YoY
+      </p>
+    )}
+  </div>
+);
 
-        const API_URL = import.meta.env.VITE_API_BASE_URL;
-        const path = '/api/market-analysis/full-market-report';
+function MarketAnalysis() {
+  const [marketData, setMarketData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-        try {
-            const response = await axios.get(`${API_URL}${path}`);
-            setMarketData(response.data);
-        } catch (err) {
-            setError('Failed to fetch data. Please try again later.');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchMarketData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/market-analysis/local-market-report`);
+      setMarketData(response.data);
+    } catch (err) {
+      setError('Failed to fetch market data.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch data automatically when the component loads
+  useEffect(() => {
+    fetchMarketData();
+  }, []);
 
-    const renderReport = () => {
-        if (!marketData) return null;
+  const renderReport = () => {
+    if (isLoading) return <p className="text-center">Loading report...</p>;
+    if (error) return <p className="text-center text-red-500">{error}</p>;
+    if (!marketData) return <p className="text-center">No data available.</p>;
 
-        const { summary, breakdown, report_period } = marketData;
-        
-        const priceBreakdown = breakdown.map(item => ({
-            ...item,
-            average_price_numeric: Number(item.average_price.replace(/[^0-9.-]+/g,""))
-        }));
+    const { key_metrics, sales_by_type, year_over_year_change } = marketData;
 
-        return (
-            <div>
-                <h3 className="text-2xl font-semibold mb-2">Windsor-Essex Market Report</h3>
-                <p className="text-md mb-6 text-gray-500">{report_period}</p>
-
-                {/* --- NEW: Direct-Styled Key Metrics Grid --- */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-blue-100 p-4 rounded-lg text-center shadow">
-                        <h4 className="text-lg font-bold text-gray-800">Average Price</h4>
-                        <p className="text-3xl text-black font-semibold">{summary.average_price}</p>
-                    </div>
-                    <div className="bg-green-100 p-4 rounded-lg text-center shadow">
-                        <h4 className="text-lg font-bold text-gray-800">Total Sales</h4>
-                        <p className="text-3xl text-black font-semibold">{summary.total_sales}</p>
-                    </div>
-                    <div className="bg-yellow-100 p-4 rounded-lg text-center shadow">
-                        <h4 className="text-lg font-bold text-gray-800">New Listings</h4>
-                        <p className="text-3xl text-black font-semibold">{summary.new_listings}</p>
-                    </div>
-                    <div className="bg-indigo-100 p-4 rounded-lg text-center shadow">
-                        <h4 className="text-lg font-bold text-gray-800">Months of Supply</h4>
-                        <p className="text-3xl text-black font-semibold">{summary.months_of_supply}</p>
-                    </div>
-                </div>
-
-                {/* Container for the charts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    
-                    <div>
-                        <h4 className="text-xl font-semibold mb-2">Sales by Property Type</h4>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={breakdown} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="property_type" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-                                <Bar dataKey="sales" name="Number of Sales" fill="#8884d8">
-                                    <LabelList dataKey="sales" position="top" style={{ fill: 'white' }} />
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-
-                    <div>
-                        <h4 className="text-xl font-semibold mb-2">Average Price by Property Type</h4>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={priceBreakdown} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="property_type" />
-                                <YAxis 
-                                    tickFormatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(value)}
-                                />
-                                <Tooltip 
-                                    formatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
-                                />
-                                <Legend />
-                                <Bar dataKey="average_price_numeric" name="Average Price" fill="#82ca9d">
-                                    <LabelList 
-                                        dataKey="average_price_numeric" 
-                                        position="top" 
-                                        formatter={(value) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value)}
-                                        style={{ fill: 'white' }}
-                                    />
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                    
-                </div>
-            </div>
-        );
-    };
+    // Format numbers for display
+    const formatCurrency = (num) => `$${new Intl.NumberFormat('en-US').format(num)}`;
+    const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
+    const formatPriceK = (num) => `$${(num / 1000).toFixed(0)}K`;
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-4">Windsor-Essex Market Analysis</h1>
-            <div className="flex items-center space-x-4 mb-6">
-                <button
-                    onClick={handleGenerateReport}
-                    disabled={loading}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-                >
-                    {loading ? 'Generating...' : 'Generate Market Report'}
-                </button>
-            </div>
-
-            {error && <p className="text-red-500">{error}</p>}
-
-            <div className="mt-6">
-                {renderReport()}
-            </div>
+      <div className="space-y-8">
+        {/* --- NEW: Enhanced Stat Cards with YoY Change --- */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard 
+            title="Average Price" 
+            value={formatCurrency(key_metrics.average_price)}
+            change={year_over_year_change.average_price_pct}
+            changeColor={year_over_year_change.average_price_pct > 0 ? 'text-green-600' : 'text-red-600'}
+          />
+          <StatCard 
+            title="Total Sales" 
+            value={formatNumber(key_metrics.total_sales)}
+            change={year_over_year_change.total_sales_pct}
+            changeColor={year_over_year_change.total_sales_pct > 0 ? 'text-green-600' : 'text-red-600'}
+          />
+          <StatCard 
+            title="New Listings" 
+            value={formatNumber(key_metrics.new_listings)}
+            change={year_over_year_change.new_listings_pct}
+            changeColor={year_over_year_change.new_listings_pct > 0 ? 'text-green-600' : 'text-red-600'}
+          />
+          <StatCard 
+            title="Months of Supply" 
+            value={key_metrics.months_of_supply}
+          />
         </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h4 className="text-lg font-bold mb-4">Sales by Property Type</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={sales_by_type} margin={{ top: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(value) => formatNumber(value)} />
+                <Bar dataKey="sales" fill="#8884d8" name="Number of Sales">
+                  <LabelList dataKey="sales" position="top" style={{ fill: '#333' }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h4 className="text-lg font-bold mb-4">Average Price by Property Type</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={sales_by_type} margin={{ top: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tickFormatter={formatPriceK} tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(value) => formatCurrency(value)} />
+                <Bar dataKey="average_price" fill="#82ca9d" name="Average Price">
+                  <LabelList dataKey="average_price" position="top" formatter={formatPriceK} style={{ fill: '#333' }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
     );
-};
+  };
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold mb-2">Windsor-Essex Market Analysis</h1>
+      <p className="text-md text-gray-500 mb-6">
+        {marketData ? marketData.report_period : 'Loading report...'}
+      </p>
+      {renderReport()}
+    </div>
+  );
+}
 
 export default MarketAnalysis;
