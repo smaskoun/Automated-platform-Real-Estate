@@ -82,4 +82,4 @@ urllib3==2.2.2
     # via requests
 werkzeug==3.0.3
     # via flask
-pandas
+pandas==2.2.2
