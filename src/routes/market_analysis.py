@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app, send_file, request, Response
+from flask import Blueprint, jsonify, current_app, send_file, request, Response, has_request_context
 import requests
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -33,29 +33,37 @@ def cache_result(duration=CACHE_DURATION):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            path = request.path
-            args_str = str(sorted(request.args.items()))
-            cache_key = f"{path}?{args_str}"
+            if has_request_context():
+                path = request.path
+                args_str = str(sorted(request.args.items()))
+                cache_key = f"{path}?{args_str}"
+            else:
+                cache_key = f"{func.__name__}:{args}:{sorted(kwargs.items())}"
+
             if cache_key in cache:
-                result, timestamp = cache[cache_key]
+                cached_result, timestamp = cache[cache_key]
                 if time.time() - timestamp < duration:
                     logging.info(f"Cache HIT for key: {cache_key}")
-                    return result
-                else:
-                    logging.info(f"Cache EXPIRED for key: {cache_key}")
-                    del cache[cache_key]
+                    return cached_result
+                logging.info(f"Cache EXPIRED for key: {cache_key}")
+                del cache[cache_key]
+
             logging.info(f"Cache MISS for key: {cache_key}")
             result = func(*args, **kwargs)
-            if isinstance(result, Response):
-                 cache[cache_key] = (result, time.time())
+            if isinstance(result, Response) or (
+                isinstance(result, tuple) and isinstance(result[0], Response)
+            ):
+                cache[cache_key] = (result, time.time())
             return result
+
         return wrapper
+
     return decorator
 
 # --- Sample Data ---
 def get_sample_data():
     try:
-        project_root = current_app.root_path 
+        project_root = current_app.root_path
         sample_data_path = os.path.join(project_root, 'data', 'market_report_sample.json')
         with open(sample_data_path, 'r') as f:
             data = json.load(f)
@@ -69,27 +77,35 @@ def get_sample_data():
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
-    return (datetime.now().replace(day=1) - relativedelta(days=1)).date()
+    return (datetime.now().replace(day=1) - relativedelta(months=1)).date()
 
 def fetch_wecar_data_for_month(target_date):
     base_url = "https://wecartech.com/wecfiles/stats_new"
     headers = {'User-Agent': 'Mozilla/5.0'}
     year = target_date.year
-    month_short = target_date.strftime('%b' ).lower()
-    url = f"{base_url}/{year}/{month_short}/summary.json"
-    
-    logging.info(f"Attempting to fetch data from: {url}")
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        logging.info(f"Successfully fetched and parsed JSON for {month_short.capitalize()} {year}.")
-        data['source'] = 'WECAR Live'
-        data['period'] = f"{month_short.capitalize()} {year}"
-        return data
-    except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-        logging.warning(f"Failed to get data from {url}. Reason: {e}")
-        return None
+    month_short = target_date.strftime('%b').lower()
+    month_num = target_date.strftime('%m')
+    urls = [
+        f"{base_url}/{year}/{month_short}/summary.json",
+        f"{base_url}/{year}/{month_num}/summary.json",
+    ]
+
+    for url in urls:
+        logging.info(f"Attempting to fetch data from: {url}")
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            logging.info(
+                f"Successfully fetched and parsed JSON for {target_date.strftime('%b %Y')}"
+            )
+            data["source"] = "WECAR Live"
+            data["period"] = target_date.strftime("%b %Y")
+            return data
+        except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+            logging.warning(f"Failed to fetch data from {url}. Reason: {e}")
+
+    return {"error": "missing", "attempted": urls}
 
 # --- BUG FIX: Added parentheses to the decorator ---
 @cache_result()
@@ -99,7 +115,7 @@ def fetch_latest_wecar_data():
     for i in range(3):
         target_date = latest_available - relativedelta(months=i)
         data = fetch_wecar_data_for_month(target_date)
-        if data:
+        if data and 'error' not in data:
             return data
     logging.error("All attempts to fetch live WECAR data failed. Using fallback.")
     return get_sample_data()
@@ -171,13 +187,20 @@ def get_historical_data():
         end_date = datetime.strptime(end_str, '%Y-%m')
     except ValueError:
         return jsonify({"error": "Invalid date format. Please use YYYY-MM."}), 400
-    
+
     latest_available = get_latest_available_month()
     latest_available_dt = datetime(latest_available.year, latest_available.month, 1)
 
     excluded_months = []
     if end_date > latest_available_dt:
-        excluded_months = [dt.strftime('%Y-%m') for dt in rrule(MONTHLY, dtstart=latest_available_dt + relativedelta(months=1), until=end_date)]
+        excluded_months = [
+            dt.strftime('%Y-%m')
+            for dt in rrule(
+                MONTHLY,
+                dtstart=latest_available_dt + relativedelta(months=1),
+                until=end_date,
+            )
+        ]
         end_date = latest_available_dt
         end_str = end_date.strftime('%Y-%m')
 
@@ -187,24 +210,34 @@ def get_historical_data():
     for dt in rrule(MONTHLY, dtstart=start_date, until=end_date):
         month_str = dt.strftime('%Y-%m')
         data = fetch_wecar_data_for_month(dt)
-        if data:
+        if data and 'error' not in data:
             monthly_data.append(data)
             successful_months.append(month_str)
         else:
             failed_months.append(month_str)
-            
+
     if not monthly_data:
         message = "No data found for the selected period."
         if excluded_months:
             message += " Recent months were excluded due to publication lag."
-        return jsonify({"error": message, "successful_months": [], "failed_months": failed_months, "excluded_months": excluded_months}), 404
+        return (
+            jsonify(
+                {
+                    "error": message,
+                    "successful_months": [],
+                    "failed_months": failed_months,
+                    "excluded_months": excluded_months,
+                }
+            ),
+            404,
+        )
 
     df = pd.json_normalize(monthly_data, record_path='sales_by_type', meta=[['key_metrics', 'total_sales'], ['key_metrics', 'average_price'], ['key_metrics', 'new_listings']])
     total_sales = df['key_metrics.total_sales'].sum()
     total_listings = df['key_metrics.new_listings'].sum()
     weighted_avg_price = (df['key_metrics.average_price'] * df['key_metrics.total_sales']).sum() / total_sales if total_sales > 0 else 0
     sales_by_type_agg = df.groupby('name')['sales'].sum().reset_index().to_dict('records')
-    
+
     aggregated_result = {
         "report_period": f"{start_str} to {end_str}",
         "source": "WECAR Live (Aggregated)",
