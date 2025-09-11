@@ -54,10 +54,7 @@ def cache_result(duration=CACHE_DURATION):
 # --- Sample Data ---
 def get_sample_data():
     """Loads sample market data from a JSON file."""
-    # --- FINAL CORRECTED FILE PATH AND NAME ---
-    # Based on your repository screenshot: src/data/market_report_sample.json
     try:
-        # current_app.root_path points to the 'src' directory
         project_root = current_app.root_path 
         sample_data_path = os.path.join(project_root, 'data', 'market_report_sample.json')
         
@@ -107,8 +104,9 @@ def fetch_latest_wecar_data():
 def create_chart_image(data, title):
     """Creates a bar chart image from data using Matplotlib."""
     try:
-        labels = list(data.keys())
-        values = list(data.values())
+        # The data for the chart is an array of objects, e.g., [{"name": "Residential", "sales": 100}]
+        labels = [item['name'] for item in data]
+        values = [item['sales'] for item in data]
         
         fig, ax = plt.subplots(figsize=(8, 5))
         bars = ax.bar(labels, values, color='#3b82f6')
@@ -143,11 +141,13 @@ def generate_pdf_report(data):
     story.append(Spacer(1, 0.25 * inch))
 
     source_note = data.get('note', f"Data from {data.get('source', 'N/A')}")
-    story.append(Paragraph(f"<b>Period:</b> {data.get('period', 'N/A')}", styles['Normal']))
+    story.append(Paragraph(f"<b>Period:</b> {data.get('report_period', 'N/A')}", styles['Normal']))
     story.append(Paragraph(f"<b>Source:</b> {source_note}", styles['Normal']))
     story.append(Spacer(1, 0.25 * inch))
 
-    metrics = data.get('stats', {}).get('latest', {})
+    # --- THIS IS THE CORRECTED DATA MAPPING FOR THE PDF ---
+    # It now reads from `key_metrics` just like the frontend does.
+    metrics = data.get('key_metrics', {})
     table_data = [
         ['Metric', 'Value'],
         ['Total Sales', f"{metrics.get('total_sales', 0):,}"],
@@ -167,7 +167,8 @@ def generate_pdf_report(data):
     story.append(table)
     story.append(Spacer(1, 0.25 * inch))
 
-    property_types = data.get('stats', {}).get('property_type_distribution', {})
+    # Corrected chart data mapping
+    property_types = data.get('sales_by_type', [])
     if property_types:
         story.append(Paragraph("Sales by Property Type", styles['h2']))
         chart_image = create_chart_image(property_types, "Property Type Distribution")
@@ -198,7 +199,7 @@ def download_report():
     if not pdf_buffer:
         return jsonify({"error": "Failed to generate PDF."}), 500
 
-    filename = f"Market_Report_{data.get('period', 'latest').replace(' ', '_')}.pdf"
+    filename = f"Market_Report_{data.get('report_period', 'latest').replace(' ', '_')}.pdf"
     return send_file(pdf_buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
 
 @market_analysis_bp.route('/cache/status', methods=['GET'])
