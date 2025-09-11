@@ -69,7 +69,6 @@ def get_sample_data():
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
-    """Return a date representing the most recent fully available month."""
     return (datetime.now().replace(day=1) - relativedelta(days=1)).date()
 
 def fetch_wecar_data_for_month(target_date):
@@ -92,8 +91,9 @@ def fetch_wecar_data_for_month(target_date):
         logging.warning(f"Failed to get data from {url}. Reason: {e}")
         return None
 
+# --- BUG FIX: Added parentheses to the decorator ---
+@cache_result()
 def fetch_latest_wecar_data():
-    """Fetches the latest available data, falling back to earlier months if needed."""
     latest_available = get_latest_available_month()
     logging.info("Searching for latest available WECAR data starting from %s", latest_available)
     for i in range(3):
@@ -159,7 +159,8 @@ def get_market_analysis():
     return jsonify(data)
 
 @market_analysis_bp.route('/historical', methods=['GET'])
-@cache_result
+# --- BUG FIX: Added parentheses to the decorator ---
+@cache_result()
 def get_historical_data():
     start_str = request.args.get('start_date')
     end_str = request.args.get('end_date')
