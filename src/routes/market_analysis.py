@@ -33,10 +33,9 @@ def cache_result(duration=CACHE_DURATION):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # Create a cache key that includes function name and sorted args/kwargs
-            kwargs_sorted = sorted(kwargs.items())
-            cache_key = f"{func.__name__}:{str(args)}:{str(kwargs_sorted)}"
-            
+            path = request.path
+            args_str = str(sorted(request.args.items()))
+            cache_key = f"{path}?{args_str}"
             if cache_key in cache:
                 result, timestamp = cache[cache_key]
                 if time.time() - timestamp < duration:
@@ -45,11 +44,12 @@ def cache_result(duration=CACHE_DURATION):
                 else:
                     logging.info(f"Cache EXPIRED for key: {cache_key}")
                     del cache[cache_key]
-            
             logging.info(f"Cache MISS for key: {cache_key}")
             result = func(*args, **kwargs)
-            if result and "error" not in result:
-                cache[cache_key] = (result, time.time())
+            if isinstance(result, tuple) and result[1] == 200:
+                 cache[cache_key] = (result, time.time())
+            elif isinstance(result, jsonify):
+                 cache[cache_key] = (result, time.time())
             return result
         return wrapper
     return decorator
@@ -71,14 +71,13 @@ def get_sample_data():
 
 # --- Data Fetching Logic ---
 def fetch_wecar_data_for_month(target_date):
-    """Fetches WECAR data for a single, specific month."""
     base_url = "https://wecartech.com/wecfiles/stats_new"
     headers = {'User-Agent': 'Mozilla/5.0'}
     year = target_date.year
     month_short = target_date.strftime('%b' ).lower()
-    url = f"{base_url}/{year}/{month_short}/summary.json"
+    url = f"{base_url}/{year}/{month_short}/"
     
-    logging.info(f"Attempting to fetch data from: {url}")
+    logging.info(f"Attempting to fetch data from directory: {url}")
     try:
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
@@ -90,13 +89,31 @@ def fetch_wecar_data_for_month(target_date):
     except requests.exceptions.RequestException as e:
         logging.warning(f"Failed to fetch data from {url}. Reason: {e}")
         return None
+    except json.JSONDecodeError as e:
+        logging.error(f"Response from {url} was not valid JSON. Reason: {e}")
+        return None
 
-@cache_result()
+# --- THIS IS THE NEW, SMARTER LOGIC ---
 def fetch_latest_wecar_data():
-    """Fetches the latest available data by trying the last 4 months."""
+    """
+    Fetches the latest available data based on the day of the month.
+    """
     today = datetime.now()
-    for i in range(4):
-        target_date = today - relativedelta(months=i)
+    
+    # If it's after the 10th, we know the previous month's data is the most recent.
+    # Start searching from the previous month.
+    if today.day > 10:
+        start_month_offset = 1
+        logging.info("Day is after 10th, starting search from previous month.")
+    # If it's early in the month, the previous month's data might just have been released.
+    # Start searching from the previous month, but be prepared to go back further.
+    else:
+        start_month_offset = 1
+        logging.info("Day is before 10th, starting search from previous month (most likely target).")
+
+    # Try the last 3 relevant months (e.g., previous, 2 months ago, 3 months ago)
+    for i in range(3):
+        target_date = today - relativedelta(months=start_month_offset + i)
         data = fetch_wecar_data_for_month(target_date)
         if data:
             return data
@@ -151,8 +168,6 @@ def generate_pdf_report(data):
     return buffer
 
 # --- API Endpoints ---
-
-# Existing endpoint for the latest data
 @market_analysis_bp.route('/market-analysis', methods=['GET'])
 def get_market_analysis():
     data = fetch_latest_wecar_data()
@@ -160,31 +175,21 @@ def get_market_analysis():
         return jsonify(data), data.get("status", 500)
     return jsonify(data)
 
-# --- NEW: Historical Data Endpoint ---
 @market_analysis_bp.route('/historical', methods=['GET'])
 @cache_result()
 def get_historical_data():
-    """
-    Fetches and aggregates WECAR data for a given date range.
-    Query params: start_date (YYYY-MM), end_date (YYYY-MM)
-    """
     start_str = request.args.get('start_date')
     end_str = request.args.get('end_date')
-
     if not start_str or not end_str:
         return jsonify({"error": "Please provide both 'start_date' and 'end_date' in YYYY-MM format."}), 400
-
     try:
         start_date = datetime.strptime(start_str, '%Y-%m')
         end_date = datetime.strptime(end_str, '%Y-%m')
     except ValueError:
         return jsonify({"error": "Invalid date format. Please use YYYY-MM."}), 400
-
     monthly_data = []
     successful_months = []
     failed_months = []
-
-    # Loop through each month in the date range
     for dt in rrule(MONTHLY, dtstart=start_date, until=end_date):
         month_str = dt.strftime('%Y-%m')
         data = fetch_wecar_data_for_month(dt)
@@ -193,45 +198,16 @@ def get_historical_data():
             successful_months.append(month_str)
         else:
             failed_months.append(month_str)
-    
     if not monthly_data:
-        return jsonify({
-            "error": "No data found for the selected period.",
-            "successful_months": [],
-            "failed_months": failed_months
-        }), 404
-
-    # Aggregate the collected data
-    # Use pandas for robust aggregation
+        return jsonify({"error": "No data found for the selected period.", "successful_months": [], "failed_months": failed_months}), 404
     df = pd.json_normalize(monthly_data, record_path='sales_by_type', meta=[['key_metrics', 'total_sales'], ['key_metrics', 'average_price'], ['key_metrics', 'new_listings']])
-    
-    # Aggregate key metrics
     total_sales = df['key_metrics.total_sales'].sum()
     total_listings = df['key_metrics.new_listings'].sum()
-    # Weighted average for price
     weighted_avg_price = (df['key_metrics.average_price'] * df['key_metrics.total_sales']).sum() / total_sales if total_sales > 0 else 0
-
-    # Aggregate sales by type
     sales_by_type_agg = df.groupby('name')['sales'].sum().reset_index().to_dict('records')
+    aggregated_result = {"report_period": f"{start_str} to {end_str}", "source": "WECAR Live (Aggregated)", "key_metrics": {"total_sales": int(total_sales), "average_price": int(weighted_avg_price), "new_listings": int(total_listings),}, "sales_by_type": sales_by_type_agg, "monthly_breakdown": monthly_data, "successful_months": successful_months, "failed_months": failed_months}
+    return jsonify(aggregated_result), 200
 
-    aggregated_result = {
-        "report_period": f"{start_str} to {end_str}",
-        "source": "WECAR Live (Aggregated)",
-        "key_metrics": {
-            "total_sales": int(total_sales),
-            "average_price": int(weighted_avg_price),
-            "new_listings": int(total_listings),
-        },
-        "sales_by_type": sales_by_type_agg,
-        "monthly_breakdown": monthly_data, # Include raw monthly data for trend charts
-        "successful_months": successful_months,
-        "failed_months": failed_months
-    }
-
-    return jsonify(aggregated_result)
-
-
-# Existing download endpoint (can be enhanced later to use date ranges)
 @market_analysis_bp.route('/download-report', methods=['GET'])
 def download_report():
     data = fetch_latest_wecar_data()
@@ -243,7 +219,6 @@ def download_report():
     filename = f"Market_Report_{data.get('report_period', 'latest').replace(' ', '_')}.pdf"
     return send_file(pdf_buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
 
-# Existing cache management endpoints
 @market_analysis_bp.route('/cache/status', methods=['GET'])
 def get_cache_status():
     return jsonify({"cache_entries": len(cache), "keys": list(cache.keys()), "cache_duration_seconds": CACHE_DURATION})
