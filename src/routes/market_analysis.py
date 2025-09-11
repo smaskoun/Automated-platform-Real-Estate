@@ -54,10 +54,12 @@ def cache_result(duration=CACHE_DURATION):
 # --- Sample Data ---
 def get_sample_data():
     """Loads sample market data from a JSON file."""
+    # --- FINAL CORRECTED FILE PATH AND NAME ---
+    # Based on your repository screenshot: src/data/market_report_sample.json
     try:
-        # --- THIS IS THE ONLY LINE THAT HAS BEEN CHANGED ---
-        # It now looks for sample_data.json in the same directory as the running script.
-        sample_data_path = os.path.join(os.path.dirname(__file__), '..', 'sample_data.json')
+        # current_app.root_path points to the 'src' directory
+        project_root = current_app.root_path 
+        sample_data_path = os.path.join(project_root, 'data', 'market_report_sample.json')
         
         with open(sample_data_path, 'r') as f:
             data = json.load(f)
@@ -65,7 +67,8 @@ def get_sample_data():
             data['note'] = 'Live data could not be fetched. This is sample data.'
             return data
     except Exception as e:
-        logging.critical(f"Failed to load sample_data.json from path {os.path.abspath(sample_data_path)}. Error: {e}")
+        abs_path = os.path.abspath(sample_data_path)
+        logging.critical(f"Failed to load sample_data.json. Attempted path: {abs_path}. Error: {e}")
         return {"error": "Sample data unavailable.", "status": 503}
 
 # --- Data Fetching Logic ---
@@ -79,7 +82,7 @@ def fetch_latest_wecar_data():
     headers = {'User-Agent': 'Mozilla/5.0'}
     today = datetime.now( )
 
-    for i in range(4): # Try current month and 3 previous months
+    for i in range(4):
         target_date = today - relativedelta(months=i)
         year = target_date.year
         month_short = target_date.strftime('%b').lower()
@@ -87,7 +90,6 @@ def fetch_latest_wecar_data():
         
         logging.info(f"Attempting to fetch data from: {url}")
         try:
-            # Removed the inner retry loop for simplicity, the main loop handles retrying months.
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             logging.info(f"Successfully fetched data for {month_short.capitalize()} {year}.")
@@ -97,7 +99,6 @@ def fetch_latest_wecar_data():
             return data
         except requests.exceptions.RequestException as e:
             logging.warning(f"Failed to fetch data from {url}. Reason: {e}")
-            # Continue to the next month
     
     logging.error("All attempts to fetch live WECAR data failed. Using fallback.")
     return get_sample_data()
