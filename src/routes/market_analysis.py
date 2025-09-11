@@ -55,15 +55,17 @@ def cache_result(duration=CACHE_DURATION):
 def get_sample_data():
     """Loads sample market data from a JSON file."""
     try:
-        # Assuming sample_data.json is in the 'instance' folder of your Flask app
-        sample_data_path = os.path.join(current_app.instance_path, 'sample_data.json')
+        # --- THIS IS THE ONLY LINE THAT HAS BEEN CHANGED ---
+        # It now looks for sample_data.json in the same directory as the running script.
+        sample_data_path = os.path.join(os.path.dirname(__file__), '..', 'sample_data.json')
+        
         with open(sample_data_path, 'r') as f:
             data = json.load(f)
             data['source'] = 'Sample Data'
             data['note'] = 'Live data could not be fetched. This is sample data.'
             return data
     except Exception as e:
-        logging.critical(f"Failed to load sample_data.json: {e}")
+        logging.critical(f"Failed to load sample_data.json from path {os.path.abspath(sample_data_path)}. Error: {e}")
         return {"error": "Sample data unavailable.", "status": 503}
 
 # --- Data Fetching Logic ---
@@ -80,23 +82,22 @@ def fetch_latest_wecar_data():
     for i in range(4): # Try current month and 3 previous months
         target_date = today - relativedelta(months=i)
         year = target_date.year
-        # CORRECTED: Use 3-letter month abbreviation (e.g., 'sep')
         month_short = target_date.strftime('%b').lower()
         url = f"{base_url}/{year}/{month_short}/summary.json"
         
         logging.info(f"Attempting to fetch data from: {url}")
         try:
-            for attempt in range(3): # Retry logic
-                response = requests.get(url, headers=headers, timeout=10)
-                response.raise_for_status()
-                logging.info(f"Successfully fetched data for {month_short.capitalize()} {year}.")
-                data = response.json()
-                data['source'] = 'WECAR Live'
-                data['period'] = f"{month_short.capitalize()} {year}"
-                return data
+            # Removed the inner retry loop for simplicity, the main loop handles retrying months.
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            logging.info(f"Successfully fetched data for {month_short.capitalize()} {year}.")
+            data = response.json()
+            data['source'] = 'WECAR Live'
+            data['period'] = f"{month_short.capitalize()} {year}"
+            return data
         except requests.exceptions.RequestException as e:
             logging.warning(f"Failed to fetch data from {url}. Reason: {e}")
-            time.sleep(1) # Wait before next attempt
+            # Continue to the next month
     
     logging.error("All attempts to fetch live WECAR data failed. Using fallback.")
     return get_sample_data()
@@ -114,7 +115,6 @@ def create_chart_image(data, title):
         ax.set_ylabel('Number of Sales')
         ax.tick_params(axis='x', rotation=45, labelsize=10)
         
-        # Add labels on top of bars
         for bar in bars:
             yval = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2.0, yval, int(yval), va='bottom', ha='center')
@@ -138,17 +138,14 @@ def generate_pdf_report(data):
     styles = getSampleStyleSheet()
     story = []
 
-    # Title
     story.append(Paragraph("Windsor-Essex Real Estate Market Report", styles['h1']))
     story.append(Spacer(1, 0.25 * inch))
 
-    # Metadata
     source_note = data.get('note', f"Data from {data.get('source', 'N/A')}")
     story.append(Paragraph(f"<b>Period:</b> {data.get('period', 'N/A')}", styles['Normal']))
     story.append(Paragraph(f"<b>Source:</b> {source_note}", styles['Normal']))
     story.append(Spacer(1, 0.25 * inch))
 
-    # Key Metrics Table
     metrics = data.get('stats', {}).get('latest', {})
     table_data = [
         ['Metric', 'Value'],
@@ -169,7 +166,6 @@ def generate_pdf_report(data):
     story.append(table)
     story.append(Spacer(1, 0.25 * inch))
 
-    # Chart
     property_types = data.get('stats', {}).get('property_type_distribution', {})
     if property_types:
         story.append(Paragraph("Sales by Property Type", styles['h2']))
