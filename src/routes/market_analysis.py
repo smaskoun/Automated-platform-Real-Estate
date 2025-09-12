@@ -29,6 +29,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 cache = {}
 CACHE_DURATION = 3600
 
+# Cache decorator reused across endpoints to avoid redundant remote calls
 def cache_result(duration=CACHE_DURATION):
     def decorator(func):
         @wraps(func)
