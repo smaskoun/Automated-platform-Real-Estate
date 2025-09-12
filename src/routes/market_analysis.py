@@ -103,7 +103,10 @@ def get_sample_data():
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
+ codex/implement-get_latest_available_month-and-adjust-end_date-zh9kj5
+
  codex/implement-get_latest_available_month-and-adjust-end_date-6171yg
+ main
     """Return a timestamp for the first day of the previous month at midnight.
 
     WECAR statistics are released with a one-month delay, so only months up to
@@ -115,6 +118,8 @@ def get_latest_available_month():
     Returns:
         datetime: naive ``datetime`` pointing to midnight on the first day of
         the latest month with complete statistics.
+ codex/implement-get_latest_available_month-and-adjust-end_date-zh9kj5
+
 
  codex/implement-get_latest_available_month-and-adjust-end_date-485sai
     """Return the first day of the previous month at midnight.
@@ -133,12 +138,15 @@ def get_latest_available_month():
     and then steps back one month, ensuring any time component is removed.
  main
  main
+ main
     """
 
     first_of_this_month = datetime.now().replace(
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     return first_of_this_month - relativedelta(months=1)
+ codex/implement-get_latest_available_month-and-adjust-end_date-zh9kj5
+
  codex/implement-get_latest_available_month-and-adjust-end_date-6171yg
 
  codex/implement-get_latest_available_month-and-adjust-end_date-485sai
@@ -146,6 +154,7 @@ def get_latest_available_month():
  codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
 
 codex/implement-get_latest_available_month-and-adjust-end_date-ti3qe7
+ main
  main
  main
  main
@@ -208,6 +217,8 @@ def load_manual_data_for_month(target_date):
         except Exception as e:
             logging.warning(f"Failed to parse manual data {path}: {e}")
     return None
+ codex/implement-get_latest_available_month-and-adjust-end_date-zh9kj5
+
 codex/implement-get_latest_available_month-and-adjust-end_date-6171yg
 
  codex/implement-get_latest_available_month-and-adjust-end_date-485sai
@@ -215,6 +226,7 @@ codex/implement-get_latest_available_month-and-adjust-end_date-6171yg
  codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
 
 
+ main
  main
  main
  main
@@ -400,8 +412,14 @@ def get_historical_data():
                 ['key_metrics', 'average_price'],
                 ['key_metrics', 'new_listings'],
             ],
+ codex/implement-get_latest_available_month-and-adjust-end_date-zh9kj5
+            errors='ignore',
+        )
+    except Exception:
+
         )
     except KeyError:
+ main
         df = pd.DataFrame()
 
     if df.empty:
