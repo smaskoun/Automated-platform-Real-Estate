@@ -61,18 +61,44 @@ def cache_result(duration=CACHE_DURATION):
 
 # --- Sample Data ---
 def get_sample_data():
-    try:
+    """Return bundled sample data for offline or failed lookups.
+
+    The helper first tries to resolve the file relative to the Flask
+    application's root path.  In some execution contexts (tests or one-off
+    scripts) this may point at the project root instead of the ``src``
+    directory where the file actually lives.  We therefore attempt a second
+    resolution relative to this module if the first lookup fails.
+    """
+
+    possible_paths = []
+    if current_app:
         project_root = current_app.root_path
-        sample_data_path = os.path.join(project_root, 'data', 'market_report_sample.json')
-        with open(sample_data_path, 'r') as f:
-            data = json.load(f)
-            data['source'] = 'Sample Data'
-            data['note'] = 'Live data could not be fetched. This is sample data.'
-            return data
-    except Exception as e:
-        abs_path = os.path.abspath(sample_data_path)
-        logging.critical(f"Failed to load sample_data.json. Attempted path: {abs_path}. Error: {e}")
-        return {"error": "Sample data unavailable.", "status": 503}
+        possible_paths.append(
+            os.path.join(project_root, 'data', 'market_report_sample.json')
+        )
+    # Fallback: path relative to this file for environments where the app
+    # root is the repository root rather than ``src``
+    module_dir = os.path.dirname(__file__)
+    possible_paths.append(
+        os.path.join(module_dir, '..', 'data', 'market_report_sample.json')
+    )
+
+    for sample_data_path in possible_paths:
+        try:
+            with open(sample_data_path, 'r') as f:
+                data = json.load(f)
+                data['source'] = 'Sample Data'
+                data['note'] = (
+                    'Live data could not be fetched. This is sample data.'
+                )
+                return data
+        except Exception as e:
+            abs_path = os.path.abspath(sample_data_path)
+            logging.warning(
+                f"Failed to load sample_data.json. Attempted path: {abs_path}. Error: {e}"
+            )
+
+    return {"error": "Sample data unavailable.", "status": 503}
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
