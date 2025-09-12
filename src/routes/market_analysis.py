@@ -34,9 +34,8 @@ def cache_result(duration=CACHE_DURATION):
         @wraps(func)
         def wrapper(*args, **kwargs):
             if has_request_context():
-                path = request.path
-                args_str = str(sorted(request.args.items()))
-                cache_key = f"{path}?{args_str}"
+                path = request.full_path.rstrip('?')
+                cache_key = f"{request.method}:{path}"
             else:
                 cache_key = f"{func.__name__}:{args}:{sorted(kwargs.items())}"
             if cache_key in cache:
