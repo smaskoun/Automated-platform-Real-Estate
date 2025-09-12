@@ -3,6 +3,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import json
+import os
 
 class SEOContentService:
     """Service for generating SEO-optimized social media content for real estate"""
@@ -77,6 +78,10 @@ class SEOContentService:
                 '#EssexCountyAgent', '#WindsorListings', '#LocalPropertyExpert'
             ]
         }
+
+        # Hashtag trend scores for weighting selections
+        self.trend_scores: Dict[str, float] = {}
+        self.refresh_trend_scores()
         
         # Content templates for different post types
         self.content_templates = {
@@ -318,6 +323,30 @@ class SEOContentService:
             'personal_connection': f"As a local real estate professional, I'm proud to call {location} home.",
             'community_value': f"This is what makes {location} such a desirable place to live and invest."
         }
+
+    def refresh_trend_scores(self, source: Optional[str] = None) -> None:
+        """Refresh hashtag trend scores from an API or cached dataset.
+
+        Args:
+            source: Optional URL or file path to JSON mapping hashtags to scores.
+                   If omitted, attempts to load from the bundled data directory.
+        """
+        try:
+            if source and source.startswith("http"):
+                from urllib.request import urlopen
+                with urlopen(source) as response:  # nosec B310
+                    data = json.loads(response.read().decode())
+            else:
+                default_path = source or os.path.join(
+                    os.path.dirname(__file__), '..', 'data', 'trend_scores.json'
+                )
+                with open(default_path, 'r') as f:
+                    data = json.load(f)
+            # normalize keys to maintain consistency
+            self.trend_scores = {k: float(v) for k, v in data.items()}
+        except Exception:
+            # If fetching fails, keep existing scores or fall back to empty
+            self.trend_scores = getattr(self, 'trend_scores', {})
     
     def _generate_hashtags(self, content_type: str, platform: str, location: str) -> List[str]:
         """Generate SEO-optimized hashtags for the content"""
@@ -325,25 +354,35 @@ class SEOContentService:
         strategy = self.hashtag_strategies[platform]
         min_count, max_count = strategy['count']
         target_count = random.randint(min_count, max_count)
-        
+
         # Calculate distribution
         high_count = int(target_count * strategy['mix']['high_volume'])
         medium_count = int(target_count * strategy['mix']['medium_volume'])
         niche_count = target_count - high_count - medium_count
-        
-        selected_hashtags = []
-        
+
+        def weighted_sample(tags: List[str], count: int) -> List[str]:
+            """Sample hashtags without replacement weighted by trend scores."""
+            available = tags[:]
+            weights = [self.trend_scores.get(tag, 1.0) for tag in available]
+            chosen: List[str] = []
+            for _ in range(min(count, len(available))):
+                selection = random.choices(available, weights=weights, k=1)[0]
+                idx = available.index(selection)
+                chosen.append(selection)
+                del available[idx]
+                del weights[idx]
+            return chosen
+
+        selected_hashtags: List[str] = []
+
         # Add high volume hashtags
-        selected_hashtags.extend(random.sample(self.hashtags['high_volume'], 
-                                             min(high_count, len(self.hashtags['high_volume']))))
-        
+        selected_hashtags.extend(weighted_sample(self.hashtags['high_volume'], high_count))
+
         # Add medium volume hashtags
-        selected_hashtags.extend(random.sample(self.hashtags['medium_volume'], 
-                                             min(medium_count, len(self.hashtags['medium_volume']))))
-        
+        selected_hashtags.extend(weighted_sample(self.hashtags['medium_volume'], medium_count))
+
         # Add niche hashtags
-        selected_hashtags.extend(random.sample(self.hashtags['niche'], 
-                                             min(niche_count, len(self.hashtags['niche']))))
+        selected_hashtags.extend(weighted_sample(self.hashtags['niche'], niche_count))
         
         # Add location-specific hashtags
         location_clean = location.replace(' ', '').replace('-', '')
@@ -359,9 +398,10 @@ class SEOContentService:
         else:  # community
             selected_hashtags.extend(['#CommunityLove', '#LocalBusiness', '#Neighborhood'])
         
-        # Combine and deduplicate
-        all_hashtags = list(set(selected_hashtags + location_hashtags))
-        
+        # Combine, deduplicate, and order by trend score
+        all_hashtags = list(dict.fromkeys(selected_hashtags + location_hashtags))
+        all_hashtags.sort(key=lambda tag: self.trend_scores.get(tag, 1.0), reverse=True)
+
         # Trim to target count
         return all_hashtags[:target_count]
     
