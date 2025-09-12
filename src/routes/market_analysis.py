@@ -243,6 +243,8 @@ def get_historical_data():
         end_date = datetime.strptime(end_str, '%Y-%m')
     except ValueError:
         return jsonify({"error": "Invalid date format. Please use YYYY-MM."}), 400
+    if start_date > end_date:
+        return jsonify({"error": "'start_date' must not be after 'end_date'."}), 400
     latest_available = get_latest_available_month()
     excluded_months = []
     if end_date > latest_available:
@@ -335,9 +337,9 @@ def get_historical_data():
         "monthly_breakdown": monthly_data,
         "successful_months": successful_months,
         "failed_months": failed_months,
+        "excluded_months": excluded_months,
     }
     if excluded_months:
-        aggregated_result["excluded_months"] = excluded_months
         aggregated_result["message"] = "Recent months were excluded due to publication lag."
     return jsonify(aggregated_result), 200
 
