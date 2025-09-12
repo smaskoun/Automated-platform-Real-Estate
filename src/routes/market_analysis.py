@@ -115,7 +115,10 @@ def get_latest_available_month():
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     return first_of_this_month - relativedelta(months=1)
+ codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
+
 codex/implement-get_latest_available_month-and-adjust-end_date-ti3qe7
+ main
 
 def load_manual_data_for_month(target_date):
     """Load manually uploaded stats for the given month if available.
@@ -175,7 +178,10 @@ def load_manual_data_for_month(target_date):
         except Exception as e:
             logging.warning(f"Failed to parse manual data {path}: {e}")
     return None
+ codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
 
+
+ main
  main
 
 def fetch_wecar_data_for_month(target_date):
