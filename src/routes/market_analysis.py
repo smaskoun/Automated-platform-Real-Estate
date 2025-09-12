@@ -9,6 +9,7 @@ import time
 import logging
 from functools import wraps
 import pandas as pd
+from werkzeug.utils import secure_filename
 
 # --- PDF Generation Imports ---
 from reportlab.lib.pagesizes import letter
@@ -114,8 +115,73 @@ def get_latest_available_month():
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     return first_of_this_month - relativedelta(months=1)
+codex/implement-get_latest_available_month-and-adjust-end_date-ti3qe7
+
+def load_manual_data_for_month(target_date):
+    """Load manually uploaded stats for the given month if available.
+
+    Admins can upload ``summary.json`` or ``summary.csv`` files into the
+    ``data/manual`` directory.  Files are named ``YYYY-MM.json`` or
+    ``YYYY-MM.csv``.  CSV files are expected to contain columns ``name`` and
+    ``sales`` with optional ``average_price`` and ``new_listings`` columns.
+    """
+
+    year_month = target_date.strftime('%Y-%m')
+    base_dir = None
+    if current_app:
+        base_dir = os.path.join(current_app.root_path, 'data', 'manual')
+    else:
+        module_dir = os.path.dirname(__file__)
+        base_dir = os.path.abspath(os.path.join(module_dir, '..', 'data', 'manual'))
+    possible_files = [
+        os.path.join(base_dir, f'{year_month}.json'),
+        os.path.join(base_dir, f'{year_month}.csv'),
+    ]
+    for path in possible_files:
+        if not os.path.exists(path):
+            continue
+        try:
+            if path.endswith('.json'):
+                with open(path, 'r') as f:
+                    data = json.load(f)
+            else:
+                df = pd.read_csv(path)
+                sales_by_type = (
+                    df[['name', 'sales']].to_dict('records')
+                    if {'name', 'sales'}.issubset(df.columns)
+                    else []
+                )
+                total_sales = int(df.get('sales', pd.Series(dtype=float)).sum())
+                weighted_avg_price = (
+                    df.get('average_price', pd.Series(dtype=float))
+                    .mul(df.get('sales', pd.Series(dtype=float)))
+                    .sum()
+                    / total_sales
+                    if total_sales > 0
+                    else 0
+                )
+                new_listings = int(df.get('new_listings', pd.Series(dtype=float)).sum())
+                data = {
+                    'key_metrics': {
+                        'total_sales': total_sales,
+                        'average_price': int(weighted_avg_price),
+                        'new_listings': new_listings,
+                    },
+                    'sales_by_type': sales_by_type,
+                }
+            data['source'] = 'Manual Upload'
+            data['period'] = target_date.strftime('%b %Y')
+            return data
+        except Exception as e:
+            logging.warning(f"Failed to parse manual data {path}: {e}")
+    return None
+
+ main
 
 def fetch_wecar_data_for_month(target_date):
+    manual = load_manual_data_for_month(target_date)
+    if manual:
+        return manual
     base_url = "https://wecartech.com/wecfiles/stats_new"
     headers = {'User-Agent': 'Mozilla/5.0'}
     year = target_date.year
@@ -131,7 +197,9 @@ def fetch_wecar_data_for_month(target_date):
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             data = response.json()
-            logging.info(f"Successfully fetched and parsed JSON for {target_date.strftime('%b %Y')}")
+            logging.info(
+                f"Successfully fetched and parsed JSON for {target_date.strftime('%b %Y')}"
+            )
             data['source'] = 'WECAR Live'
             data['period'] = target_date.strftime('%b %Y')
             return data
@@ -162,7 +230,11 @@ def fetch_latest_wecar_data():
         if data and 'error' not in data:
             return data
     logging.error("All attempts to fetch live WECAR data failed. Using fallback.")
-    return get_sample_data()
+    sample = get_sample_data()
+    sample.setdefault('note', 'Live market data unavailable.')
+    sample['error'] = 'Market data unavailable'
+    sample['status'] = 503
+    return sample
 
 # --- PDF Generation (unchanged) ---
 def create_chart_image(data, title):
@@ -341,7 +413,41 @@ def get_historical_data():
     }
     if excluded_months:
         aggregated_result["message"] = "Recent months were excluded due to publication lag."
+    if failed_months:
+        aggregated_result.setdefault(
+            "message",
+            "Some months were unavailable and omitted from results.",
+        )
     return jsonify(aggregated_result), 200
+
+
+@market_analysis_bp.route('/manual-upload', methods=['POST'])
+def upload_manual_month():
+    """Upload a manual ``summary`` file for a given month.
+
+    Expects a multipart/form-data POST with fields:
+    - ``month``: the target month in ``YYYY-MM`` format
+    - ``file``: a JSON or CSV file containing market stats
+    """
+
+    file = request.files.get('file')
+    month = request.form.get('month')
+    if not file or not month:
+        return jsonify({"error": "Both 'file' and 'month' fields are required."}), 400
+    try:
+        target_date = datetime.strptime(month, '%Y-%m')
+    except ValueError:
+        return jsonify({"error": "Invalid 'month' format. Use YYYY-MM."}), 400
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in {'.json', '.csv'}:
+        return jsonify({"error": "Only .json or .csv files are allowed."}), 400
+    base_dir = os.path.join(current_app.root_path, 'data', 'manual')
+    os.makedirs(base_dir, exist_ok=True)
+    save_name = secure_filename(f"{month}{ext}")
+    save_path = os.path.join(base_dir, save_name)
+    file.save(save_path)
+    logging.info("Manual stats uploaded for %s saved to %s", month, save_path)
+    return jsonify({"message": "File uploaded successfully.", "saved_as": save_name}), 201
 
 @market_analysis_bp.route('/download-report', methods=['GET'])
 def download_report():
