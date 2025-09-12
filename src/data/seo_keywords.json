@@ -1,0 +1,64 @@
+{
+  "location_keywords": {
+    "primary": [
+      "Windsor", "Essex County", "Windsor-Essex", "Windsor Ontario",
+      "Essex", "Kingsville", "Leamington", "Tecumseh", "LaSalle",
+      "Amherstburg", "Belle River", "Harrow"
+    ],
+    "neighborhoods": [
+      "Downtown Windsor", "Walkerville", "Riverside", "South Windsor",
+      "East Windsor", "West End", "Forest Glade", "Devonshire",
+      "Sandwich", "University District", "Little Italy"
+    ]
+  },
+  "real_estate_keywords": {
+    "primary": [
+      "real estate", "homes for sale", "property", "house", "listing",
+      "real estate agent", "realtor", "home buyer", "home seller",
+      "property investment", "housing market"
+    ],
+    "long_tail": [
+      "first time home buyer", "luxury homes", "investment property",
+      "market trends", "home valuation", "property search",
+      "real estate market analysis", "home buying tips",
+      "selling your home", "property investment opportunities"
+    ]
+  },
+  "hashtag_strategies": {
+    "instagram": {
+      "count": [8, 12],
+      "mix": {
+        "high_volume": 0.3,
+        "medium_volume": 0.4,
+        "niche": 0.3
+      }
+    },
+    "facebook": {
+      "count": [2, 5],
+      "mix": {
+        "high_volume": 0.5,
+        "medium_volume": 0.3,
+        "niche": 0.2
+      }
+    }
+  },
+  "hashtags": {
+    "high_volume": [
+      "#RealEstate", "#HomesForSale", "#Property", "#House",
+      "#RealEstateAgent", "#Realtor", "#Home", "#Investment",
+      "#Ontario", "#Canada", "#PropertyInvestment"
+    ],
+    "medium_volume": [
+      "#WindsorRealEstate", "#EssexCounty", "#WindsorOntario",
+      "#WindsorHomes", "#EssexCountyRealEstate", "#LocalRealEstate",
+      "#WindsorProperty", "#SouthwestOntario", "#GreatLakesRegion",
+      "#BorderCity", "#WindsorEssex"
+    ],
+    "niche": [
+      "#WindsorHomeBuyer", "#EssexCountyHomes", "#WindsorPropertyMarket",
+      "#LocalRealEstateExpert", "#WindsorInvestment", "#EssexCountyProperty",
+      "#WindsorNeighborhoods", "#DetroitWindsorArea", "#WindsorRealtor",
+      "#EssexCountyAgent", "#WindsorListings", "#LocalPropertyExpert"
+    ]
+  }
+}

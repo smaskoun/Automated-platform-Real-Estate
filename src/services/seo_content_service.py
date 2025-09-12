@@ -3,81 +3,17 @@ import re
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import json
+import os
 
 class SEOContentService:
     """Service for generating SEO-optimized social media content for real estate"""
-    
-    def __init__(self):
-        # Windsor-Essex specific keywords and locations
-        self.location_keywords = {
-            'primary': [
-                'Windsor', 'Essex County', 'Windsor-Essex', 'Windsor Ontario',
-                'Essex', 'Kingsville', 'Leamington', 'Tecumseh', 'LaSalle',
-                'Amherstburg', 'Belle River', 'Harrow'
-            ],
-            'neighborhoods': [
-                'Downtown Windsor', 'Walkerville', 'Riverside', 'South Windsor',
-                'East Windsor', 'West End', 'Forest Glade', 'Devonshire',
-                'Sandwich', 'University District', 'Little Italy'
-            ]
-        }
-        
-        # Real estate specific keywords
-        self.real_estate_keywords = {
-            'primary': [
-                'real estate', 'homes for sale', 'property', 'house', 'listing',
-                'real estate agent', 'realtor', 'home buyer', 'home seller',
-                'property investment', 'housing market'
-            ],
-            'long_tail': [
-                'first time home buyer', 'luxury homes', 'investment property',
-                'market trends', 'home valuation', 'property search',
-                'real estate market analysis', 'home buying tips',
-                'selling your home', 'property investment opportunities'
-            ]
-        }
-        
-        # Platform-specific hashtag strategies
-        self.hashtag_strategies = {
-            'instagram': {
-                'count': (8, 12),  # Optimal range
-                'mix': {
-                    'high_volume': 0.3,    # 30% popular hashtags
-                    'medium_volume': 0.4,  # 40% medium hashtags
-                    'niche': 0.3          # 30% niche hashtags
-                }
-            },
-            'facebook': {
-                'count': (2, 5),  # Fewer hashtags for Facebook
-                'mix': {
-                    'high_volume': 0.5,
-                    'medium_volume': 0.3,
-                    'niche': 0.2
-                }
-            }
-        }
-        
-        # Hashtag database organized by volume
-        self.hashtags = {
-            'high_volume': [
-                '#RealEstate', '#HomesForSale', '#Property', '#House',
-                '#RealEstateAgent', '#Realtor', '#Home', '#Investment',
-                '#Ontario', '#Canada', '#PropertyInvestment'
-            ],
-            'medium_volume': [
-                '#WindsorRealEstate', '#EssexCounty', '#WindsorOntario',
-                '#WindsorHomes', '#EssexCountyRealEstate', '#LocalRealEstate',
-                '#WindsorProperty', '#SouthwestOntario', '#GreatLakesRegion',
-                '#BorderCity', '#WindsorEssex'
-            ],
-            'niche': [
-                '#WindsorHomeBuyer', '#EssexCountyHomes', '#WindsorPropertyMarket',
-                '#LocalRealEstateExpert', '#WindsorInvestment', '#EssexCountyProperty',
-                '#WindsorNeighborhoods', '#DetroitWindsorArea', '#WindsorRealtor',
-                '#EssexCountyAgent', '#WindsorListings', '#LocalPropertyExpert'
-            ]
-        }
-        
+
+    def __init__(self, config_path: Optional[str] = None):
+        self.config_path = config_path or os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "data", "seo_keywords.json")
+        )
+        self._load_config()
+
         # Content templates for different post types
         self.content_templates = {
             'property_showcase': {
@@ -171,6 +107,20 @@ class SEOContentService:
                 'weekend': [(12, 13)]  # 12PM-1PM
             }
         }
+
+    def _load_config(self) -> None:
+        """Load keyword and hashtag configuration from JSON file."""
+        with open(self.config_path, "r") as f:
+            config = json.load(f)
+
+        self.location_keywords = config.get("location_keywords", {})
+        self.real_estate_keywords = config.get("real_estate_keywords", {})
+        self.hashtag_strategies = config.get("hashtag_strategies", {})
+        self.hashtags = config.get("hashtags", {})
+
+    def reload_config(self) -> None:
+        """Reload configuration from disk at runtime."""
+        self._load_config()
     
     def generate_seo_optimized_content(self, 
                                      content_type: str,
