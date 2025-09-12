@@ -7,7 +7,6 @@ import logging
 # Import all your blueprints
 from routes.brand_voice_routes import brand_voice_bp
 from routes.social_media import social_media_bp
-from routes.market_analysis import market_analysis_bp # <<< 1. NEW LINE ADDED HERE
 
 def create_app():
     app = Flask(__name__)
@@ -21,7 +20,6 @@ def create_app():
 
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
     app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
-    app.register_blueprint(market_analysis_bp, url_prefix='/api/market-analysis') # <<< 2. NEW LINE ADDED HERE
     
     logging.basicConfig(level=logging.INFO)
     

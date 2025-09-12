@@ -7,7 +7,6 @@ import DashboardLayout from './Dashboard.jsx';
 import AccountManager from './AccountManager.jsx';
 import BrandVoiceManager from './BrandVoiceManager.jsx';
 import SocialMediaManager from './SocialMediaManager.jsx';
-import MarketAnalysis from './MarketAnalysis.jsx';
 
 // A simple placeholder for pages that are not yet built
 const ComingSoon = () => (
@@ -34,7 +33,6 @@ function App() {
           <Route path="accounts" element={<AccountManager user={mockUser} />} />
           <Route path="brand-voices" element={<BrandVoiceManager user={mockUser} />} />
           <Route path="social-media" element={<SocialMediaManager user={mockUser} />} />
-          <Route path="market-analysis" element={<MarketAnalysis />} />
           <Route path="seo-tools" element={<ComingSoon />} />
           <Route path="ab-testing" element={<ComingSoon />} />
 
