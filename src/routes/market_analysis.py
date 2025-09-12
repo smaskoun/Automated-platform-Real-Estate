@@ -61,22 +61,59 @@ def cache_result(duration=CACHE_DURATION):
 
 # --- Sample Data ---
 def get_sample_data():
-    try:
+    """Return bundled sample data for offline or failed lookups.
+
+    The helper first tries to resolve the file relative to the Flask
+    application's root path.  In some execution contexts (tests or one-off
+    scripts) this may point at the project root instead of the ``src``
+    directory where the file actually lives.  We therefore attempt a second
+    resolution relative to this module if the first lookup fails.
+    """
+
+    possible_paths = []
+    if current_app:
         project_root = current_app.root_path
-        sample_data_path = os.path.join(project_root, 'data', 'market_report_sample.json')
-        with open(sample_data_path, 'r') as f:
-            data = json.load(f)
-            data['source'] = 'Sample Data'
-            data['note'] = 'Live data could not be fetched. This is sample data.'
-            return data
-    except Exception as e:
-        abs_path = os.path.abspath(sample_data_path)
-        logging.critical(f"Failed to load sample_data.json. Attempted path: {abs_path}. Error: {e}")
-        return {"error": "Sample data unavailable.", "status": 503}
+        possible_paths.append(
+            os.path.join(project_root, 'data', 'market_report_sample.json')
+        )
+    # Fallback: path relative to this file for environments where the app
+    # root is the repository root rather than ``src``
+    module_dir = os.path.dirname(__file__)
+    possible_paths.append(
+        os.path.join(module_dir, '..', 'data', 'market_report_sample.json')
+    )
+
+    for sample_data_path in possible_paths:
+        try:
+            with open(sample_data_path, 'r') as f:
+                data = json.load(f)
+                data['source'] = 'Sample Data'
+                data['note'] = (
+                    'Live data could not be fetched. This is sample data.'
+                )
+                return data
+        except Exception as e:
+            abs_path = os.path.abspath(sample_data_path)
+            logging.warning(
+                f"Failed to load sample_data.json. Attempted path: {abs_path}. Error: {e}"
+            )
+
+    return {"error": "Sample data unavailable.", "status": 503}
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
-    return datetime.now().replace(day=1) - relativedelta(months=1)
+    """Return the first day of the previous month.
+
+    The WECAR statistics are published monthly with a lag, so the most
+    recent reliable data set corresponds to the previous month.  This helper
+    normalises the current date to midnight on the first of the current month
+    and then steps back one month, ensuring any time component is removed.
+    """
+
+    first_of_this_month = datetime.now().replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+    return first_of_this_month - relativedelta(months=1)
 
 def fetch_wecar_data_for_month(target_date):
     base_url = "https://wecartech.com/wecfiles/stats_new"
@@ -193,6 +230,8 @@ def get_historical_data():
         end_date = datetime.strptime(end_str, '%Y-%m')
     except ValueError:
         return jsonify({"error": "Invalid date format. Please use YYYY-MM."}), 400
+    if start_date > end_date:
+        return jsonify({"error": "'start_date' must not be after 'end_date'."}), 400
     latest_available = get_latest_available_month()
     excluded_months = []
     if end_date > latest_available:
@@ -225,18 +264,54 @@ def get_historical_data():
             "excluded_months": excluded_months,
             "sample": sample,
         }), 404
-    df = pd.json_normalize(
-        monthly_data,
-        record_path='sales_by_type',
-        meta=[['key_metrics', 'total_sales'], ['key_metrics', 'average_price'], ['key_metrics', 'new_listings']]
-    )
-    total_sales = df['key_metrics.total_sales'].sum()
-    total_listings = df['key_metrics.new_listings'].sum()
-    weighted_avg_price = (
-        (df['key_metrics.average_price'] * df['key_metrics.total_sales']).sum() / total_sales
-        if total_sales > 0 else 0
-    )
-    sales_by_type_agg = df.groupby('name')['sales'].sum().reset_index().to_dict('records')
+    try:
+        df = pd.json_normalize(
+            monthly_data,
+            record_path='sales_by_type',
+            meta=[
+                ['key_metrics', 'total_sales'],
+                ['key_metrics', 'average_price'],
+                ['key_metrics', 'new_listings'],
+            ],
+        )
+    except KeyError:
+        df = pd.DataFrame()
+
+    if df.empty:
+        total_sales = sum(
+            m.get('key_metrics', {}).get('total_sales', 0) for m in monthly_data
+        )
+        total_listings = sum(
+            m.get('key_metrics', {}).get('new_listings', 0) for m in monthly_data
+        )
+        weighted_avg_price = (
+            sum(
+                m.get('key_metrics', {}).get('average_price', 0)
+                * m.get('key_metrics', {}).get('total_sales', 0)
+                for m in monthly_data
+            )
+            / total_sales
+            if total_sales > 0
+            else 0
+        )
+        sales_by_type_agg = []
+    else:
+        total_sales = df.get('key_metrics.total_sales', pd.Series(dtype=float)).sum()
+        total_listings = df.get('key_metrics.new_listings', pd.Series(dtype=float)).sum()
+        weighted_avg_price = (
+            df.get('key_metrics.average_price', pd.Series(dtype=float))
+            .mul(df.get('key_metrics.total_sales', pd.Series(dtype=float)))
+            .sum()
+            / total_sales
+            if total_sales > 0
+            else 0
+        )
+        if {'name', 'sales'}.issubset(df.columns):
+            sales_by_type_agg = (
+                df.groupby('name')['sales'].sum().reset_index().to_dict('records')
+            )
+        else:
+            sales_by_type_agg = []
     aggregated_result = {
         "report_period": f"{start_str} to {end_str}",
         "source": "WECAR Live (Aggregated)",
@@ -249,9 +324,9 @@ def get_historical_data():
         "monthly_breakdown": monthly_data,
         "successful_months": successful_months,
         "failed_months": failed_months,
+        "excluded_months": excluded_months,
     }
     if excluded_months:
-        aggregated_result["excluded_months"] = excluded_months
         aggregated_result["message"] = "Recent months were excluded due to publication lag."
     return jsonify(aggregated_result), 200
 
