@@ -103,6 +103,19 @@ def get_sample_data():
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
+ codex/implement-get_latest_available_month-and-adjust-end_date-6171yg
+    """Return a timestamp for the first day of the previous month at midnight.
+
+    WECAR statistics are released with a one-month delay, so only months up to
+    the start of the previous month are expected to have complete data. The
+    helper normalises the current timestamp to the first of this month at
+    midnight and then subtracts one month to obtain the last fully published
+    period.
+
+    Returns:
+        datetime: naive ``datetime`` pointing to midnight on the first day of
+        the latest month with complete statistics.
+
  codex/implement-get_latest_available_month-and-adjust-end_date-485sai
     """Return the first day of the previous month at midnight.
 
@@ -111,7 +124,7 @@ def get_latest_available_month():
     helper normalises the current timestamp to the first of this month at
     midnight and then subtracts one month to obtain the last fully published
     period.
-=======
+
     """Return the first day of the previous month.
 
     The WECAR statistics are published monthly with a lag, so the most
@@ -119,17 +132,21 @@ def get_latest_available_month():
     normalises the current date to midnight on the first of the current month
     and then steps back one month, ensuring any time component is removed.
  main
+ main
     """
 
     first_of_this_month = datetime.now().replace(
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     return first_of_this_month - relativedelta(months=1)
+ codex/implement-get_latest_available_month-and-adjust-end_date-6171yg
+
  codex/implement-get_latest_available_month-and-adjust-end_date-485sai
 
  codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
 
 codex/implement-get_latest_available_month-and-adjust-end_date-ti3qe7
+ main
  main
  main
 
@@ -191,11 +208,14 @@ def load_manual_data_for_month(target_date):
         except Exception as e:
             logging.warning(f"Failed to parse manual data {path}: {e}")
     return None
+codex/implement-get_latest_available_month-and-adjust-end_date-6171yg
+
  codex/implement-get_latest_available_month-and-adjust-end_date-485sai
 
  codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
 
 
+ main
  main
  main
  main
