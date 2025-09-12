@@ -1,5 +1,4 @@
 from flask import Blueprint, request, jsonify
-# CORRECTED IMPORTS
 from services.seo_content_service import SEOContentService
 import logging
 
@@ -11,10 +10,16 @@ def analyze_keywords_route():
     data = request.get_json()
     if not data or 'keywords' not in data:
         return jsonify({"error": "Keywords are required"}), 400
-    
+
+    keywords = data['keywords']
+    if not isinstance(keywords, list):
+        return jsonify({"error": "Keywords must be a list"}), 400
+
     try:
-        result = seo_service.analyze_keywords(data['keywords'])
+        result = seo_service.analyze_keywords(keywords)
         return jsonify(result)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         logging.error(f"Error in keyword analysis: {e}")
         return jsonify({"error": "Failed to analyze keywords"}), 500

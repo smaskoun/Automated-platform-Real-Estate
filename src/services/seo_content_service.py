@@ -1,5 +1,6 @@
 import random
 import re
+from collections import Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import json
@@ -567,8 +568,52 @@ class SEOContentService:
         cta_indicators = ['dm', 'message', 'contact', 'comment', 'share', 'tag']
         if any(indicator in content.lower() for indicator in cta_indicators):
             score += 10
-        
+
         return min(score, 100.0)
+
+    def analyze_keywords(self, keywords: List[str]) -> Dict:
+        """Analyze and score provided keywords.
+
+        This normalizes the given keywords, counts their frequency and suggests
+        related terms based on the service's internal keyword lists.
+
+        Args:
+            keywords: List of raw keyword strings.
+
+        Returns:
+            Dictionary with normalized input, frequency scores and suggested
+            related keywords.
+        """
+
+        if not isinstance(keywords, list):
+            raise ValueError("Keywords must be provided as a list")
+
+        normalized = [re.sub(r"\s+", " ", kw).strip().lower()
+                      for kw in keywords if isinstance(kw, str) and kw.strip()]
+        if not normalized:
+            raise ValueError("No valid keywords supplied")
+
+        counts = Counter(normalized)
+        unique_input = list(dict.fromkeys(normalized))
+
+        all_known = set(self.real_estate_keywords['primary'] +
+                        self.real_estate_keywords['long_tail'] +
+                        self.location_keywords['primary'] +
+                        self.location_keywords['neighborhoods'])
+
+        suggestions = []
+        for kw in unique_input:
+            related = [term for term in all_known
+                       if kw in term.lower() and term.lower() not in counts]
+            suggestions.extend(related)
+
+        suggestions = list(dict.fromkeys(suggestions))
+
+        return {
+            'input': unique_input,
+            'suggestions': suggestions,
+            'scores': dict(counts)
+        }
     
     def generate_content_calendar(self, days: int = 30, platform: str = 'instagram') -> List[Dict]:
         """Generate a content calendar with SEO-optimized posts"""
