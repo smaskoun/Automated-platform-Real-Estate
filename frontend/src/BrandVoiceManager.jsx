@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './BrandVoiceManager.module.css';
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import api from './api.js';
 
 function BrandVoiceManager({ user }) {
   const [voices, setVoices] = useState([]);
@@ -19,8 +17,7 @@ function BrandVoiceManager({ user }) {
     setIsLoading(true);
     setError('');
     try {
-      // FIXED URL
-      const response = await axios.get(`${API_BASE_URL}/api/brand-voices/`, {
+      const response = await api.get('/api/brand-voices/', {
         params: { user_id: user.id }
       });
       setVoices(response.data.brand_voices || []);
@@ -41,8 +38,7 @@ function BrandVoiceManager({ user }) {
   const handleCreateVoice = async (e) => {
     e.preventDefault();
     try {
-      // FIXED URL
-      await axios.post(`${API_BASE_URL}/api/brand-voices/`, {
+      await api.post('/api/brand-voices/', {
         user_id: user.id,
         name: newVoiceName,
         description: newVoiceDesc,
@@ -61,8 +57,7 @@ function BrandVoiceManager({ user }) {
   const handleDeleteVoice = async (voiceId) => {
     if (window.confirm("Are you sure you want to delete this source content?")) {
       try {
-        // FIXED URL
-        await axios.delete(`${API_BASE_URL}/api/brand-voices/${voiceId}/`);
+        await api.delete(`/api/brand-voices/${voiceId}/`);
         fetchVoices();
       } catch (err) {
         console.error("Delete error:", err);

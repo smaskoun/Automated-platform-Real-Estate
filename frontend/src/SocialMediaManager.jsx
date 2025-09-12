@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-
-// This is the variable that holds your backend URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import api from './api.js';
 
 function SocialMediaManager({ user }) {
   const [posts, setPosts] = useState([]);
@@ -26,11 +23,10 @@ function SocialMediaManager({ user }) {
     setIsLoading(true);
     setError('');
     try {
-      // --- FIX: Added API_BASE_URL to all calls ---
       const [accountsRes, postsRes, brandVoicesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/social-media/social-accounts`, { params: { user_id: user.id } }),
-        axios.get(`${API_BASE_URL}/api/social-media/posts`, { params: { user_id: user.id } }),
-        axios.get(`${API_BASE_URL}/api/brand-voices/`, { params: { user_id: user.id } })
+        api.get('/api/social-media/social-accounts', { params: { user_id: user.id } }),
+        api.get('/api/social-media/posts', { params: { user_id: user.id } }),
+        api.get('/api/brand-voices/', { params: { user_id: user.id } })
       ]);
       
       setAccounts(accountsRes.data.accounts || []);
@@ -66,8 +62,7 @@ function SocialMediaManager({ user }) {
     setIsGenerating(true);
     setError('');
     try {
-      // --- FIX: Added API_BASE_URL ---
-      const response = await axios.post(`${API_BASE_URL}/api/social-media/posts/generate`, {
+      const response = await api.post('/api/social-media/posts/generate', {
         user_id: user.id,
         topic: topic,
         brand_voice_id: selectedBrandVoice,
@@ -92,8 +87,7 @@ function SocialMediaManager({ user }) {
       return;
     }
     try {
-      // --- FIX: Added API_BASE_URL ---
-      await axios.post(`${API_BASE_URL}/api/social-media/posts`, {
+      await api.post('/api/social-media/posts', {
         account_id: selectedAccount,
         content: content,
         image_prompt: imagePrompt,
