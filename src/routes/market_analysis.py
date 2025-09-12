@@ -103,6 +103,7 @@ def get_sample_data():
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
+ codex/implement-get_latest_available_month-and-adjust-end_date-485sai
     """Return the first day of the previous month at midnight.
 
     WECAR statistics are released with a one-month delay, so only months up to
@@ -110,12 +111,27 @@ def get_latest_available_month():
     helper normalises the current timestamp to the first of this month at
     midnight and then subtracts one month to obtain the last fully published
     period.
+=======
+    """Return the first day of the previous month.
+
+    The WECAR statistics are published monthly with a lag, so the most
+    recent reliable data set corresponds to the previous month.  This helper
+    normalises the current date to midnight on the first of the current month
+    and then steps back one month, ensuring any time component is removed.
+ main
     """
 
     first_of_this_month = datetime.now().replace(
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     return first_of_this_month - relativedelta(months=1)
+ codex/implement-get_latest_available_month-and-adjust-end_date-485sai
+
+ codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
+
+codex/implement-get_latest_available_month-and-adjust-end_date-ti3qe7
+ main
+ main
 
 def load_manual_data_for_month(target_date):
     """Load manually uploaded stats for the given month if available.
@@ -175,6 +191,14 @@ def load_manual_data_for_month(target_date):
         except Exception as e:
             logging.warning(f"Failed to parse manual data {path}: {e}")
     return None
+ codex/implement-get_latest_available_month-and-adjust-end_date-485sai
+
+ codex/implement-get_latest_available_month-and-adjust-end_date-qq96x3
+
+
+ main
+ main
+ main
 
 def fetch_wecar_data_for_month(target_date):
     manual = load_manual_data_for_month(target_date)
@@ -203,7 +227,20 @@ def fetch_wecar_data_for_month(target_date):
             return data
         except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
             logging.warning(f"Failed to fetch data from {url}. Reason: {e}")
-    return {"error": "missing", "attempted": urls}
+
+    # Attempt scraping when summary.json is missing
+    attempted = list(urls)
+    try:
+        from src.services import wecar_scraper
+        scraped = wecar_scraper.scrape_month(target_date)
+        scraped['source'] = 'WECAR Live (scraped)'
+        scraped['period'] = target_date.strftime('%b %Y')
+        return scraped
+    except Exception as e:
+        page_url = f"{base_url}/{year}/{month_short}/"
+        attempted.append(page_url)
+        logging.warning(f"Scraping failed for {page_url}: {e}")
+    return {"error": "missing", "attempted": attempted}
 
 @cache_result()
 def fetch_latest_wecar_data():
