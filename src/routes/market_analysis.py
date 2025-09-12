@@ -115,6 +115,7 @@ def get_latest_available_month():
         day=1, hour=0, minute=0, second=0, microsecond=0
     )
     return first_of_this_month - relativedelta(months=1)
+codex/implement-get_latest_available_month-and-adjust-end_date-ti3qe7
 
 def load_manual_data_for_month(target_date):
     """Load manually uploaded stats for the given month if available.
@@ -175,6 +176,8 @@ def load_manual_data_for_month(target_date):
             logging.warning(f"Failed to parse manual data {path}: {e}")
     return None
 
+ main
+
 def fetch_wecar_data_for_month(target_date):
     manual = load_manual_data_for_month(target_date)
     if manual:
@@ -202,7 +205,20 @@ def fetch_wecar_data_for_month(target_date):
             return data
         except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
             logging.warning(f"Failed to fetch data from {url}. Reason: {e}")
-    return {"error": "missing", "attempted": urls}
+
+    # Attempt scraping when summary.json is missing
+    attempted = list(urls)
+    try:
+        from src.services import wecar_scraper
+        scraped = wecar_scraper.scrape_month(target_date)
+        scraped['source'] = 'WECAR Live (scraped)'
+        scraped['period'] = target_date.strftime('%b %Y')
+        return scraped
+    except Exception as e:
+        page_url = f"{base_url}/{year}/{month_short}/"
+        attempted.append(page_url)
+        logging.warning(f"Scraping failed for {page_url}: {e}")
+    return {"error": "missing", "attempted": attempted}
 
 @cache_result()
 def fetch_latest_wecar_data():
