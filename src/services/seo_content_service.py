@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import json
 
+from textblob import TextBlob
+import textstat
+import language_tool_python
+
 class SEOContentService:
     """Service for generating SEO-optimized social media content for real estate"""
     
@@ -441,93 +445,96 @@ class SEOContentService:
     
     def _generate_seo_metadata(self, content: str, location: str, content_type: str) -> Dict:
         """Generate SEO metadata for the content"""
-        
+
         # Extract keywords from content
         content_lower = content.lower()
-        
-        # Count keyword density
+        words = content_lower.split()
+        total_words = len(words)
+
+        # Calculate keyword density percentages
         keyword_density = {}
+        total_keyword_occurrences = 0
         for category, keywords in self.real_estate_keywords.items():
             for keyword in keywords:
-                count = content_lower.count(keyword.lower())
-                if count > 0:
-                    keyword_density[keyword] = count
-        
+                pattern = r'\b' + re.escape(keyword.lower()) + r'\b'
+                count = len(re.findall(pattern, content_lower))
+                if count > 0 and total_words > 0:
+                    density = (count / total_words) * 100
+                    keyword_density[keyword] = round(density, 2)
+                    total_keyword_occurrences += count
+
         # Generate meta description
         meta_description = f"Real estate content for {location}. {content[:100]}..."
-        
-        # Calculate SEO score
-        seo_score = self._calculate_seo_score(content, location, content_type)
-        
+
+        # Calculate SEO score and additional metrics
+        seo_score, sentiment, grammar_errors = self._calculate_seo_score(
+            content, location, content_type
+        )
+
         return {
             'keyword_density': keyword_density,
             'meta_description': meta_description,
             'primary_keywords': list(keyword_density.keys())[:5],
-            'location_mentions': content_lower.count(location.lower()),
+            'location_mentions': len(re.findall(r'\b' + re.escape(location.lower()) + r'\b', content_lower)),
             'seo_score': seo_score,
             'content_length': len(content),
-            'readability_score': self._calculate_readability_score(content)
+            'readability_score': self._calculate_readability_score(content),
+            'sentiment_polarity': sentiment,
+            'grammar_errors': grammar_errors,
+            'overall_keyword_density': round((total_keyword_occurrences / total_words) * 100, 2) if total_words > 0 else 0,
         }
     
-    def _calculate_seo_score(self, content: str, location: str, content_type: str) -> float:
-        """Calculate SEO score for the content"""
-        
+    def _calculate_seo_score(self, content: str, location: str, content_type: str) -> Tuple[float, float, int]:
+        """Calculate SEO score and related metrics for the content."""
+
         score = 0.0
         content_lower = content.lower()
-        
+        words = content_lower.split()
+        total_words = len(words)
+
         # Location mention (20 points)
         if location.lower() in content_lower:
             score += 20
-        
-        # Real estate keywords (30 points)
-        keyword_count = 0
+
+        # Keyword density (30 points) - optimal around 2%
+        keyword_occurrences = 0
         for keywords in self.real_estate_keywords.values():
             for keyword in keywords:
-                if keyword.lower() in content_lower:
-                    keyword_count += 1
-        score += min(keyword_count * 3, 30)
-        
-        # Content length (20 points)
+                keyword_occurrences += len(re.findall(r'\b' + re.escape(keyword.lower()) + r'\b', content_lower))
+        keyword_density = (keyword_occurrences / total_words) * 100 if total_words > 0 else 0
+        score += max(0, 30 - abs(keyword_density - 2) * 15)  # penalize deviation from 2%
+
+        # Readability (20 points) using Flesch Reading Ease
+        readability = textstat.flesch_reading_ease(content)
+        score += max(min(readability, 100), 0) * 0.2
+
+        # Sentiment impact (-10 to +10)
+        polarity = TextBlob(content).sentiment.polarity
+        score += polarity * 10
+
+        # Grammar check penalty (up to -20)
+        try:
+            tool = language_tool_python.LanguageTool('en-US')
+            grammar_errors = len(tool.check(content))
+        except Exception:
+            grammar_errors = 0
+        score -= min(grammar_errors * 2, 20)
+
+        # Content length bonus (up to 10)
         content_length = len(content)
-        if 100 <= content_length <= 300:
-            score += 20
-        elif 50 <= content_length < 100 or 300 < content_length <= 500:
-            score += 15
-        elif content_length > 500:
+        if 50 <= content_length <= 300:
             score += 10
-        
-        # Call to action (15 points)
-        cta_indicators = ['dm', 'message', 'contact', 'call', 'visit', 'schedule', 'book']
-        if any(indicator in content_lower for indicator in cta_indicators):
-            score += 15
-        
-        # Engagement elements (15 points)
-        engagement_indicators = ['?', '!', 'comment', 'share', 'tag', 'save']
-        engagement_count = sum(1 for indicator in engagement_indicators if indicator in content_lower)
-        score += min(engagement_count * 3, 15)
-        
-        return min(score, 100.0)  # Cap at 100
+
+        final_score = max(min(score, 100.0), 0.0)
+        return final_score, polarity, grammar_errors
     
     def _calculate_readability_score(self, content: str) -> float:
-        """Calculate readability score (simplified)"""
-        
-        sentences = len(re.split(r'[.!?]+', content))
-        words = len(content.split())
-        
-        if sentences == 0:
+        """Calculate readability using Flesch Reading Ease."""
+
+        try:
+            return textstat.flesch_reading_ease(content)
+        except Exception:
             return 0.0
-        
-        avg_sentence_length = words / sentences
-        
-        # Simple readability score (lower is better)
-        if avg_sentence_length <= 15:
-            return 90.0  # Very readable
-        elif avg_sentence_length <= 20:
-            return 70.0  # Readable
-        elif avg_sentence_length <= 25:
-            return 50.0  # Somewhat readable
-        else:
-            return 30.0  # Difficult to read
     
     def _calculate_engagement_score(self, content: str, hashtags: List[str], platform: str) -> float:
         """Calculate estimated engagement score"""
@@ -535,7 +542,7 @@ class SEOContentService:
         score = 0.0
         
         # Content quality (40 points)
-        seo_score = self._calculate_seo_score(content, 'Windsor', 'general')
+        seo_score, _, _ = self._calculate_seo_score(content, 'Windsor', 'general')
         score += (seo_score / 100) * 40
         
         # Hashtag optimization (30 points)
@@ -619,7 +626,7 @@ class SEOContentService:
         """Optimize existing content for better SEO and engagement"""
         
         # Analyze current content
-        current_score = self._calculate_seo_score(content, 'Windsor', 'general')
+        current_score, _, _ = self._calculate_seo_score(content, 'Windsor', 'general')
         
         # Suggest improvements
         suggestions = []
