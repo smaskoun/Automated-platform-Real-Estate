@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-
-// This is the variable that holds your backend URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import api from './api.js';
 
 // A simple, reusable button component for consistent styling
 const Button = ({ onClick, children, className, type = "button" }) => (
@@ -32,8 +29,7 @@ function AccountManager({ user }) {
   const fetchAccounts = async () => {
     setIsLoading(true);
     try {
-      // --- FIX: Added API_BASE_URL ---
-      const response = await axios.get(`${API_BASE_URL}/api/social-media/social-accounts`, {
+      const response = await api.get('/api/social-media/social-accounts', {
         params: { user_id: user.id }
       });
       setAccounts(response.data.accounts || []);
@@ -55,8 +51,7 @@ function AccountManager({ user }) {
     e.preventDefault();
     if (!accountName || !platform) return;
     try {
-      // --- FIX: Added API_BASE_URL ---
-      await axios.post(`${API_BASE_URL}/api/social-media/social-accounts`, {
+      await api.post('/api/social-media/social-accounts', {
         user_id: user.id,
         account_name: accountName,
         platform: platform,
@@ -71,8 +66,7 @@ function AccountManager({ user }) {
   const handleDeleteAccount = async (accountId) => {
     if (window.confirm("Are you sure you want to delete this account?")) {
       try {
-        // --- FIX: Added API_BASE_URL ---
-        await axios.delete(`${API_BASE_URL}/api/social-media/social-accounts/${accountId}`);
+        await api.delete(`/api/social-media/social-accounts/${accountId}`);
         fetchAccounts();
       } catch (err) {
         alert('Failed to delete account.');
@@ -91,8 +85,7 @@ function AccountManager({ user }) {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     try {
-      // --- FIX: Added API_BASE_URL ---
-      await axios.put(`${API_BASE_URL}/api/social-media/social-accounts/${editingAccount.id}`, {
+      await api.put(`/api/social-media/social-accounts/${editingAccount.id}`, {
         account_name: editName,
         platform: editPlatform,
       });
