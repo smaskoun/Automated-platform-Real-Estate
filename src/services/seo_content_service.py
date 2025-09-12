@@ -1,5 +1,6 @@
 import random
 import re
+from collections import Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import json
@@ -7,6 +8,7 @@ import os
 
 class SEOContentService:
     """Service for generating SEO-optimized social media content for real estate"""
+ codex/introduce-weighted-hashtag-selection-with-trend-scores
     
     def __init__(self):
         # Windsor-Essex specific keywords and locations
@@ -83,6 +85,15 @@ class SEOContentService:
         self.trend_scores: Dict[str, float] = {}
         self.refresh_trend_scores()
         
+
+
+    def __init__(self, config_path: Optional[str] = None):
+        self.config_path = config_path or os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "data", "seo_keywords.json")
+        )
+        self._load_config()
+
+ main
         # Content templates for different post types
         self.content_templates = {
             'property_showcase': {
@@ -176,6 +187,20 @@ class SEOContentService:
                 'weekend': [(12, 13)]  # 12PM-1PM
             }
         }
+
+    def _load_config(self) -> None:
+        """Load keyword and hashtag configuration from JSON file."""
+        with open(self.config_path, "r") as f:
+            config = json.load(f)
+
+        self.location_keywords = config.get("location_keywords", {})
+        self.real_estate_keywords = config.get("real_estate_keywords", {})
+        self.hashtag_strategies = config.get("hashtag_strategies", {})
+        self.hashtags = config.get("hashtags", {})
+
+    def reload_config(self) -> None:
+        """Reload configuration from disk at runtime."""
+        self._load_config()
     
     def generate_seo_optimized_content(self, 
                                      content_type: str,
@@ -607,8 +632,52 @@ class SEOContentService:
         cta_indicators = ['dm', 'message', 'contact', 'comment', 'share', 'tag']
         if any(indicator in content.lower() for indicator in cta_indicators):
             score += 10
-        
+
         return min(score, 100.0)
+
+    def analyze_keywords(self, keywords: List[str]) -> Dict:
+        """Analyze and score provided keywords.
+
+        This normalizes the given keywords, counts their frequency and suggests
+        related terms based on the service's internal keyword lists.
+
+        Args:
+            keywords: List of raw keyword strings.
+
+        Returns:
+            Dictionary with normalized input, frequency scores and suggested
+            related keywords.
+        """
+
+        if not isinstance(keywords, list):
+            raise ValueError("Keywords must be provided as a list")
+
+        normalized = [re.sub(r"\s+", " ", kw).strip().lower()
+                      for kw in keywords if isinstance(kw, str) and kw.strip()]
+        if not normalized:
+            raise ValueError("No valid keywords supplied")
+
+        counts = Counter(normalized)
+        unique_input = list(dict.fromkeys(normalized))
+
+        all_known = set(self.real_estate_keywords['primary'] +
+                        self.real_estate_keywords['long_tail'] +
+                        self.location_keywords['primary'] +
+                        self.location_keywords['neighborhoods'])
+
+        suggestions = []
+        for kw in unique_input:
+            related = [term for term in all_known
+                       if kw in term.lower() and term.lower() not in counts]
+            suggestions.extend(related)
+
+        suggestions = list(dict.fromkeys(suggestions))
+
+        return {
+            'input': unique_input,
+            'suggestions': suggestions,
+            'scores': dict(counts)
+        }
     
     def generate_content_calendar(self, days: int = 30, platform: str = 'instagram') -> List[Dict]:
         """Generate a content calendar with SEO-optimized posts"""
