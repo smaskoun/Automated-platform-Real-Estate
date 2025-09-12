@@ -13,3 +13,6 @@ pandas
 openpyxl
 pdfplumber
 beautifulsoup4
+textstat
+textblob
+language-tool-python
