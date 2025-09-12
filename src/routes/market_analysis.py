@@ -76,7 +76,18 @@ def get_sample_data():
 
 # --- Data Fetching Logic ---
 def get_latest_available_month():
-    return datetime.now().replace(day=1) - relativedelta(months=1)
+    """Return the first day of the previous month.
+
+    The WECAR statistics are published monthly with a lag, so the most
+    recent reliable data set corresponds to the previous month.  This helper
+    normalises the current date to midnight on the first of the current month
+    and then steps back one month, ensuring any time component is removed.
+    """
+
+    first_of_this_month = datetime.now().replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+    return first_of_this_month - relativedelta(months=1)
 
 def fetch_wecar_data_for_month(target_date):
     base_url = "https://wecartech.com/wecfiles/stats_new"
@@ -238,18 +249,54 @@ def get_historical_data():
             "excluded_months": excluded_months,
             "sample": sample,
         }), 404
-    df = pd.json_normalize(
-        monthly_data,
-        record_path='sales_by_type',
-        meta=[['key_metrics', 'total_sales'], ['key_metrics', 'average_price'], ['key_metrics', 'new_listings']]
-    )
-    total_sales = df['key_metrics.total_sales'].sum()
-    total_listings = df['key_metrics.new_listings'].sum()
-    weighted_avg_price = (
-        (df['key_metrics.average_price'] * df['key_metrics.total_sales']).sum() / total_sales
-        if total_sales > 0 else 0
-    )
-    sales_by_type_agg = df.groupby('name')['sales'].sum().reset_index().to_dict('records')
+    try:
+        df = pd.json_normalize(
+            monthly_data,
+            record_path='sales_by_type',
+            meta=[
+                ['key_metrics', 'total_sales'],
+                ['key_metrics', 'average_price'],
+                ['key_metrics', 'new_listings'],
+            ],
+        )
+    except KeyError:
+        df = pd.DataFrame()
+
+    if df.empty:
+        total_sales = sum(
+            m.get('key_metrics', {}).get('total_sales', 0) for m in monthly_data
+        )
+        total_listings = sum(
+            m.get('key_metrics', {}).get('new_listings', 0) for m in monthly_data
+        )
+        weighted_avg_price = (
+            sum(
+                m.get('key_metrics', {}).get('average_price', 0)
+                * m.get('key_metrics', {}).get('total_sales', 0)
+                for m in monthly_data
+            )
+            / total_sales
+            if total_sales > 0
+            else 0
+        )
+        sales_by_type_agg = []
+    else:
+        total_sales = df.get('key_metrics.total_sales', pd.Series(dtype=float)).sum()
+        total_listings = df.get('key_metrics.new_listings', pd.Series(dtype=float)).sum()
+        weighted_avg_price = (
+            df.get('key_metrics.average_price', pd.Series(dtype=float))
+            .mul(df.get('key_metrics.total_sales', pd.Series(dtype=float)))
+            .sum()
+            / total_sales
+            if total_sales > 0
+            else 0
+        )
+        if {'name', 'sales'}.issubset(df.columns):
+            sales_by_type_agg = (
+                df.groupby('name')['sales'].sum().reset_index().to_dict('records')
+            )
+        else:
+            sales_by_type_agg = []
     aggregated_result = {
         "report_period": f"{start_str} to {end_str}",
         "source": "WECAR Live (Aggregated)",
