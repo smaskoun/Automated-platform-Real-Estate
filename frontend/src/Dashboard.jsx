@@ -6,7 +6,6 @@ const navigation = [
   { name: 'Accounts', href: '/accounts' },
   { name: 'Brand Voices', href: '/brand-voices' },
   { name: 'Social Media Posts', href: '/social-media' },
-  { name: 'Market Analysis', href: '/market-analysis' },
   { name: 'SEO Tools', href: '/seo-tools', disabled: true },
   { name: 'A/B Testing', href: '/ab-testing', disabled: true },
 ];
