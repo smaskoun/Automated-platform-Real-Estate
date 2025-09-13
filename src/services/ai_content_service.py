@@ -2,10 +2,14 @@
 
 import os
 import json
+import logging
 import openai
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
+
 
 class AIContentService:
     def __init__(self):
@@ -63,7 +67,7 @@ class AIContentService:
             return json.loads(response.choices[0].message.content)
 
         except Exception as e:
-            print(f"Error in AI content generation: {e}")
+            logger.error("Error in AI content generation: %s", e)
             return {"error": str(e)}
 
 ai_content_service = AIContentService()
