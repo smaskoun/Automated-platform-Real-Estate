@@ -2,6 +2,7 @@
 
 import os
 import json
+import time
 import openai
 from dotenv import load_dotenv
 
@@ -18,14 +19,13 @@ class AIContentService:
         if not topic or not brand_voice_example:
             raise ValueError("Topic and brand voice example cannot be empty.")
 
-        try:
-            system_prompt = """
+        system_prompt = """
             You are a world-class social media strategist and creative director for the real estate industry, specializing in the Windsor-Essex, Ontario, Canada market.
             Your goal is to create a complete social media package that maximizes engagement.
             You must generate a JSON object with three keys: "content", "hashtags", and "image_prompt".
             """
 
-            user_prompt = f"""
+        user_prompt = f"""
             Generate a social media post package using these instructions.
 
             1.  **Primary Topic:**
@@ -51,19 +51,27 @@ class AIContentService:
                 - "image_prompt": A detailed, descriptive prompt for an AI image generator (like Midjourney or DALL-E) to create a visually stunning and relevant image for this post. The prompt should be creative and evocative. Example: "Photorealistic image of a luxurious, modern kitchen with marble countertops and sunlight streaming through large windows, overlooking a lush green backyard in a suburban Ontario home, golden hour lighting."
             """
 
-            response = openai.chat.completions.create(
-                model="gpt-4-turbo",
-                response_format={"type": "json_object"},
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ]
-            )
+        last_exception = None
+        for attempt in range(3):
+            try:
+                response = openai.chat.completions.create(
+                    model="gpt-4-turbo",
+                    response_format={"type": "json_object"},
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    timeout=30,
+                )
+                return json.loads(response.choices[0].message.content)
+            except Exception as e:
+                last_exception = e
+                print(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
 
-            return json.loads(response.choices[0].message.content)
-
-        except Exception as e:
-            print(f"Error in AI content generation: {e}")
-            return {"error": str(e)}
+        error_message = f"Failed to generate content after 3 attempts: {last_exception}"
+        print(error_message)
+        return {"error": error_message}
 
 ai_content_service = AIContentService()
