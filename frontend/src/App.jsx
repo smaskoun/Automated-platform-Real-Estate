@@ -7,15 +7,8 @@ import DashboardLayout from './Dashboard.jsx';
 import AccountManager from './AccountManager.jsx';
 import BrandVoiceManager from './BrandVoiceManager.jsx';
 import SocialMediaManager from './SocialMediaManager.jsx';
-
-
-// A simple placeholder for pages that are not yet built
-const ComingSoon = () => (
-  <div className="text-center">
-    <h1 className="text-4xl font-bold">Coming Soon!</h1>
-    <p className="mt-2 text-lg text-gray-600">This feature is under construction.</p>
-  </div>
-);
+import SeoTools from './SeoTools.jsx';
+import AbTesting from './AbTesting.jsx';
 
 // We will create a "mock" user to pass to the layout.
 const mockUser = { id: 1, username: 'Test User' };
@@ -34,8 +27,8 @@ function App() {
           <Route path="accounts" element={<AccountManager user={mockUser} />} />
           <Route path="brand-voices" element={<BrandVoiceManager user={mockUser} />} />
           <Route path="social-media" element={<SocialMediaManager user={mockUser} />} />
-          <Route path="seo-tools" element={<ComingSoon />} />
-          <Route path="ab-testing" element={<ComingSoon />} />
+          <Route path="seo-tools" element={<SeoTools user={mockUser} />} />
+          <Route path="ab-testing" element={<AbTesting user={mockUser} />} />
 
         </Route>
       </Routes>
