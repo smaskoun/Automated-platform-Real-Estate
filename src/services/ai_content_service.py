@@ -2,11 +2,9 @@
 
 import os
 import json
- codex/update-ai_content_service-to-use-logging
 import logging
-
 import time
- main
+
 import openai
 from dotenv import load_dotenv
 
@@ -22,7 +20,13 @@ class AIContentService:
             raise ValueError("OPENAI_API_KEY environment variable not set.")
         openai.api_key = self.api_key
 
-    def generate_optimized_post(self, topic: str, brand_voice_example: str, performance_insights: dict) -> dict:
+    def generate_optimized_post(
+        self,
+        topic: str,
+        brand_voice_example: str,
+        performance_insights: dict,
+    ) -> dict:
+        """Generate an optimized social media post using OpenAI."""
         if not topic or not brand_voice_example:
             raise ValueError("Topic and brand voice example cannot be empty.")
 
@@ -66,27 +70,21 @@ class AIContentService:
                     response_format={"type": "json_object"},
                     messages=[
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt}
+                        {"role": "user", "content": user_prompt},
                     ],
                     timeout=30,
                 )
                 return json.loads(response.choices[0].message.content)
             except Exception as e:
                 last_exception = e
-                print(f"Attempt {attempt + 1} failed: {e}")
+                logger.warning("Attempt %d failed: %s", attempt + 1, e)
                 if attempt < 2:
                     time.sleep(2 ** attempt)
 
- codex/update-ai_content_service-to-use-logging
-            return json.loads(response.choices[0].message.content)
+        logger.error(
+            "Failed to generate content after 3 attempts: %s", last_exception
+        )
+        return {"error": str(last_exception)}
 
-        except Exception as e:
-            logger.error("Error in AI content generation: %s", e)
-            return {"error": str(e)}
-
-        error_message = f"Failed to generate content after 3 attempts: {last_exception}"
-        print(error_message)
-        return {"error": error_message}
- main
 
 ai_content_service = AIContentService()

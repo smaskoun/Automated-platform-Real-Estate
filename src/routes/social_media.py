@@ -135,4 +135,12 @@ def approve_post(post_id):
 def generate_image():
     data = request.get_json()
     if "prompt" not in data: return jsonify({"error": "Prompt is required"}), 400
-    return jsonify({"message": "Image generation not fully implemented.", "image_url": "https://via.placeholder.com/1080"} ), 501
+    return (
+        jsonify(
+            {
+                "message": "Image generation not fully implemented.",
+                "image_url": "https://via.placeholder.com/1080",
+            }
+        ),
+        501,
+    )
