@@ -12,92 +12,18 @@ import language_tool_python
 
 class SEOContentService:
     """Service for generating SEO-optimized social media content for real estate"""
- codex/introduce-weighted-hashtag-selection-with-trend-scores
-    
-    def __init__(self):
-        # Windsor-Essex specific keywords and locations
-        self.location_keywords = {
-            'primary': [
-                'Windsor', 'Essex County', 'Windsor-Essex', 'Windsor Ontario',
-                'Essex', 'Kingsville', 'Leamington', 'Tecumseh', 'LaSalle',
-                'Amherstburg', 'Belle River', 'Harrow'
-            ],
-            'neighborhoods': [
-                'Downtown Windsor', 'Walkerville', 'Riverside', 'South Windsor',
-                'East Windsor', 'West End', 'Forest Glade', 'Devonshire',
-                'Sandwich', 'University District', 'Little Italy'
-            ]
-        }
-        
-        # Real estate specific keywords
-        self.real_estate_keywords = {
-            'primary': [
-                'real estate', 'homes for sale', 'property', 'house', 'listing',
-                'real estate agent', 'realtor', 'home buyer', 'home seller',
-                'property investment', 'housing market'
-            ],
-            'long_tail': [
-                'first time home buyer', 'luxury homes', 'investment property',
-                'market trends', 'home valuation', 'property search',
-                'real estate market analysis', 'home buying tips',
-                'selling your home', 'property investment opportunities'
-            ]
-        }
-        
-        # Platform-specific hashtag strategies
-        self.hashtag_strategies = {
-            'instagram': {
-                'count': (8, 12),  # Optimal range
-                'mix': {
-                    'high_volume': 0.3,    # 30% popular hashtags
-                    'medium_volume': 0.4,  # 40% medium hashtags
-                    'niche': 0.3          # 30% niche hashtags
-                }
-            },
-            'facebook': {
-                'count': (2, 5),  # Fewer hashtags for Facebook
-                'mix': {
-                    'high_volume': 0.5,
-                    'medium_volume': 0.3,
-                    'niche': 0.2
-                }
-            }
-        }
-        
-        # Hashtag database organized by volume
-        self.hashtags = {
-            'high_volume': [
-                '#RealEstate', '#HomesForSale', '#Property', '#House',
-                '#RealEstateAgent', '#Realtor', '#Home', '#Investment',
-                '#Ontario', '#Canada', '#PropertyInvestment'
-            ],
-            'medium_volume': [
-                '#WindsorRealEstate', '#EssexCounty', '#WindsorOntario',
-                '#WindsorHomes', '#EssexCountyRealEstate', '#LocalRealEstate',
-                '#WindsorProperty', '#SouthwestOntario', '#GreatLakesRegion',
-                '#BorderCity', '#WindsorEssex'
-            ],
-            'niche': [
-                '#WindsorHomeBuyer', '#EssexCountyHomes', '#WindsorPropertyMarket',
-                '#LocalRealEstateExpert', '#WindsorInvestment', '#EssexCountyProperty',
-                '#WindsorNeighborhoods', '#DetroitWindsorArea', '#WindsorRealtor',
-                '#EssexCountyAgent', '#WindsorListings', '#LocalPropertyExpert'
-            ]
-        }
-
-        # Hashtag trend scores for weighting selections
-        self.trend_scores: Dict[str, float] = {}
-        self.refresh_trend_scores()
-        
-
 
     def __init__(self, config_path: Optional[str] = None):
         self.config_path = config_path or os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "data", "seo_keywords.json")
         )
         self._load_config()
+        # Hashtag trend scores for weighting selections
+        self.trend_scores: Dict[str, float] = {}
+        self.refresh_trend_scores()
+        # default region used when no specific location is supplied
+        self.default_region = "Windsor-Essex, Ontario"
 
- main
         # Content templates for different post types
         self.content_templates = {
             'property_showcase': {
@@ -224,9 +150,11 @@ class SEOContentService:
             Dict containing optimized content, hashtags, and metadata
         """
         
-        # Select location if not provided
+        # Select location if not provided and ensure Windsor-Essex region context
         if not location:
-            location = random.choice(self.location_keywords['primary'])
+            location = self.default_region
+        elif 'windsor' not in location.lower() and 'essex' not in location.lower():
+            location = f"{location}, {self.default_region}"
         
         # Generate main content
         content = self._generate_content_body(content_type, location, custom_data or {})
@@ -413,9 +341,12 @@ class SEOContentService:
         # Add niche hashtags
         selected_hashtags.extend(weighted_sample(self.hashtags['niche'], niche_count))
         
-        # Add location-specific hashtags
-        location_clean = location.replace(' ', '').replace('-', '')
+        # Add location-specific hashtags using only the city portion
+        location_clean = location.split(',')[0].replace(' ', '').replace('-', '')
         location_hashtags = [f"#{location_clean}", f"#{location_clean}RealEstate"]
+
+        # Always prioritize Windsor-Essex regional hashtags
+        region_hashtags = ['#WindsorEssex', '#WindsorOntario', '#EssexCounty']
         
         # Add content-type specific hashtags
         if content_type == 'property_showcase':
@@ -428,7 +359,7 @@ class SEOContentService:
             selected_hashtags.extend(['#CommunityLove', '#LocalBusiness', '#Neighborhood'])
         
         # Combine, deduplicate, and order by trend score
-        all_hashtags = list(dict.fromkeys(selected_hashtags + location_hashtags))
+        all_hashtags = list(dict.fromkeys(selected_hashtags + location_hashtags + region_hashtags))
         all_hashtags.sort(key=lambda tag: self.trend_scores.get(tag, 1.0), reverse=True)
 
         # Trim to target count
