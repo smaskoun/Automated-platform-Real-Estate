@@ -2,11 +2,18 @@
 
 import os
 import json
+ codex/update-ai_content_service-to-use-logging
+import logging
+
 import time
+ main
 import openai
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
+
 
 class AIContentService:
     def __init__(self):
@@ -70,8 +77,16 @@ class AIContentService:
                 if attempt < 2:
                     time.sleep(2 ** attempt)
 
+ codex/update-ai_content_service-to-use-logging
+            return json.loads(response.choices[0].message.content)
+
+        except Exception as e:
+            logger.error("Error in AI content generation: %s", e)
+            return {"error": str(e)}
+
         error_message = f"Failed to generate content after 3 attempts: {last_exception}"
         print(error_message)
         return {"error": error_message}
+ main
 
 ai_content_service = AIContentService()
