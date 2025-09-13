@@ -8,6 +8,7 @@ from collections import defaultdict, Counter
 import statistics
 import math
 import os
+import re
 from dotenv import load_dotenv
 
 # --- NEW: META AUTOMATOR SERVICE CLASS ADDED DIRECTLY HERE ---
