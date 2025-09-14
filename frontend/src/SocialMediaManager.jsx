@@ -1,5 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from './api.js';
+
+// Simple debounce utility
+function debounce(fn, delay) {
+  let timeoutId;
+  return (...args) => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
+}
 
 function SocialMediaManager({ user }) {
   const [posts, setPosts] = useState([]);
@@ -101,11 +110,16 @@ function SocialMediaManager({ user }) {
     }
   };
 
+  const debouncedAnalyze = useRef(debounce(analyzeKeyword, 500));
+
   useEffect(() => {
-    if (content) {
-      analyzeKeyword(content);
+    debouncedAnalyze.current = debounce(analyzeKeyword, 500);
+  }, [primaryKeyword]);
+
+  useEffect(() => {
+    if (content && debouncedAnalyze.current) {
+      debouncedAnalyze.current(content);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, primaryKeyword]);
 
   const handleCreatePost = async (e) => {
