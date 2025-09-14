@@ -103,10 +103,15 @@ def create_post():
     if not all(f in data for f in ["account_id", "content"]): return jsonify({"error": "Missing required fields"}), 400
     account = SocialMediaAccount.query.filter_by(id=data["account_id"], is_active=True).first()
     if not account: return jsonify({"error": "Account not found or inactive"}), 404
+    scheduled_at = (
+        datetime.fromisoformat(data["scheduled_at"]) if data.get("scheduled_at") else None
+    )
     post = SocialMediaPost(
-        account_id=data["account_id"], content=data["content"], image_prompt=data.get("image_prompt"),
+        account_id=data["account_id"],
+        content=data["content"],
+        image_prompt=data.get("image_prompt"),
         hashtags=json.dumps(data.get("hashtags", [])),
-        scheduled_at=datetime.fromisoformat(data["scheduled_at"]) if data.get("scheduled_at") else None
+        scheduled_at=scheduled_at,
     )
     try:
         db.session.add(post)
@@ -116,6 +121,36 @@ def create_post():
         db.session.rollback()
         logging.error(f"Error creating post: {str(e)}")
         return jsonify({"error": "Failed to create post"}), 500
+
+@social_media_bp.route("/posts/<int:post_id>", methods=["PUT"])
+def update_post(post_id):
+    post = SocialMediaPost.query.get_or_404(post_id)
+    data = request.get_json()
+    post.content = data.get("content", post.content)
+    if "hashtags" in data:
+        post.hashtags = json.dumps(data["hashtags"])
+    if "scheduled_at" in data:
+        post.scheduled_at = datetime.fromisoformat(data["scheduled_at"]) if data["scheduled_at"] else None
+    post.updated_at = datetime.utcnow()
+    try:
+        db.session.commit()
+        return jsonify({"success": True, "post": post.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating post: {str(e)}")
+        return jsonify({"error": "Failed to update post"}), 500
+
+@social_media_bp.route("/posts/<int:post_id>", methods=["DELETE"])
+def delete_post(post_id):
+    post = SocialMediaPost.query.get_or_404(post_id)
+    try:
+        db.session.delete(post)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Post deleted"}), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error deleting post: {str(e)}")
+        return jsonify({"error": "Failed to delete post"}), 500
 
 @social_media_bp.route("/posts/<int:post_id>/approve", methods=["POST"])
 def approve_post(post_id):
