@@ -32,17 +32,11 @@ function SocialMediaManager({ user }) {
   const [primaryKeyword, setPrimaryKeyword] = useState('');
   const [seoResult, setSeoResult] = useState(null);
 
- codex/add-datetime-local-input-to-post-form
-  // Edit modal state
-  const [editingPost, setEditingPost] = useState(null);
-  const [editScheduledAt, setEditScheduledAt] = useState('');
-
   // Editing state
   const [editingPost, setEditingPost] = useState(null);
   const [editContent, setEditContent] = useState('');
   const [editHashtags, setEditHashtags] = useState('');
   const [editSchedule, setEditSchedule] = useState('');
- main
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -167,20 +161,6 @@ function SocialMediaManager({ user }) {
       alert("Failed to create the post.");
     }
   };
-
- codex/add-datetime-local-input-to-post-form
-  const handleStartEdit = (post) => {
-    setEditingPost(post);
-    setEditScheduledAt(post.scheduled_at ? post.scheduled_at.slice(0, 16) : '');
-  };
-
-  const handleCancelEdit = () => {
-    setEditingPost(null);
-    setEditScheduledAt('');
-  };
-
-  const handleSaveEdit = async (e) => {
-
   const handleEditClick = (post) => {
     setEditingPost(post);
     setEditContent(post.content);
@@ -200,22 +180,15 @@ function SocialMediaManager({ user }) {
   };
 
   const handleUpdatePost = async (e) => {
- main
     e.preventDefault();
     if (!editingPost) return;
     try {
       await api.put(`/api/social-media/posts/${editingPost.id}`, {
- codex/add-datetime-local-input-to-post-form
-        scheduled_at: editScheduledAt,
-      });
-      handleCancelEdit();
-
         content: editContent,
         hashtags: editHashtags.split(',').map(t => t.trim()).filter(Boolean),
         scheduled_at: editSchedule ? new Date(editSchedule).toISOString() : null,
       });
       setEditingPost(null);
- main
       fetchData();
     } catch (err) {
       console.error('Update post error:', err);
@@ -223,13 +196,10 @@ function SocialMediaManager({ user }) {
     }
   };
 
- codex/add-datetime-local-input-to-post-form
-
   const closeEditModal = () => {
     setEditingPost(null);
   };
 
- main
   if (isLoading) {
     return <div className="text-center p-8">Loading social media dashboard...</div>;
   }
@@ -237,25 +207,6 @@ function SocialMediaManager({ user }) {
   return (
     <>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {editingPost && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Edit Scheduled Time</h3>
-            <form onSubmit={handleSaveEdit} className="space-y-4">
-              <input
-                type="datetime-local"
-                value={editScheduledAt}
-                onChange={(e) => setEditScheduledAt(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
-              <div className="flex justify-end space-x-3">
-                <button type="button" onClick={handleCancelEdit} className="px-4 py-2 bg-gray-500 text-white rounded-md">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
       {/* Left Column: Form Card */}
       <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md space-y-6">
         <h3 className="text-xl font-bold">Create New Social Media Post</h3>
@@ -370,11 +321,7 @@ function SocialMediaManager({ user }) {
                       <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Image Prompt:</span> {post.image_prompt}</p>
                     )}
                     {post.scheduled_at && (
- codex/add-datetime-local-input-to-post-form
                       <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Scheduled for:</span> {new Date(post.scheduled_at).toLocaleString()}</p>
-=======
-                      <p className="text-xs text-gray-500 mt-2">Scheduled for: {new Date(post.scheduled_at).toLocaleString()}</p>
- main
                     )}
                   </div>
                   <div className="ml-4 text-right">
@@ -382,7 +329,7 @@ function SocialMediaManager({ user }) {
                       {post.status}
                     </span>
                     <p className="text-xs text-gray-500 mt-1">{post.account_name}</p>
-                    <button onClick={() => handleStartEdit(post)} className="mt-2 text-xs text-blue-600 hover:underline">Edit</button>
+                      
                   </div>
                 </div>
                 <div className="mt-3 flex justify-end space-x-2">
