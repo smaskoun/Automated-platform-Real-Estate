@@ -31,6 +31,12 @@ function SocialMediaManager({ user }) {
   const [primaryKeyword, setPrimaryKeyword] = useState('');
   const [seoResult, setSeoResult] = useState(null);
 
+  // Editing state
+  const [editingPost, setEditingPost] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [editHashtags, setEditHashtags] = useState('');
+  const [editSchedule, setEditSchedule] = useState('');
+
   const fetchData = async () => {
     setIsLoading(true);
     setError('');
@@ -153,11 +159,51 @@ function SocialMediaManager({ user }) {
     }
   };
 
+  const handleEditClick = (post) => {
+    setEditingPost(post);
+    setEditContent(post.content);
+    setEditHashtags(post.hashtags ? post.hashtags.join(', ') : '');
+    setEditSchedule(post.scheduled_at ? post.scheduled_at.slice(0, 16) : '');
+  };
+
+  const handleDelete = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await api.delete(`/api/social-media/posts/${postId}`);
+      setPosts(posts.filter(p => p.id !== postId));
+    } catch (err) {
+      console.error('Delete post error:', err);
+      alert('Failed to delete the post.');
+    }
+  };
+
+  const handleUpdatePost = async (e) => {
+    e.preventDefault();
+    if (!editingPost) return;
+    try {
+      await api.put(`/api/social-media/posts/${editingPost.id}`, {
+        content: editContent,
+        hashtags: editHashtags.split(',').map(t => t.trim()).filter(Boolean),
+        scheduled_at: editSchedule ? new Date(editSchedule).toISOString() : null,
+      });
+      setEditingPost(null);
+      fetchData();
+    } catch (err) {
+      console.error('Update post error:', err);
+      alert('Failed to update the post.');
+    }
+  };
+
+  const closeEditModal = () => {
+    setEditingPost(null);
+  };
+
   if (isLoading) {
     return <div className="text-center p-8">Loading social media dashboard...</div>;
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Left Column: Form Card */}
       <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md space-y-6">
@@ -265,6 +311,9 @@ function SocialMediaManager({ user }) {
                     {post.image_prompt && (
                       <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Image Prompt:</span> {post.image_prompt}</p>
                     )}
+                    {post.scheduled_at && (
+                      <p className="text-xs text-gray-500 mt-2">Scheduled for: {new Date(post.scheduled_at).toLocaleString()}</p>
+                    )}
                   </div>
                   <div className="ml-4 text-right">
                     <span className={`px-2 py-1 text-xs font-bold rounded-full ${post.status === 'draft' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>
@@ -272,6 +321,10 @@ function SocialMediaManager({ user }) {
                     </span>
                     <p className="text-xs text-gray-500 mt-1">{post.account_name}</p>
                   </div>
+                </div>
+                <div className="mt-3 flex justify-end space-x-2">
+                  <button onClick={() => handleEditClick(post)} className="px-3 py-1 text-xs text-white bg-blue-600 rounded-md">Edit</button>
+                  <button onClick={() => handleDelete(post.id)} className="px-3 py-1 text-xs text-white bg-red-600 rounded-md">Delete</button>
                 </div>
               </li>
             ))}
@@ -281,6 +334,40 @@ function SocialMediaManager({ user }) {
         )}
       </div>
     </div>
+
+    {editingPost && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-6 rounded-lg w-full max-w-lg">
+          <h3 className="text-lg font-bold mb-4">Edit Post</h3>
+          <form onSubmit={handleUpdatePost} className="space-y-4">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              rows={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              type="text"
+              value={editHashtags}
+              onChange={(e) => setEditHashtags(e.target.value)}
+              placeholder="Hashtags (comma separated)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <input
+              type="datetime-local"
+              value={editSchedule}
+              onChange={(e) => setEditSchedule(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <div className="flex justify-end space-x-2">
+              <button type="button" onClick={closeEditModal} className="px-4 py-2 bg-gray-300 rounded-md">Cancel</button>
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
