@@ -58,7 +58,10 @@ def test_keyword_density_route():
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["keyword_count"] == 2
+ codex/create-seo-aware-content-generation-workflow-puwamt
+
  codex/create-seo-aware-content-generation-workflow-begzfl
+ main
 
 
 def test_keyword_density_suggestions():
@@ -78,5 +81,8 @@ def test_keyword_density_phrase():
     text = "Downtown condo for sale. Another downtown condo for sale here."
     result = service.keyword_density(text, "downtown condo for sale")
     assert result["keyword_count"] == 2
+ codex/create-seo-aware-content-generation-workflow-puwamt
 
+
+ main
  main
