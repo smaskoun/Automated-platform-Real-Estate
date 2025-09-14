@@ -5,6 +5,7 @@ Flask
 Flask-SQLAlchemy
 Flask-Migrate
 flask-cors
+Flask-Migrate
 gunicorn
 requests
 psycopg2-binary
