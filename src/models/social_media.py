@@ -40,10 +40,11 @@ class SocialMediaPost(db.Model):
     image_prompt = db.Column(db.Text)
     hashtags = db.Column(db.Text) # Stored as a JSON string
     status = db.Column(db.String(50), default='draft')
+    scheduled_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Removed unused fields like image_url, scheduled_at, etc. for simplicity
+
+    # Removed unused fields like image_url for simplicity
     
     def to_dict(self):
         return {
@@ -53,6 +54,7 @@ class SocialMediaPost(db.Model):
             'image_prompt': self.image_prompt,
             'hashtags': json.loads(self.hashtags) if self.hashtags else [],
             'status': self.status,
+            'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
