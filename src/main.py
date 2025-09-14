@@ -19,10 +19,6 @@ def create_app():
     db.init_app(app)
     CORS(app)
 
-    # This will create tables if they don't exist, but won't delete them.
-    with app.app_context():
-        db.create_all()
-
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
     app.register_blueprint(alternative_brand_voice_bp, url_prefix='/api/alt-brand-voice')
     app.register_blueprint(social_media_bp, url_prefix='/api/social-media')

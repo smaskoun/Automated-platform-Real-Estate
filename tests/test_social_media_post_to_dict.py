@@ -3,8 +3,10 @@ import sys
 from datetime import datetime
 
 import pytest
+from flask_migrate import Migrate, upgrade
 
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
 # Add src directory to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
@@ -17,8 +19,9 @@ from models.social_media import SocialMediaAccount, SocialMediaPost
 def setup_app():
     app = create_app()
     app.config.update(TESTING=True)
+    Migrate(app, db)
     with app.app_context():
-        db.create_all()
+        upgrade()
         account = SocialMediaAccount(id=1, user_id=1, platform="twitter", account_name="acct")
         db.session.add(account)
         db.session.commit()

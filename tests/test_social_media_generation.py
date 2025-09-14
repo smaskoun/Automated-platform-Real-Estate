@@ -3,6 +3,7 @@ import sys
 from unittest.mock import patch
 
 import pytest
+from flask_migrate import Migrate, upgrade
 
 
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
@@ -18,8 +19,9 @@ from models.brand_voice import BrandVoice
 def setup_app():
     app = create_app()
     app.config.update(TESTING=True)
+    Migrate(app, db)
     with app.app_context():
-        db.create_all()
+        upgrade()
         bv = BrandVoice(id=1, user_id=1, name="Test", description="", post_example="Example")
         db.session.add(bv)
         db.session.commit()
