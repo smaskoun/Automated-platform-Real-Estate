@@ -18,6 +18,8 @@ function SocialMediaManager({ user }) {
   // AI Generation state
   const [topic, setTopic] = useState('');
   const [selectedBrandVoice, setSelectedBrandVoice] = useState('');
+  const [primaryKeyword, setPrimaryKeyword] = useState('');
+  const [seoResult, setSeoResult] = useState(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -71,6 +73,9 @@ function SocialMediaManager({ user }) {
       setContent(response.data.content || '');
       setHashtags(response.data.hashtags || []);
       setImagePrompt(response.data.image_prompt || '');
+      if (response.data.content) {
+        analyzeKeyword(response.data.content);
+      }
 
     } catch (err) {
       setError('AI content generation failed.');
@@ -79,6 +84,29 @@ function SocialMediaManager({ user }) {
       setIsGenerating(false);
     }
   };
+
+  const analyzeKeyword = async (text) => {
+    if (!primaryKeyword) {
+      setSeoResult(null);
+      return;
+    }
+    try {
+      const res = await api.post('/api/seo-tools/keyword-density', {
+        text,
+        keyword: primaryKeyword,
+      });
+      setSeoResult(res.data);
+    } catch (err) {
+      console.error('Keyword density analysis failed:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (content) {
+      analyzeKeyword(content);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, primaryKeyword]);
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -128,6 +156,13 @@ function SocialMediaManager({ user }) {
             onChange={(e) => setTopic(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
+          <input
+            type="text"
+            placeholder="Primary keyword..."
+            value={primaryKeyword}
+            onChange={(e) => setPrimaryKeyword(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
           <select value={selectedBrandVoice} onChange={(e) => setSelectedBrandVoice(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md">
             <option value="" disabled>Select a Brand Voice</option>
             {brandVoices.map(bv => (
@@ -157,6 +192,14 @@ function SocialMediaManager({ user }) {
             rows={8}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
+          {seoResult && (
+            <div className="p-3 bg-green-50 rounded-md text-sm space-y-1">
+              <p><strong>Keyword Density:</strong> {seoResult.keyword_density}%</p>
+              <p><strong>Keyword Count:</strong> {seoResult.keyword_count}</p>
+              <p><strong>Total Words:</strong> {seoResult.total_words}</p>
+              <p>{seoResult.suggestion}</p>
+            </div>
+          )}
           <input
             type="text"
             placeholder="AI-generated image prompt will appear here..."
