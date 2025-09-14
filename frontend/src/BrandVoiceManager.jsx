@@ -13,6 +13,10 @@ function BrandVoiceManager({ user }) {
   const [newVoiceDesc, setNewVoiceDesc] = useState('');
   const [newPostExample, setNewPostExample] = useState('');
 
+  // State for bulk example upload
+  const [selectedVoiceId, setSelectedVoiceId] = useState('');
+  const [bulkExamples, setBulkExamples] = useState('');
+
   const fetchVoices = async () => {
     setIsLoading(true);
     setError('');
@@ -66,6 +70,27 @@ function BrandVoiceManager({ user }) {
     }
   };
 
+  const handleUploadExamples = async (e) => {
+    e.preventDefault();
+    if (!selectedVoiceId) return;
+    const examples = bulkExamples
+      .split('\n\n')
+      .map((p) => p.trim())
+      .filter((p) => p);
+    if (examples.length === 0) return;
+    try {
+      await api.post(`/api/brand-voices/${selectedVoiceId}/examples/batch`, {
+        examples,
+      });
+      setBulkExamples('');
+      setSelectedVoiceId('');
+      fetchVoices();
+    } catch (err) {
+      console.error('Bulk upload error:', err);
+      alert('Failed to upload examples.');
+    }
+  };
+
   if (isLoading) {
     return <div className={styles.loading}>Loading Source Content...</div>;
   }
@@ -113,6 +138,38 @@ function BrandVoiceManager({ user }) {
             />
           </div>
           <button type="submit" className={styles.submitButton}>Add Content</button>
+        </form>
+      </div>
+
+      <div className={styles.formCard}>
+        <h3>Upload Previous Posts in Bulk</h3>
+        <form onSubmit={handleUploadExamples} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label htmlFor="voiceSelect">Select Voice</label>
+            <select
+              id="voiceSelect"
+              value={selectedVoiceId}
+              onChange={(e) => setSelectedVoiceId(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select a voice</option>
+              {voices.map((v) => (
+                <option key={v.id} value={v.id}>{v.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="bulkExamples">Posts (separate with blank lines)</label>
+            <textarea
+              id="bulkExamples"
+              rows="6"
+              placeholder="Paste multiple posts here..."
+              value={bulkExamples}
+              onChange={(e) => setBulkExamples(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className={styles.submitButton}>Upload Posts</button>
         </form>
       </div>
 

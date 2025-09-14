@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from collections import Counter
 import statistics
+from models.brand_voice_example import BrandVoiceExample
 
 class AlternativeBrandVoiceService:
     """Alternative service for analyzing brand voice from manually provided content"""
@@ -116,6 +117,14 @@ class AlternativeBrandVoiceService:
             'content_samples': posts[:5],  # Include first 5 samples
             'analysis_date': datetime.now().isoformat()
         }
+
+    def analyze_examples(self, brand_voice_id: int) -> Dict:
+        """Analyze stored examples for a brand voice"""
+        examples = BrandVoiceExample.query.filter_by(brand_voice_id=brand_voice_id).all()
+        if not examples:
+            return self._get_default_analysis()
+        content = "\n\n".join([e.content for e in examples if e.content])
+        return self.analyze_from_text_input(content, 'posts')
     
     def _get_default_analysis(self) -> Dict:
         """Return default analysis when no content is provided"""
