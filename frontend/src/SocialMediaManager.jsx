@@ -69,13 +69,10 @@ function SocialMediaManager({ user }) {
         topic: topic,
         brand_voice_id: selectedBrandVoice,
       });
-      
+
       setContent(response.data.content || '');
       setHashtags(response.data.hashtags || []);
       setImagePrompt(response.data.image_prompt || '');
-      if (response.data.content) {
-        analyzeKeyword(response.data.content);
-      }
 
     } catch (err) {
       setError('AI content generation failed.');
