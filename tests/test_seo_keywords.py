@@ -58,3 +58,25 @@ def test_keyword_density_route():
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["keyword_count"] == 2
+ codex/create-seo-aware-content-generation-workflow-begzfl
+
+
+def test_keyword_density_suggestions():
+    service = SEOContentService()
+
+    low_text = ("filler " * 200) + "term"
+    low = service.keyword_density(low_text, "term")
+    assert "including the keyword" in low["suggestion"].lower()
+
+    high_text = "term " * 10
+    high = service.keyword_density(high_text.strip(), "term")
+    assert "bit high" in high["suggestion"].lower()
+
+
+def test_keyword_density_phrase():
+    service = SEOContentService()
+    text = "Downtown condo for sale. Another downtown condo for sale here."
+    result = service.keyword_density(text, "downtown condo for sale")
+    assert result["keyword_count"] == 2
+
+ main

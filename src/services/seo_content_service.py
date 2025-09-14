@@ -629,6 +629,19 @@ class SEOContentService:
             basic suggestion about the density.
         """
 
+ codex/create-seo-aware-content-generation-workflow-begzfl
+        if not text or not keyword or not keyword.strip():
+            raise ValueError("Text and keyword are required")
+
+        keyword = keyword.strip()
+        text_lower = text.lower()
+        keyword_lower = keyword.lower()
+
+        words = re.findall(r"\w+", text_lower)
+        total_words = len(words)
+        pattern = r"\b" + re.escape(keyword_lower) + r"\b"
+        keyword_count = len(re.findall(pattern, text_lower))
+
         if not text or not keyword:
             raise ValueError("Text and keyword are required")
 
@@ -636,6 +649,7 @@ class SEOContentService:
         total_words = len(words)
         pattern = r"\b" + re.escape(keyword.lower()) + r"\b"
         keyword_count = len(re.findall(pattern, text.lower()))
+ main
         density = (
             round((keyword_count / total_words) * 100, 2)
             if total_words > 0
