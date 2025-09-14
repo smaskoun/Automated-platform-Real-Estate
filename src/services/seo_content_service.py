@@ -620,12 +620,10 @@ class SEOContentService:
     def keyword_density(self, text: str, keyword: str) -> Dict:
         """Calculate keyword density for given text and keyword.
 
- codex/create-seo-aware-content-generation-workflow-puwamt
         This helper powers the `/api/seo-tools/keyword-density` endpoint and is
         used by the social media generator to provide real-time SEO feedback.
 
 
- main
         Args:
             text: Content to analyze.
             keyword: Target keyword or phrase.
@@ -635,10 +633,6 @@ class SEOContentService:
             basic suggestion about the density.
         """
 
- codex/create-seo-aware-content-generation-workflow-puwamt
-
- codex/create-seo-aware-content-generation-workflow-begzfl
- main
         if not text or not keyword or not keyword.strip():
             raise ValueError("Text and keyword are required")
 
@@ -650,18 +644,7 @@ class SEOContentService:
         total_words = len(words)
         pattern = r"\b" + re.escape(keyword_lower) + r"\b"
         keyword_count = len(re.findall(pattern, text_lower))
- codex/create-seo-aware-content-generation-workflow-puwamt
 
-
-        if not text or not keyword:
-            raise ValueError("Text and keyword are required")
-
-        words = re.findall(r"\w+", text.lower())
-        total_words = len(words)
-        pattern = r"\b" + re.escape(keyword.lower()) + r"\b"
-        keyword_count = len(re.findall(pattern, text.lower()))
- main
- main
         density = (
             round((keyword_count / total_words) * 100, 2)
             if total_words > 0
