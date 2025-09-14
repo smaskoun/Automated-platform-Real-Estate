@@ -8,6 +8,7 @@ import logging
 from routes.brand_voice_routes import brand_voice_bp
 from routes.social_media import social_media_bp
 from routes.seo_routes import seo_bp
+from routes.seo_tools_routes import seo_tools_bp
 from routes.ab_testing_routes import ab_testing_bp
 
 
@@ -24,6 +25,7 @@ def create_app():
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
     app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
     app.register_blueprint(seo_bp, url_prefix='/api/seo')
+    app.register_blueprint(seo_tools_bp, url_prefix='/api/seo-tools')
     app.register_blueprint(ab_testing_bp, url_prefix='/api/ab-testing')
    
     
