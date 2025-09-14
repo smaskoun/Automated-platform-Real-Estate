@@ -262,7 +262,7 @@ class SocialMediaAutomation {
             content: contentInput.value.trim(),
             image_url: imageUrlInput ? imageUrlInput.value : null,
             image_prompt: imagePromptInput ? imagePromptInput.value : null,
-            scheduled_at: scheduledInput ? scheduledInput.value : null,
+            scheduled_at: scheduledInput ? new Date(scheduledInput.value).toISOString() : null,
             hashtags: this.extractHashtags(contentInput.value)
         };
 
