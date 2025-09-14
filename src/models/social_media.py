@@ -57,6 +57,7 @@ class SocialMediaPost(db.Model):
             'content': self.content,
             'image_prompt': self.image_prompt,
             'hashtags': json.loads(self.hashtags) if self.hashtags else [],
+            'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
