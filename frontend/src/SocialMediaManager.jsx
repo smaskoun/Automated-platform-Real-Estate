@@ -201,6 +201,9 @@ function SocialMediaManager({ user }) {
                         ))}
                       </div>
                     )}
+                    {post.image_prompt && (
+                      <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Image Prompt:</span> {post.image_prompt}</p>
+                    )}
                   </div>
                   <div className="ml-4 text-right">
                     <span className={`px-2 py-1 text-xs font-bold rounded-full ${post.status === 'draft' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>
