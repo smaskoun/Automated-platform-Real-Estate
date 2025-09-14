@@ -103,10 +103,15 @@ def create_post():
     if not all(f in data for f in ["account_id", "content"]): return jsonify({"error": "Missing required fields"}), 400
     account = SocialMediaAccount.query.filter_by(id=data["account_id"], is_active=True).first()
     if not account: return jsonify({"error": "Account not found or inactive"}), 404
+    scheduled_at = (
+        datetime.fromisoformat(data["scheduled_at"]) if data.get("scheduled_at") else None
+    )
     post = SocialMediaPost(
-        account_id=data["account_id"], content=data["content"], image_prompt=data.get("image_prompt"),
+        account_id=data["account_id"],
+        content=data["content"],
+        image_prompt=data.get("image_prompt"),
         hashtags=json.dumps(data.get("hashtags", [])),
-        scheduled_at=datetime.fromisoformat(data["scheduled_at"]) if data.get("scheduled_at") else None
+        scheduled_at=scheduled_at,
     )
     try:
         db.session.add(post)
