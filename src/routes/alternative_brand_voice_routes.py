@@ -44,6 +44,16 @@ def analyze_text_content():
             'error': f'Analysis failed: {str(e)}'
         }), 500
 
+
+@alternative_brand_voice_bp.route('/brand-voices/<int:voice_id>/analysis', methods=['GET'])
+def analyze_stored_examples(voice_id):
+    """Analyze stored examples for a brand voice"""
+    try:
+        result = brand_voice_service.analyze_examples(voice_id)
+        return jsonify({'success': True, 'data': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @alternative_brand_voice_bp.route('/voice-profile', methods=['GET'])
 def get_voice_profile():
     """

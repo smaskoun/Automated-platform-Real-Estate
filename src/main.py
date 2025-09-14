@@ -6,6 +6,7 @@ import logging
 
 # Import all your blueprints
 from routes.brand_voice_routes import brand_voice_bp
+from routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 from routes.social_media import social_media_bp
 from routes.seo_routes import seo_bp
 from routes.seo_tools_routes import seo_tools_bp
@@ -23,6 +24,7 @@ def create_app():
         db.create_all()
 
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
+    app.register_blueprint(alternative_brand_voice_bp, url_prefix='/api/alt-brand-voice')
     app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
     app.register_blueprint(seo_bp, url_prefix='/api/seo')
     app.register_blueprint(seo_tools_bp, url_prefix='/api/seo-tools')

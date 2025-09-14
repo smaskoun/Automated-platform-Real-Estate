@@ -3,6 +3,7 @@
 from flask import Blueprint, request, jsonify
 from models import db
 from models.brand_voice import BrandVoice
+from models.brand_voice_example import BrandVoiceExample
 import logging
 
 brand_voice_bp = Blueprint('brand_voice_bp', __name__)
@@ -65,3 +66,29 @@ def generate_content_from_voice(voice_id):
         "message": "Content generation feature not yet implemented.",
         "generated_content": f"This is AI-generated content about {topic} based on brand voice {voice_id}."
     }), 501
+
+@brand_voice_bp.route("/<int:voice_id>/examples/batch", methods=["POST"])
+def add_examples_batch(voice_id):
+    data = request.get_json()
+    examples = data.get('examples') if data else None
+    if not examples or not isinstance(examples, list):
+        return jsonify({"error": "Examples must be a non-empty list."}), 400
+
+    try:
+        BrandVoice.query.get_or_404(voice_id)
+        new_examples = [
+            BrandVoiceExample(brand_voice_id=voice_id, content=content.strip())
+            for content in examples if isinstance(content, str) and content.strip()
+        ]
+        if not new_examples:
+            return jsonify({"error": "No valid examples provided."}), 400
+        db.session.add_all(new_examples)
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "examples": [e.to_dict() for e in new_examples]
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error saving examples for brand voice {voice_id}: {str(e)}")
+        return jsonify({"error": "Failed to save examples."}), 500

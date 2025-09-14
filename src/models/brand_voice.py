@@ -13,8 +13,13 @@ class BrandVoice(db.Model):
     
     # NEW FIELD: To store the example post content
     post_example = db.Column(db.Text, nullable=False)
-    
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship to example posts
+    examples = db.relationship(
+        'BrandVoiceExample', backref='brand_voice', lazy=True, cascade='all, delete-orphan'
+    )
 
     def to_dict(self):
         return {
