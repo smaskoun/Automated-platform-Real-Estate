@@ -3,6 +3,7 @@ from flask_cors import CORS
 from models import db
 from config import Config
 import logging
+from flask_migrate import Migrate
 
 # Import all your blueprints
 from routes.brand_voice_routes import brand_voice_bp
@@ -17,11 +18,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     db.init_app(app)
+    Migrate(app, db)
     CORS(app)
-
-    # This will create tables if they don't exist, but won't delete them.
-    with app.app_context():
-        db.create_all()
 
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
     app.register_blueprint(alternative_brand_voice_bp, url_prefix='/api/alt-brand-voice')
