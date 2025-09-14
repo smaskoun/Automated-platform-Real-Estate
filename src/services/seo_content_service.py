@@ -616,6 +616,57 @@ class SEOContentService:
             'suggestions': suggestions,
             'scores': dict(counts)
         }
+
+    def keyword_density(self, text: str, keyword: str) -> Dict:
+        """Calculate keyword density for given text and keyword.
+
+        Args:
+            text: Content to analyze.
+            keyword: Target keyword or phrase.
+
+        Returns:
+            Dictionary with keyword count, total words, density percentage and
+            basic suggestion about the density.
+        """
+
+        if not text or not keyword or not keyword.strip():
+            raise ValueError("Text and keyword are required")
+
+        keyword = keyword.strip()
+        text_lower = text.lower()
+        keyword_lower = keyword.lower()
+
+        words = re.findall(r"\w+", text_lower)
+        total_words = len(words)
+        pattern = r"\b" + re.escape(keyword_lower) + r"\b"
+        keyword_count = len(re.findall(pattern, text_lower))
+        density = (
+            round((keyword_count / total_words) * 100, 2)
+            if total_words > 0
+            else 0.0
+        )
+
+        if density < 1:
+            suggestion = (
+                f"Try including the keyword '{keyword}' one or two more times "
+                "naturally in the text."
+            )
+        elif density > 3:
+            suggestion = (
+                f"Your keyword density is a bit high. Consider replacing one "
+                f"instance of '{keyword}' with a synonym to avoid sounding "
+                "repetitive."
+            )
+        else:
+            suggestion = "Good keyword usage!"
+
+        return {
+            "keyword": keyword,
+            "keyword_count": keyword_count,
+            "total_words": total_words,
+            "keyword_density": density,
+            "suggestion": suggestion,
+        }
     
     def generate_content_calendar(self, days: int = 30, platform: str = 'instagram') -> List[Dict]:
         """Generate a content calendar with SEO-optimized posts"""
