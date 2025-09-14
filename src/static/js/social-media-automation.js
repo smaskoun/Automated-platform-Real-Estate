@@ -5,7 +5,8 @@
 
 class SocialMediaAutomation {
     constructor() {
-        this.apiBase = '/api';
+        // Base API path for social media routes
+        this.apiBase = '/api/social-media';
         this.connectedAccounts = [];
         this.currentUser = 'default_user'; // In production, get from authentication
         this.init();
@@ -54,7 +55,7 @@ class SocialMediaAutomation {
 
     async loadConnectedAccounts() {
         try {
-            const response = await fetch(`${this.apiBase}/accounts?user_id=${this.currentUser}`);
+            const response = await fetch(`${this.apiBase}/social-accounts?user_id=${this.currentUser}`);
             const data = await response.json();
             
             if (data.accounts) {
@@ -143,7 +144,7 @@ class SocialMediaAutomation {
         }
 
         try {
-            const response = await fetch(`${this.apiBase}/accounts/${accountId}`, {
+            const response = await fetch(`${this.apiBase}/social-accounts/${accountId}`, {
                 method: 'DELETE'
             });
 
