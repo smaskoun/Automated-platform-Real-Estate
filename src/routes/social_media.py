@@ -69,11 +69,10 @@ def generate_ai_post():
     brand_voice = BrandVoice.query.filter_by(id=brand_voice_id, user_id=user_id).first()
     if not brand_voice: return jsonify({"error": "BrandVoice not found"}), 404
     insights = learning_algorithm_service.get_content_recommendations()
+    insights_used = True
     if not insights or "error" in insights:
-        return (
-            jsonify({"error": "Not enough performance data to generate recommendations."}),
-            503,
-        )
+        insights_used = False
+        insights = {}
     try:
         generated_data = ai_content_service.generate_optimized_post(
             topic=topic,
@@ -82,6 +81,7 @@ def generate_ai_post():
         )
         if "error" in generated_data:
             return jsonify({"error": f"AI generation failed: {generated_data['error']}"}), 500
+        generated_data["insights_used"] = insights_used
         return jsonify(generated_data), 200
     except Exception as e:
         logging.error(f"Error during AI post generation: {str(e)}")

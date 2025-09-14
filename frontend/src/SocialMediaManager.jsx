@@ -17,6 +17,7 @@ function SocialMediaManager({ user }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [insightWarning, setInsightWarning] = useState('');
 
   // Form state
   const [selectedAccount, setSelectedAccount] = useState('');
@@ -82,6 +83,11 @@ function SocialMediaManager({ user }) {
       setContent(response.data.content || '');
       setHashtags(response.data.hashtags || []);
       setImagePrompt(response.data.image_prompt || '');
+      if (response.data.insights_used === false) {
+        setInsightWarning('Generated without performance insights due to insufficient data.');
+      } else {
+        setInsightWarning('');
+      }
 
     } catch (err) {
       setError('AI content generation failed.');
@@ -186,6 +192,7 @@ function SocialMediaManager({ user }) {
         </div>
         
         {error && <div className="p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
+        {insightWarning && <div className="p-3 bg-yellow-100 text-yellow-700 rounded-md">{insightWarning}</div>}
 
         {/* Post Creation Form */}
         <form onSubmit={handleCreatePost} className="space-y-4">
