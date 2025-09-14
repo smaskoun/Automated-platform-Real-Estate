@@ -24,12 +24,17 @@ function SocialMediaManager({ user }) {
   const [content, setContent] = useState('');
   const [imagePrompt, setImagePrompt] = useState('');
   const [hashtags, setHashtags] = useState([]);
+  const [scheduledAt, setScheduledAt] = useState('');
 
   // AI Generation state
   const [topic, setTopic] = useState('');
   const [selectedBrandVoice, setSelectedBrandVoice] = useState('');
   const [primaryKeyword, setPrimaryKeyword] = useState('');
   const [seoResult, setSeoResult] = useState(null);
+
+  // Edit modal state
+  const [editingPost, setEditingPost] = useState(null);
+  const [editScheduledAt, setEditScheduledAt] = useState('');
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -137,19 +142,46 @@ function SocialMediaManager({ user }) {
         content: content,
         image_prompt: imagePrompt,
         hashtags: hashtags,
+        scheduled_at: scheduledAt,
         user_id: user.id,
         status: 'draft'
       });
-      
+
       alert("Post created successfully as a draft!");
       setContent('');
       setImagePrompt('');
       setTopic('');
       setHashtags([]);
+      setScheduledAt('');
       fetchData();
     } catch (err) {
       console.error("Create post error:", err);
       alert("Failed to create the post.");
+    }
+  };
+
+  const handleStartEdit = (post) => {
+    setEditingPost(post);
+    setEditScheduledAt(post.scheduled_at ? post.scheduled_at.slice(0, 16) : '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+    setEditScheduledAt('');
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingPost) return;
+    try {
+      await api.put(`/api/social-media/posts/${editingPost.id}`, {
+        scheduled_at: editScheduledAt,
+      });
+      handleCancelEdit();
+      fetchData();
+    } catch (err) {
+      console.error('Update post error:', err);
+      alert('Failed to update the post.');
     }
   };
 
@@ -159,6 +191,25 @@ function SocialMediaManager({ user }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {editingPost && (
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Edit Scheduled Time</h3>
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <input
+                type="datetime-local"
+                value={editScheduledAt}
+                onChange={(e) => setEditScheduledAt(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+              <div className="flex justify-end space-x-3">
+                <button type="button" onClick={handleCancelEdit} className="px-4 py-2 bg-gray-500 text-white rounded-md">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {/* Left Column: Form Card */}
       <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md space-y-6">
         <h3 className="text-xl font-bold">Create New Social Media Post</h3>
@@ -239,6 +290,13 @@ function SocialMediaManager({ user }) {
             </div>
           </div>
 
+          <input
+            type="datetime-local"
+            value={scheduledAt}
+            onChange={(e) => setScheduledAt(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+
           <button type="submit" className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700">
             Create & Schedule Post
           </button>
@@ -265,12 +323,16 @@ function SocialMediaManager({ user }) {
                     {post.image_prompt && (
                       <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Image Prompt:</span> {post.image_prompt}</p>
                     )}
+                    {post.scheduled_at && (
+                      <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Scheduled for:</span> {new Date(post.scheduled_at).toLocaleString()}</p>
+                    )}
                   </div>
                   <div className="ml-4 text-right">
                     <span className={`px-2 py-1 text-xs font-bold rounded-full ${post.status === 'draft' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>
                       {post.status}
                     </span>
                     <p className="text-xs text-gray-500 mt-1">{post.account_name}</p>
+                    <button onClick={() => handleStartEdit(post)} className="mt-2 text-xs text-blue-600 hover:underline">Edit</button>
                   </div>
                 </div>
               </li>
