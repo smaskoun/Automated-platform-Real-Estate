@@ -4,7 +4,8 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from collections import Counter
 import statistics
-from ..models.brand_voice_example import BrandVoiceExample
+# --- FIX: Changed relative import to absolute ---
+from models.brand_voice_example import BrandVoiceExample
 
 class AlternativeBrandVoiceService:
     """Alternative service for analyzing brand voice from manually provided content"""
@@ -583,4 +584,3 @@ class AlternativeBrandVoiceService:
             content_parts[-1] += " ✨"
         
         return " ".join(content_parts)
-
