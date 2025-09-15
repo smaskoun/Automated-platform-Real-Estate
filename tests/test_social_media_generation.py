@@ -9,11 +9,11 @@ from flask_migrate import Migrate, upgrade
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from main import create_app
-from models import db
-from models.brand_voice import BrandVoice
+from src.main import create_app
+from src.models import db
+from src.models.brand_voice import BrandVoice
 
 
 def setup_app():
@@ -39,10 +39,10 @@ def test_generate_post_fallback_on_insufficient_insights():
     }
 
     with patch(
-        "routes.social_media.learning_algorithm_service.get_content_recommendations",
+        "src.routes.social_media.learning_algorithm_service.get_content_recommendations",
         return_value={"error": "Insufficient data"},
     ), patch(
-        "routes.social_media.ai_content_service.generate_optimized_post",
+        "src.routes.social_media.ai_content_service.generate_optimized_post",
         return_value=mock_content,
     ):
         response = client.post(

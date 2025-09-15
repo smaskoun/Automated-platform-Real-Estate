@@ -4,9 +4,10 @@ from flask import Flask
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
-from routes.seo_routes import seo_bp
-from routes.seo_tools_routes import seo_tools_bp
-from services.seo_content_service import SEOContentService
+from flask import Flask
+from src.routes.seo_routes import seo_bp
+from src.routes.seo_tools_routes import seo_tools_bp
+from src.services.seo_content_service import SEOContentService
 
 def create_app():
     app = Flask(__name__)

@@ -8,8 +8,8 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 import statistics
 
-# CORRECTED: Changed from 'from src.models...' to a relative import
-from models.ab_test_model import ABTest, ABTestVariation
+# CORRECTED: Changed to a relative import within the package
+from ..models.ab_test_model import ABTest, ABTestVariation
 
 
 class ABTestingService:

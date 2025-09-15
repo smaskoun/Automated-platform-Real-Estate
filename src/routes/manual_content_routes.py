@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 # CORRECTED IMPORTS
-from services.manual_content_service import ManualContentService
-from services.alternative_brand_voice_service import AlternativeBrandVoiceService
+from ..services.manual_content_service import ManualContentService
+from ..services.alternative_brand_voice_service import AlternativeBrandVoiceService
 import json
 import os
 from datetime import datetime

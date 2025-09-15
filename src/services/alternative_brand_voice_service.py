@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from collections import Counter
 import statistics
-from models.brand_voice_example import BrandVoiceExample
+from ..models.brand_voice_example import BrandVoiceExample
 
 class AlternativeBrandVoiceService:
     """Alternative service for analyzing brand voice from manually provided content"""

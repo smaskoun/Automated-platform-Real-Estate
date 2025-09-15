@@ -9,11 +9,11 @@ os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
 # Add src directory to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from main import create_app
-from models import db
-from models.social_media import SocialMediaAccount, SocialMediaPost
+from src.main import create_app
+from src.models import db
+from src.models.social_media import SocialMediaAccount, SocialMediaPost
 
 
 def setup_app():
