@@ -42,6 +42,10 @@ def create_account():
     data = request.get_json()
     user_id, name, platform = data.get("user_id"), data.get("account_name"), data.get("platform")
     if not all([user_id, name, platform]): return jsonify({"error": "Missing required fields"}), 400
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return jsonify({"error": "user_id must be an integer"}), 400
     if SocialMediaAccount.query.filter_by(user_id=user_id, account_name=name).first(): return jsonify({"error": "Account with this name already exists."}), 409
     new_account = SocialMediaAccount(user_id=user_id, account_name=name, platform=platform)
     db.session.add(new_account)
