@@ -1,12 +1,12 @@
-# src/routes/social_media.py - UPDATED IMPORT
+# src/routes/social_media.py - CORRECTED VERSION
 
 from flask import Blueprint, request, jsonify
-from ..models import db
-from ..models.social_media import SocialMediaAccount, SocialMediaPost
-from ..models.brand_voice import BrandVoice
-# UPDATED: Import both services from the same file
-from ..services.learning_algorithm_service import learning_algorithm_service, meta_automator_service
-from ..services.ai_content_service import ai_content_service
+# --- FIX: Changed all relative imports to absolute ---
+from models import db
+from models.social_media import SocialMediaAccount, SocialMediaPost
+from models.brand_voice import BrandVoice
+from services.learning_algorithm_service import learning_algorithm_service, meta_automator_service
+from services.ai_content_service import ai_content_service
 import json
 from datetime import datetime
 import logging
@@ -203,6 +203,6 @@ def generate_image():
                 "message": "Image generation not fully implemented.",
                 "image_url": "https://via.placeholder.com/1080",
             }
-        ),
+         ),
         501,
     )
