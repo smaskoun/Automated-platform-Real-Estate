@@ -1,20 +1,19 @@
 from flask import Flask
 from flask_cors import CORS
-from .models import db
-from .config import Config
+# --- FIX: Removed the dot from models ---
+from models import db
+# --- FIX: Removed the dot from config ---
+from config import Config
 import logging
 from flask_migrate import Migrate
-from sqlalchemy.exc import ProgrammingError
-from sqlalchemy import text
-import sys
 
-# Import all your blueprints
-from .routes.brand_voice_routes import brand_voice_bp
-from .routes.alternative_brand_voice_routes import alternative_brand_voice_bp
-from .routes.social_media import social_media_bp
-from .routes.seo_routes import seo_bp
-from .routes.seo_tools_routes import seo_tools_bp
-from .routes.ab_testing_routes import ab_testing_bp
+# --- FIX: Removed all dots from route imports ---
+from routes.brand_voice_routes import brand_voice_bp
+from routes.alternative_brand_voice_routes import alternative_brand_voice_bp
+from routes.social_media import social_media_bp
+from routes.seo_routes import seo_bp
+from routes.seo_tools_routes import seo_tools_bp
+from routes.ab_testing_routes import ab_testing_bp
 
 
 def create_app():
@@ -23,6 +22,11 @@ def create_app():
     db.init_app(app)
     Migrate(app, db)
     CORS(app)
+
+    # --- FIX: Re-added db.create_all() to build the tables ---
+    # This is the command that creates your tables if they don't exist.
+    with app.app_context():
+        db.create_all()
 
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
     app.register_blueprint(alternative_brand_voice_bp, url_prefix='/api/alt-brand-voice')
@@ -33,19 +37,6 @@ def create_app():
    
     
     logging.basicConfig(level=logging.INFO)
-
-    def _check_tables():
-        try:
-            db.session.execute(text('SELECT 1 FROM brand_voices LIMIT 1'))
-            db.session.execute(text('SELECT 1 FROM social_media_accounts LIMIT 1'))
-            db.session.execute(text('SELECT 1 FROM social_media_posts LIMIT 1'))
-        except ProgrammingError as e:
-            logging.critical('Required database tables are missing: %s', e)
-            sys.exit(1)
-
-    if 'pytest' not in sys.modules:
-        with app.app_context():
-            _check_tables()
     
     @app.route('/')
     def index():
@@ -59,4 +50,3 @@ app = create_app()
 # This block is for local development and is not used by Gunicorn
 if __name__ == '__main__':
     app.run(debug=True)
-
