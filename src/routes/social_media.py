@@ -28,8 +28,13 @@ def test_meta_integration():
 @social_media_bp.route("/social-accounts", methods=["GET"])
 def get_accounts():
     user_id = request.args.get("user_id")
-    if not user_id: return jsonify({"error": "user_id is required"}), 400
-    accounts = SocialMediaAccount.query.filter_by(user_id=int(user_id)).all()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return jsonify({"error": "user_id must be an integer"}), 400
+    accounts = SocialMediaAccount.query.filter_by(user_id=user_id).all()
     return jsonify({"accounts": [account.to_dict() for account in accounts]})
 
 @social_media_bp.route("/social-accounts", methods=["POST"])
@@ -91,9 +96,17 @@ def generate_ai_post():
 @social_media_bp.route("/posts", methods=["GET"])
 def get_posts():
     user_id = request.args.get("user_id")
-    if not user_id: return jsonify({"error": "user_id is required"}), 400
-    query = db.session.query(SocialMediaPost).join(SocialMediaAccount).filter(SocialMediaAccount.user_id == user_id)
-    if request.args.get("status"): query = query.filter(SocialMediaPost.status == request.args.get("status"))
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return jsonify({"error": "user_id must be an integer"}), 400
+    query = db.session.query(SocialMediaPost).join(SocialMediaAccount).filter(
+        SocialMediaAccount.user_id == user_id
+    )
+    if request.args.get("status"):
+        query = query.filter(SocialMediaPost.status == request.args.get("status"))
     posts = query.order_by(SocialMediaPost.created_at.desc()).all()
     return jsonify({"posts": [post.to_dict() for post in posts]})
 
