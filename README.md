@@ -13,8 +13,12 @@ flask --app src.main:create_app db upgrade
 On deployment, the `Procfile` automatically runs database migrations before starting the web server:
 
 ```
-web: flask --app src.main:create_app db upgrade && gunicorn --chdir src main:app
+web: flask --app src.main:create_app db upgrade && gunicorn src.main:app
 ```
+
+Make sure this command runs from the project root so the `src` package is
+available on `PYTHONPATH`. If you need to run it from elsewhere, set
+`PYTHONPATH` to include the project root.
 
 This ensures the database schema is up-to-date on startup.
 
