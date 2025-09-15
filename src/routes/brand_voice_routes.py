@@ -1,9 +1,10 @@
-# src/routes/brand_voice_routes.py - NEW VERSION
+# src/routes/brand_voice_routes.py - CORRECTED VERSION
 
 from flask import Blueprint, request, jsonify
-from ..models import db
-from ..models.brand_voice import BrandVoice
-from ..models.brand_voice_example import BrandVoiceExample
+# --- FIX: Changed relative imports to absolute ---
+from models import db
+from models.brand_voice import BrandVoice
+from models.brand_voice_example import BrandVoiceExample
 import logging
 
 brand_voice_bp = Blueprint('brand_voice_bp', __name__)
@@ -24,7 +25,6 @@ def get_brand_voices():
 @brand_voice_bp.route("/", methods=["POST"])
 def create_brand_voice():
     data = request.get_json()
-    # UPDATED: Added 'post_example' to the required fields
     required_fields = ['name', 'description', 'user_id', 'post_example']
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields: name, description, user_id, post_example"}), 400
@@ -34,7 +34,7 @@ def create_brand_voice():
             user_id=data['user_id'],
             name=data['name'],
             description=data['description'],
-            post_example=data['post_example'] # Added new field
+            post_example=data['post_example']
         )
         db.session.add(new_voice)
         db.session.commit()
