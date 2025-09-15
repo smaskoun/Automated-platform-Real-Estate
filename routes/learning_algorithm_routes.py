@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-# CORRECTED IMPORT
-from ..services.learning_algorithm_service import learning_algorithm_service
+# --- FIX: Changed relative import to absolute ---
+from services.learning_algorithm_service import learning_algorithm_service
 import json
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
@@ -240,7 +240,7 @@ def get_content_optimization():
             optimization_tips.append({
                 'category': 'Content Length',
                 'recommendation': f"Optimal content length is {best_length[0]}",
-                'reason': f"Shows {best_length[1].get('avg_engagement', a):.1f}% engagement rate",
+                'reason': f"Shows {best_length[1].get('avg_engagement', 0):.1f}% engagement rate",
                 'confidence': 'medium'
             })
         
@@ -315,21 +315,4 @@ def export_insights():
         export_data = {
             'export_date': learning_algorithm_service.performance_history[-1]['created_time'] if learning_algorithm_service.performance_history else None,
             'total_posts_analyzed': len(learning_algorithm_service.performance_history),
-            'insights': learning_algorithm_service.learning_insights,
-            'performance_summary': {
-                'avg_engagement_rate': sum(post.get('engagement_rate', 0) for post in learning_algorithm_service.performance_history) / len(learning_algorithm_service.performance_history) if learning_algorithm_service.performance_history else 0,
-                'total_posts': len(learning_algorithm_service.performance_history)
-            }
-        }
-        
-        if export_format == 'json':
-            return jsonify({
-                'success': True,
-                'export_data': export_data,
-                'format': 'json'
-            })
-        else:
-            return jsonify({'error': 'Only JSON format is currently supported'}), 400
-        
-    except Exception as e:
-        return jsonify({'error': f'Failed to export insights: {str(e)}'}), 500
+            'insights': learning_algorithm_service.learning_insigh.
