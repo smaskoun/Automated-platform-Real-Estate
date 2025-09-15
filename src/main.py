@@ -4,6 +4,9 @@ from .models import db
 from .config import Config
 import logging
 from flask_migrate import Migrate
+from sqlalchemy.exc import ProgrammingError
+from sqlalchemy import text
+import sys
 
 # Import all your blueprints
 from .routes.brand_voice_routes import brand_voice_bp
@@ -30,6 +33,19 @@ def create_app():
    
     
     logging.basicConfig(level=logging.INFO)
+
+    def _check_tables():
+        try:
+            db.session.execute(text('SELECT 1 FROM brand_voices LIMIT 1'))
+            db.session.execute(text('SELECT 1 FROM social_media_accounts LIMIT 1'))
+            db.session.execute(text('SELECT 1 FROM social_media_posts LIMIT 1'))
+        except ProgrammingError as e:
+            logging.critical('Required database tables are missing: %s', e)
+            sys.exit(1)
+
+    if 'pytest' not in sys.modules:
+        with app.app_context():
+            _check_tables()
     
     @app.route('/')
     def index():
