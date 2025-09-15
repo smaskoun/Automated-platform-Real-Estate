@@ -53,3 +53,22 @@ def test_get_posts_returns_scheduled_at():
     data = response.get_json()
     assert len(data["posts"]) == 1
     assert data["posts"][0]["scheduled_at"] == scheduled_time.isoformat()
+
+
+def test_create_post_rejects_foreign_account():
+    app = setup_app()
+
+    with app.app_context():
+        user1_account = SocialMediaAccount(user_id=1, platform="twitter", account_name="acct1")
+        user2_account = SocialMediaAccount(user_id=2, platform="twitter", account_name="acct2")
+        db.session.add_all([user1_account, user2_account])
+        db.session.commit()
+        foreign_account_id = user2_account.id
+
+    client = app.test_client()
+    response = client.post(
+        "/api/social-media/posts",
+        json={"account_id": foreign_account_id, "content": "Hello", "user_id": 1},
+    )
+
+    assert response.status_code == 403
