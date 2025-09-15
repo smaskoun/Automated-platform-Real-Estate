@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-# CORRECTED IMPORTS
-from ..services.manual_content_service import ManualContentService
-from ..services.alternative_brand_voice_service import AlternativeBrandVoiceService
+# --- FIX: Changed relative imports to absolute ---
+from services.manual_content_service import ManualContentService
+from services.alternative_brand_voice_service import AlternativeBrandVoiceService
 import json
 import os
 from datetime import datetime
@@ -388,90 +388,27 @@ def create_sample_data():
                 'content_type': 'image_with_text',
                 'engagement': {'likes': 67, 'comments': 15, 'shares': 9},
                 'posted_date': '2024-08-23T16:45:00Z'
-            },
-            {
-                'id': 'comprehensive',
-                'name': 'Comprehensive Test',
-                'description': 'Test multiple elements simultaneously',
-                'variation_types': ['hooks', 'cta_styles', 'emoji_styles'],
-                'recommended_duration': '14 days',
-                'min_audience_size': 5000
             }
         ]
         
+        # Save sample posts
+        content_ids = []
+        for post_data in sample_posts:
+            processed_content = content_service.process_content_upload(post_data)
+            content_id = content_service.save_content(processed_content)
+            content_ids.append(content_id)
+            
         return jsonify({
             'success': True,
-            'templates': templates
+            'data': {
+                'content_ids': content_ids,
+                'total_created': len(content_ids)
+            },
+            'message': 'Sample data created successfully'
         })
         
     except Exception as e:
-        return jsonify({'error': f'Failed to retrieve templates: {str(e)}'}), 500
-
-@manual_content_bp.route('/performance-metrics', methods=['GET'])
-def get_performance_metrics():
-    """Get available performance metrics for A/B testing"""
-    try:
-        metrics = {
-            'primary_metrics': [
-                {
-                    'id': 'engagement_rate',
-                    'name': 'Engagement Rate',
-                    'description': 'Total engagement divided by reach',
-                    'weight': 'high'
-                },
-                {
-                    'id': 'click_through_rate',
-                    'name': 'Click-Through Rate',
-                    'description': 'Clicks divided by impressions',
-                    'weight': 'high'
-                }
-            ],
-            'secondary_metrics': [
-                {
-                    'id': 'likes',
-                    'name': 'Likes',
-                    'description': 'Total number of likes',
-                    'weight': 'medium'
-                },
-                {
-                    'id': 'comments',
-                    'name': 'Comments',
-                    'description': 'Total number of comments',
-                    'weight': 'high'
-                },
-                {
-                    'id': 'shares',
-                    'name': 'Shares',
-                    'description': 'Total number of shares',
-                    'weight': 'very_high'
-                },
-                {
-                    'id': 'saves',
-                    'name': 'Saves',
-                    'description': 'Total number of saves (Instagram)',
-                    'weight': 'high'
-                }
-            ],
-            'reach_metrics': [
-                {
-                    'id': 'reach',
-                    'name': 'Reach',
-                    'description': 'Unique accounts reached',
-                    'weight': 'medium'
-                },
-                {
-                    'id': 'impressions',
-                    'name': 'Impressions',
-                    'description': 'Total number of times content was displayed',
-                    'weight': 'low'
-                }
-            ]
-        }
-        
         return jsonify({
-            'success': True,
-            'metrics': metrics
-        })
-        
-    except Exception as e:
-        return jsonify({'error': f'Failed to retrieve metrics: {str(e)}'}), 500
+            'success': False,
+            'error': f'Failed to create sample data: {str(e)}'
+        }), 500
