@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-# CORRECTED IMPORTS
-from ..services.ab_testing_service import ab_testing_service
-from ..services.seo_content_service import seo_content_service
+# --- FIX: Changed relative imports to absolute ---
+from services.ab_testing_service import ab_testing_service
+from services.seo_content_service import seo_content_service
 import json
 
 ab_testing_bp = Blueprint('ab_testing', __name__)
@@ -343,24 +343,4 @@ def get_performance_metrics():
             ],
             'reach_metrics': [
                 {
-                    'id': 'reach',
-                    'name': 'Reach',
-                    'description': 'Unique accounts reached',
-                    'weight': 'medium'
-                },
-                {
-                    'id': 'impressions',
-                    'name': 'Impressions',
-                    'description': 'Total number of times content was displayed',
-                    'weight': 'low'
-                }
-            ]
-        }
-        
-        return jsonify({
-            'success': True,
-            'metrics': metrics
-        })
-        
-    except Exception as e:
-        return jsonify({'error': f'Failed to retrieve metrics: {str(e)}'}), 500
+                    'id':.
