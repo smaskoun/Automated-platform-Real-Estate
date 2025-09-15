@@ -17,3 +17,10 @@ web: flask --app src.main:create_app db upgrade && gunicorn --chdir src main:app
 ```
 
 This ensures the database schema is up-to-date on startup.
+
+## Startup checks
+
+When the application starts it verifies that the critical tables
+`brand_voices`, `social_media_accounts` and `social_media_posts` exist.
+If any of these tables are missing, a clear error is logged and the
+service exits instead of running against an incomplete schema.
