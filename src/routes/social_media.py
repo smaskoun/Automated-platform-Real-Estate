@@ -100,9 +100,19 @@ def get_posts():
 @social_media_bp.route("/posts", methods=["POST"])
 def create_post():
     data = request.get_json()
-    if not all(f in data for f in ["account_id", "content"]): return jsonify({"error": "Missing required fields"}), 400
-    account = SocialMediaAccount.query.filter_by(id=data["account_id"], is_active=True).first()
-    if not account: return jsonify({"error": "Account not found or inactive"}), 404
+    # Require user_id, account_id and content
+    required_fields = ["account_id", "content", "user_id"]
+    if not all(f in data for f in required_fields):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Ensure the account exists, is active and belongs to the requesting user
+    account = SocialMediaAccount.query.filter_by(
+        id=data["account_id"],
+        user_id=data["user_id"],
+        is_active=True,
+    ).first()
+    if not account:
+        return jsonify({"error": "Account not found or unauthorized"}), 403
     scheduled_at = (
         datetime.fromisoformat(data["scheduled_at"]) if data.get("scheduled_at") else None
     )
