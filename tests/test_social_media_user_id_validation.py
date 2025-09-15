@@ -36,3 +36,14 @@ def test_get_accounts_rejects_invalid_user_id():
     response = client.get("/api/social-media/social-accounts", query_string={"user_id": "xyz"})
     assert response.status_code == 400
     assert response.get_json()["error"] == "user_id must be an integer"
+
+
+def test_create_account_rejects_invalid_user_id():
+    app = setup_app()
+    client = app.test_client()
+    response = client.post(
+        "/api/social-media/social-accounts",
+        json={"user_id": "abc", "account_name": "acct", "platform": "twitter"},
+    )
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "user_id must be an integer"
