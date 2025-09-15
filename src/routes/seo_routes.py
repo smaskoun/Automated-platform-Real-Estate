@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.seo_content_service import SEOContentService
+from ..services.seo_content_service import SEOContentService
 import logging
 
 seo_bp = Blueprint('seo_bp', __name__)

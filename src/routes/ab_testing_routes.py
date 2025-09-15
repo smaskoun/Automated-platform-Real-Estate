@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 # CORRECTED IMPORTS
-from services.ab_testing_service import ab_testing_service
-from services.seo_content_service import seo_content_service
+from ..services.ab_testing_service import ab_testing_service
+from ..services.seo_content_service import seo_content_service
 import json
 
 ab_testing_bp = Blueprint('ab_testing', __name__)

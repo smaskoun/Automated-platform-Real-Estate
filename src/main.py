@@ -1,17 +1,17 @@
 from flask import Flask
 from flask_cors import CORS
-from models import db
-from config import Config
+from .models import db
+from .config import Config
 import logging
 from flask_migrate import Migrate
 
 # Import all your blueprints
-from routes.brand_voice_routes import brand_voice_bp
-from routes.alternative_brand_voice_routes import alternative_brand_voice_bp
-from routes.social_media import social_media_bp
-from routes.seo_routes import seo_bp
-from routes.seo_tools_routes import seo_tools_bp
-from routes.ab_testing_routes import ab_testing_bp
+from .routes.brand_voice_routes import brand_voice_bp
+from .routes.alternative_brand_voice_routes import alternative_brand_voice_bp
+from .routes.social_media import social_media_bp
+from .routes.seo_routes import seo_bp
+from .routes.seo_tools_routes import seo_tools_bp
+from .routes.ab_testing_routes import ab_testing_bp
 
 
 def create_app():

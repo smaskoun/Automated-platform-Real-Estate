@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 # CORRECTED IMPORT
-from services.learning_algorithm_service import learning_algorithm_service
+from ..services.learning_algorithm_service import learning_algorithm_service
 import json
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)

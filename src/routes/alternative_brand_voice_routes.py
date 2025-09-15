@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 # CORRECTED IMPORT
-from services.alternative_brand_voice_service import AlternativeBrandVoiceService
+from ..services.alternative_brand_voice_service import AlternativeBrandVoiceService
 import json
 
 alternative_brand_voice_bp = Blueprint('alternative_brand_voice', __name__)

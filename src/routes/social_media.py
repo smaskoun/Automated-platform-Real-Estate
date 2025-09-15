@@ -1,12 +1,12 @@
 # src/routes/social_media.py - UPDATED IMPORT
 
 from flask import Blueprint, request, jsonify
-from models import db
-from models.social_media import SocialMediaAccount, SocialMediaPost
-from models.brand_voice import BrandVoice
+from ..models import db
+from ..models.social_media import SocialMediaAccount, SocialMediaPost
+from ..models.brand_voice import BrandVoice
 # UPDATED: Import both services from the same file
-from services.learning_algorithm_service import learning_algorithm_service, meta_automator_service
-from services.ai_content_service import ai_content_service
+from ..services.learning_algorithm_service import learning_algorithm_service, meta_automator_service
+from ..services.ai_content_service import ai_content_service
 import json
 from datetime import datetime
 import logging
