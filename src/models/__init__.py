@@ -1,19 +1,32 @@
-# src/models/__init__.py - FINAL AND COMPLETE VERSION
+"""Database initialisation and model exports for the application."""
 
 from flask_sqlalchemy import SQLAlchemy
 
-# Initialize the db object
+# The single SQLAlchemy instance used across the application
+
 db = SQLAlchemy()
 
-# Import all your models here to make them accessible to the rest of the app
-from .user import User
-from .brand_voice import BrandVoice
-from .brand_voice_example import BrandVoiceExample
- codex/fix-syntax-error-in-ab_testing_routes-joluvh
-=======
- codex/fix-syntax-error-in-ab_testing_routes-8kiml8
-=======
-from .ab_test_model import ABTest, ABTestVariation
- main
- main
-from .social_media import SocialMediaAccount, SocialMediaPost, AIImageGeneration, PostingSchedule
+# Import models so that metadata is populated when the module loads.
+from .user import User  # noqa: E402,F401
+from .brand_voice import BrandVoice  # noqa: E402,F401
+from .brand_voice_example import BrandVoiceExample  # noqa: E402,F401
+from .social_media import (  # noqa: E402,F401
+    SocialMediaAccount,
+    SocialMediaPost,
+    AIImageGeneration,
+    PostingSchedule,
+)
+from .ab_test_model import ABTest, ABTestVariation  # noqa: E402,F401
+
+__all__ = [
+    "db",
+    "User",
+    "BrandVoice",
+    "BrandVoiceExample",
+    "SocialMediaAccount",
+    "SocialMediaPost",
+    "AIImageGeneration",
+    "PostingSchedule",
+    "ABTest",
+    "ABTestVariation",
+]
