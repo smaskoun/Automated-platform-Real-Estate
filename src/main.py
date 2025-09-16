@@ -8,11 +8,21 @@ from .models import db
 from .routes.brand_voice_routes import brand_voice_bp
 from .routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 from .routes.social_media import social_media_bp
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
 from .routes.manual_content_routes import manual_content_bp
 from .routes.learning_algorithm_routes import learning_algorithm_bp
 from .routes.seo_routes import seo_bp
 from .routes.seo_tools_routes import seo_tools_bp
 from .routes.user import user_bp
+=======
+from .routes.seo_routes import seo_bp
+from .routes.seo_tools_routes import seo_tools_bp
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
+from .routes.ab_testing_routes import ab_testing_bp
+
+ main
+ main
 
 def create_app():
     app = Flask(__name__)
@@ -24,12 +34,24 @@ def create_app():
     app.register_blueprint(brand_voice_bp, url_prefix='/api/brand-voices')
     app.register_blueprint(alternative_brand_voice_bp, url_prefix='/api/alt-brand-voice')
     app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
     app.register_blueprint(manual_content_bp, url_prefix='/api/manual-content')
     app.register_blueprint(learning_algorithm_bp, url_prefix='/api/learning-algorithm')
     app.register_blueprint(seo_bp, url_prefix='/api/seo')
     app.register_blueprint(seo_tools_bp, url_prefix='/api/seo-tools')
     app.register_blueprint(user_bp, url_prefix='/api')
 
+=======
+    app.register_blueprint(seo_bp, url_prefix='/api/seo')
+    app.register_blueprint(seo_tools_bp, url_prefix='/api/seo-tools')
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+
+=======
+    app.register_blueprint(ab_testing_bp, url_prefix='/api/ab-testing')
+   
+    
+ main
+ main
     logging.basicConfig(level=logging.INFO)
     
     @app.route('/')
