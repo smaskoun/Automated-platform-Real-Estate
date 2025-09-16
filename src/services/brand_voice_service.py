@@ -1,14 +1,25 @@
 import re
 import json
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+
 import requests
+ main
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from collections import Counter
 import statistics
 
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+from .manual_content_service import ManualContentService
+
+class BrandVoiceService:
+    """Service for analyzing and learning user's brand voice from social media content"""
+
+
 class BrandVoiceService:
     """Service for analyzing and learning user's brand voice from social media content"""
     
+ main
     def __init__(self):
         self.voice_profile = {
             'tone_indicators': {},
@@ -54,6 +65,49 @@ class BrandVoiceService:
             'investment opportunity', 'market analysis', 'property value'
         ]
     
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+        self.manual_content_service = ManualContentService()
+
+    def fetch_user_posts(
+        self,
+        access_token: Optional[str] = None,
+        platform: str = 'manual',
+        limit: int = 50,
+        filters: Optional[Dict] = None,
+    ) -> List[Dict]:
+        """Load recent posts from the manually uploaded dataset."""
+
+        filters = filters or {}
+        posts: List[Dict] = []
+
+        try:
+            manual_posts = self.manual_content_service.get_all_content(limit=limit)
+
+            filter_platform = filters.get('platform') or platform
+            if filter_platform and filter_platform != 'manual':
+                manual_posts = [
+                    post for post in manual_posts
+                    if (post.get('platform') or 'manual').lower() == filter_platform.lower()
+                ]
+
+            for post in manual_posts:
+                text_content = post.get('text') or post.get('caption') or post.get('content')
+                if not text_content:
+                    continue
+
+                posts.append({
+                    'text': text_content,
+                    'created_time': post.get('uploaded_at'),
+                    'engagement': post.get('engagement') or post.get('metrics') or {},
+                    'platform': post.get('platform') or 'manual',
+                    'hashtags': post.get('hashtags', []),
+                    'id': post.get('id'),
+                })
+
+        except Exception as exc:
+            print(f"Error loading manual posts: {exc}")
+
+
     def fetch_user_posts(self, access_token: str, platform: str = 'facebook', limit: int = 50) -> List[Dict]:
         """
         Fetch user's recent posts from Facebook/Instagram
@@ -112,6 +166,7 @@ class BrandVoiceService:
         except Exception as e:
             print(f"Error fetching posts: {str(e)}")
         
+ main
         return posts
     
     def analyze_writing_style(self, posts: List[Dict]) -> Dict:

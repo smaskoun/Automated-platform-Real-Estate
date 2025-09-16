@@ -5,13 +5,52 @@ import io
 
 # --- FIX: Changed relative import to absolute ---
 from ..services.learning_algorithm_service import learning_algorithm_service
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+from ..services.manual_content_service import ManualContentService
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
+manual_content_service = ManualContentService()
+
+
+learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
+ main
 
 @learning_algorithm_bp.route('/fetch-performance', methods=['POST'])
 def fetch_post_performance():
     """Fetch performance data from social media platforms"""
     try:
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+        data = request.get_json(silent=True) or {}
+        platform = data.get('platform', 'manual')
+        limit = data.get('limit', 100)
+        content_ids = data.get('content_ids')
+        filters = data.get('filters') or {}
+
+        manual_posts = manual_content_service.get_all_content(limit=limit)
+
+        if content_ids:
+            id_set = {str(content_id) for content_id in content_ids}
+            manual_posts = [post for post in manual_posts if str(post.get('id')) in id_set]
+
+        filter_platform = filters.get('platform')
+        if filter_platform:
+            manual_posts = [
+                post for post in manual_posts
+                if (post.get('platform') or 'manual').lower() == filter_platform.lower()
+            ]
+
+        posts_data = learning_algorithm_service.fetch_post_performance(
+            platform=platform,
+            content_items=manual_posts,
+            limit=limit,
+        )
+
+        if not posts_data:
+            return jsonify({'error': 'No manual content available for analysis'}), 404
+
+        learning_algorithm_service.update_performance_history(posts_data)
+
+
         data = request.get_json()
         access_token = data.get('access_token')
         platform = data.get('platform', 'facebook')
@@ -28,13 +67,21 @@ def fetch_post_performance():
         # Update performance history
         learning_algorithm_service.update_performance_history(posts_data)
         
+ main
         return jsonify({
             'success': True,
             'posts_fetched': len(posts_data),
             'platform': platform,
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+            'source': 'manual_content',
+            'message': f'Successfully ingested {len(posts_data)} manual posts for performance analysis'
+        })
+
+
             'message': f'Successfully fetched performance data for {len(posts_data)} posts'
         })
         
+ main
     except Exception as e:
         return jsonify({'error': f'Failed to fetch performance data: {str(e)}'}), 500
 
