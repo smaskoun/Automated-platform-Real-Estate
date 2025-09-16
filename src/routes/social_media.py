@@ -1,4 +1,7 @@
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
 """HTTP endpoints for managing social media accounts and posts."""
 
 from __future__ import annotations
@@ -243,6 +246,8 @@ def update_post(post_id: int) -> Any:
 def delete_post(post_id: int) -> Any:
     """Remove a post permanently."""
 
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
 =======
 # src/routes/social_media.py - CORRECTED VERSION
 
@@ -423,11 +428,15 @@ def update_post(post_id):
 @social_media_bp.route("/posts/<int:post_id>", methods=["DELETE"])
 def delete_post(post_id):
  main
+ main
     post = SocialMediaPost.query.get_or_404(post_id)
     try:
         db.session.delete(post)
         db.session.commit()
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
     except Exception as exc:  # pragma: no cover - DB errors are logged at runtime
         db.session.rollback()
         LOGGER.error("Failed to delete post: %s", exc)
@@ -444,6 +453,8 @@ def approve_post(post_id: int) -> Any:
     if post.status != "draft":
         return jsonify({"error": "Post is not in draft status"}), 400
 
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
 =======
         return jsonify({"success": True, "message": "Post deleted"}), 200
     except Exception as e:
@@ -456,11 +467,15 @@ def approve_post(post_id):
     post = SocialMediaPost.query.get_or_404(post_id)
     if post.status != "draft": return jsonify({"error": "Post is not in draft status"}), 400
  main
+ main
     try:
         post.status = "approved"
         post.updated_at = datetime.utcnow()
         db.session.commit()
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
     except Exception as exc:  # pragma: no cover
         db.session.rollback()
         LOGGER.error("Failed to approve post: %s", exc)
@@ -517,6 +532,8 @@ def _serialise_hashtags(hashtags: Any) -> str:
 
 
 __all__ = ["social_media_bp"]
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
 =======
         return jsonify({"success": True, "post": post.to_dict()})
     except Exception as e:
@@ -537,4 +554,5 @@ def generate_image():
          ),
         501,
     )
+ main
  main

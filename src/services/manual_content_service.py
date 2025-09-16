@@ -1,4 +1,7 @@
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
 """Utilities for storing and analysing manually uploaded social content."""
 
 from __future__ import annotations
@@ -374,6 +377,8 @@ class ManualContentService:
 
 
 __all__ = ["ManualContentService"]
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
 =======
 import json
 import os
@@ -730,4 +735,5 @@ class ManualContentService:
         
         return results
 
+ main
  main

@@ -10,8 +10,11 @@ from .routes.alternative_brand_voice_routes import alternative_brand_voice_bp
 from .routes.social_media import social_media_bp
 from .routes.seo_routes import seo_bp
 from .routes.seo_tools_routes import seo_tools_bp
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
 from .routes.ab_testing_routes import ab_testing_bp
 
+ main
 
 def create_app():
     app = Flask(__name__)
@@ -25,9 +28,13 @@ def create_app():
     app.register_blueprint(social_media_bp, url_prefix='/api/social-media')
     app.register_blueprint(seo_bp, url_prefix='/api/seo')
     app.register_blueprint(seo_tools_bp, url_prefix='/api/seo-tools')
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+
+=======
     app.register_blueprint(ab_testing_bp, url_prefix='/api/ab-testing')
    
     
+ main
     logging.basicConfig(level=logging.INFO)
     
     @app.route('/')

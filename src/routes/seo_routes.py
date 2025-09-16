@@ -1,18 +1,26 @@
 from flask import Blueprint, request, jsonify
 # --- FIX: Changed relative import to absolute ---
 from ..services.seo_content_service import SEOContentService
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+from ..services.manual_content_service import ManualContentService
+
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 from ..services.manual_content_service import ManualContentService
 
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
 from ..services.manual_content_service import ManualContentService
 
+ main
  main
  main
 import logging
 
 seo_bp = Blueprint('seo_bp', __name__)
 seo_service = SEOContentService()
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+manual_content_service = ManualContentService()
+
+
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 manual_content_service = ManualContentService()
 
@@ -22,6 +30,7 @@ manual_content_service = ManualContentService()
 
  main
 
+ main
  main
 @seo_bp.route('/analyze-keywords', methods=['POST'])
 def analyze_keywords_route():
@@ -42,9 +51,12 @@ def analyze_keywords_route():
         logging.error(f"Error in keyword analysis: {e}")
         return jsonify({"error": "Failed to analyze keywords"}), 500
 
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
  main
 @seo_bp.route('/evaluate-content', methods=['POST'])
 def evaluate_content():
@@ -101,10 +113,13 @@ def evaluate_content():
         return jsonify({'error': 'Failed to evaluate content'}), 500
 
 # Additional SEO endpoints can be defined below.
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 
 
 # ... (and so on for the rest of the file)
 # The key is that the imports at the top are now correct.
+ main
  main
  main

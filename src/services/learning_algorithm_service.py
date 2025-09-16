@@ -1,6 +1,9 @@
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 =======
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
  main
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
@@ -12,6 +15,8 @@ from uuid import uuid4
 from .manual_content_service import ManualContentService
 
 
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 =======
 
@@ -79,6 +84,7 @@ meta_automator_service = MetaAutomatorService()
 
  main
  main
+ main
 class LearningAlgorithmService:
     """Service for learning from engagement data and optimizing content generation"""
     
@@ -97,9 +103,12 @@ class LearningAlgorithmService:
             'likes': 1.0, 'comments': 2.0, 'shares': 3.0, 'saves': 2.5,
             'reach': 0.1, 'impressions': 0.05
         }
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
  main
 
         # Manual content service provides the source data for learning
@@ -193,6 +202,8 @@ class LearningAlgorithmService:
             'hashtags': content.get('hashtags', []),
             'manual_source': True,
         }
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 =======
 
@@ -206,6 +217,7 @@ class LearningAlgorithmService:
         pass
  main
  main
+ main
     
     def update_performance_history(self, posts_data: List[Dict]):
         """Update the performance history with new data"""
@@ -216,9 +228,12 @@ class LearningAlgorithmService:
             else:
                 self.performance_history.append(post_data)
         cutoff_date = datetime.now() - timedelta(days=180)
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 =======
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
  main
         pruned_history = []
         for post in self.performance_history:
@@ -232,6 +247,8 @@ class LearningAlgorithmService:
                 pruned_history.append(post)
 
         self.performance_history = pruned_history
+ codex/fix-syntax-error-in-ab_testing_routes-8kiml8
+=======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 =======
 
@@ -239,6 +256,7 @@ class LearningAlgorithmService:
             post for post in self.performance_history 
             if datetime.fromisoformat(post['created_time'].replace('Z', '+00:00')) > cutoff_date
         ]
+ main
  main
  main
     

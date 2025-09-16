@@ -8,7 +8,6 @@ import AccountManager from './AccountManager.jsx';
 import BrandVoiceManager from './BrandVoiceManager.jsx';
 import SocialMediaManager from './SocialMediaManager.jsx';
 import SeoTools from './SeoTools.jsx';
-import AbTesting from './AbTesting.jsx';
 
 // We will create a "mock" user to pass to the layout.
 const mockUser = { id: 1, username: 'Test User' };
@@ -28,7 +27,6 @@ function App() {
           <Route path="brand-voices" element={<BrandVoiceManager user={mockUser} />} />
           <Route path="social-media" element={<SocialMediaManager user={mockUser} />} />
           <Route path="seo-tools" element={<SeoTools user={mockUser} />} />
-          <Route path="ab-testing" element={<AbTesting user={mockUser} />} />
 
         </Route>
       </Routes>
