@@ -2,9 +2,9 @@
 
 from flask import Blueprint, request, jsonify
 # --- FIX: Changed relative imports to absolute ---
-from models import db
-from models.brand_voice import BrandVoice
-from models.brand_voice_example import BrandVoiceExample
+from ..models import db
+from ..models.brand_voice import BrandVoice
+from ..models.brand_voice_example import BrandVoiceExample
 import logging
 
 brand_voice_bp = Blueprint('brand_voice_bp', __name__)

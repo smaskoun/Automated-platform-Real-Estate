@@ -1,28 +1,59 @@
+import json
+import logging
+import os
 import random
 import re
 from collections import Counter
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
-import json
-import os
+from typing import Dict, List, Optional, Tuple
 
-from textblob import TextBlob
 import textstat
-import language_tool_python
+from textblob import TextBlob
+
+try:  # language_tool_python may require a remote server – only load when available
+    import language_tool_python  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    language_tool_python = None
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 class SEOContentService:
     """Service for generating SEO-optimized social media content for real estate"""
 
     def __init__(self, config_path: Optional[str] = None):
-        self.config_path = config_path or os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "data", "seo_keywords.json")
-        )
+        self.config_path = config_path or os.path.join(DATA_DIR, "seo_keywords.json")
         self._load_config()
         # Hashtag trend scores for weighting selections
         self.trend_scores: Dict[str, float] = {}
         self.refresh_trend_scores()
         # default region used when no specific location is supplied
         self.default_region = "Windsor-Essex, Ontario"
+
+        # Grammar checking is disabled by default to avoid external requests unless explicitly enabled
+        self._grammar_tool = None
+        self._grammar_check_enabled = False
+        if (
+            os.getenv("ENABLE_GRAMMAR_CHECK", "").lower() in {"1", "true", "yes"}
+            and language_tool_python is not None
+        ):
+            try:
+                tool_url = os.getenv("LANGUAGETOOL_URL")
+                if tool_url:
+                    self._grammar_tool = language_tool_python.LanguageTool(
+                        "en-US", config={"url": tool_url}
+                    )
+                else:
+                    self._grammar_tool = language_tool_python.LanguageTool("en-US")
+                self._grammar_check_enabled = True
+            except Exception as exc:  # pragma: no cover - depends on local environment
+                LOGGER.warning("Grammar checking disabled: %s", exc)
+                self._grammar_tool = None
+                self._grammar_check_enabled = False
 
         # Content templates for different post types
         self.content_templates = {
@@ -294,9 +325,7 @@ class SEOContentService:
                 with urlopen(source) as response:  # nosec B310
                     data = json.loads(response.read().decode())
             else:
-                default_path = source or os.path.join(
-                    os.path.dirname(__file__), '..', 'data', 'trend_scores.json'
-                )
+                default_path = source or os.path.join(DATA_DIR, 'trend_scores.json')
                 with open(default_path, 'r') as f:
                     data = json.load(f)
             # normalize keys to maintain consistency
@@ -509,11 +538,7 @@ class SEOContentService:
         score += polarity * 10
 
         # Grammar check penalty (up to -20)
-        try:
-            tool = language_tool_python.LanguageTool('en-US')
-            grammar_errors = len(tool.check(content))
-        except Exception:
-            grammar_errors = 0
+        grammar_errors = self._count_grammar_errors(content)
         score -= min(grammar_errors * 2, 20)
 
         # Content length bonus (up to 10)
@@ -523,6 +548,20 @@ class SEOContentService:
 
         final_score = max(min(score, 100.0), 0.0)
         return final_score, polarity, grammar_errors
+
+    def _count_grammar_errors(self, content: str) -> int:
+        """Return the number of grammar issues if checking is enabled."""
+
+        if not self._grammar_check_enabled or self._grammar_tool is None:
+            return 0
+
+        try:
+            return len(self._grammar_tool.check(content))
+        except Exception as exc:  # pragma: no cover - relies on external service
+            LOGGER.warning("Disabling grammar checking after failure: %s", exc)
+            self._grammar_tool = None
+            self._grammar_check_enabled = False
+            return 0
     
     def _calculate_readability_score(self, content: str) -> float:
         """Calculate readability using Flesch Reading Ease."""
@@ -672,7 +711,91 @@ class SEOContentService:
             "keyword_density": density,
             "suggestion": suggestion,
         }
-    
+
+    def evaluate_posts(self, posts: List[Dict], default_platform: str = 'instagram') -> Dict:
+        """Evaluate manual or generated posts and return consolidated SEO insights."""
+
+        evaluations: List[Dict] = []
+        suggestion_counter: Counter = Counter()
+
+        for post in posts:
+            if not isinstance(post, dict):
+                continue
+
+            text = post.get('content') or post.get('text') or post.get('caption')
+            if not text:
+                continue
+
+            platform = post.get('platform', default_platform)
+            location = post.get('location') or self.default_region
+            content_type = post.get('content_type', 'general')
+
+            seo_metadata = self._generate_seo_metadata(text, location, content_type)
+            optimization = self.optimize_existing_content(text, platform)
+
+            evaluation = {
+                'post_id': post.get('id') or post.get('post_id'),
+                'platform': platform,
+                'seo_score': seo_metadata['seo_score'],
+                'readability_score': seo_metadata['readability_score'],
+                'sentiment_polarity': seo_metadata['sentiment_polarity'],
+                'grammar_errors': seo_metadata['grammar_errors'],
+                'keyword_density': seo_metadata['keyword_density'],
+                'overall_keyword_density': seo_metadata['overall_keyword_density'],
+                'suggestions': optimization['suggestions'],
+                'optimized_hashtags': optimization['optimized_hashtags'],
+                'estimated_improvement': optimization['estimated_improvement'],
+                'character_count': len(text),
+                'manual_source': post.get('manual_source', False),
+            }
+
+            evaluations.append(evaluation)
+
+            for suggestion in evaluation['suggestions']:
+                suggestion_counter[suggestion] += 1
+
+        if not evaluations:
+            return {
+                'evaluations': [],
+                'summary': {
+                    'evaluated_posts': 0,
+                    'average_seo_score': 0.0,
+                    'average_readability': 0.0,
+                    'common_suggestions': [],
+                },
+            }
+
+        average_score = sum(e['seo_score'] for e in evaluations) / len(evaluations)
+        average_readability = sum(e['readability_score'] for e in evaluations) / len(evaluations)
+
+        top_post = max(evaluations, key=lambda item: item['seo_score'])
+        lowest_post = min(evaluations, key=lambda item: item['seo_score'])
+
+        summary = {
+            'evaluated_posts': len(evaluations),
+            'average_seo_score': round(average_score, 2),
+            'average_readability': round(average_readability, 2),
+            'top_post': {
+                'post_id': top_post.get('post_id'),
+                'seo_score': top_post.get('seo_score'),
+                'platform': top_post.get('platform'),
+            },
+            'lowest_post': {
+                'post_id': lowest_post.get('post_id'),
+                'seo_score': lowest_post.get('seo_score'),
+                'platform': lowest_post.get('platform'),
+            },
+            'common_suggestions': [
+                {'suggestion': suggestion, 'count': count}
+                for suggestion, count in suggestion_counter.most_common(5)
+            ],
+        }
+
+        return {
+            'evaluations': evaluations,
+            'summary': summary,
+        }
+
     def generate_content_calendar(self, days: int = 30, platform: str = 'instagram') -> List[Dict]:
         """Generate a content calendar with SEO-optimized posts"""
         

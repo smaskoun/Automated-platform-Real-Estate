@@ -191,22 +191,6 @@
         </div>
 
         <div class="demo-section">
-            <h3>🧪 Test A/B Testing</h3>
-            <p>Create a simple A/B test:</p>
-            
-            <input type="text" id="testName" class="form-control" placeholder="Test Name (e.g., Property Listing Test)" value="Property Listing Test">
-            
-            <textarea id="variationA" class="form-control" placeholder="Variation A content...">🏡 Just listed! Beautiful home in Windsor-Essex. Contact me for details!</textarea>
-            
-            <textarea id="variationB" class="form-control" placeholder="Variation B content...">🏠 NEW LISTING: Stunning 3-bedroom home in Windsor-Essex with amazing features. Ready to find your dream home? Let's chat!</textarea>
-            
-            <button class="btn" onclick="testABTest()">🧪 Create Test</button>
-            <button class="btn" onclick="viewActiveTests()">📊 View Tests</button>
-            
-            <div id="abTestResult"></div>
-        </div>
-
-        <div class="demo-section">
             <h3>📈 Test Analytics</h3>
             <p>View content statistics and insights:</p>
             
@@ -383,100 +367,6 @@
             }
         }
 
-        // Test A/B testing
-        async function testABTest() {
-            const testName = document.getElementById('testName').value.trim();
-            const variationA = document.getElementById('variationA').value.trim();
-            const variationB = document.getElementById('variationB').value.trim();
-            
-            if (!testName || !variationA || !variationB) {
-                showAlert('error', '❌ Please fill in all fields for the A/B test.', 'abTestResult');
-                return;
-            }
-            
-            document.getElementById('abTestResult').innerHTML = '<div class="loading">Creating A/B test...</div>';
-            
-            const data = {
-                test_name: testName,
-                mode: 1,
-                variations: [
-                    { content: variationA, name: 'Variation A' },
-                    { content: variationB, name: 'Variation B' }
-                ]
-            };
-            
-            const result = await apiCall('ab-testing/create-test', 'POST', data);
-            
-            if (result.success) {
-                showAlert('success', `✅ A/B test created! Test ID: ${result.data.test_id}`, 'abTestResult');
-                
-                const details = `
-                    <div class="result-box">
-                        <h4>🧪 Test Details:</h4>
-                        <p><strong>Name:</strong> ${testName}</p>
-                        <p><strong>Status:</strong> Ready for Manual Testing</p>
-                        <p><strong>Variations:</strong> 2</p>
-                        <button class="btn" onclick="viewTestDetails('${result.data.test_id}')">📊 View Variations</button>
-                    </div>
-                `;
-                document.getElementById('abTestResult').innerHTML += details;
-            } else {
-                showAlert('error', `❌ Failed to create test: ${result.error}`, 'abTestResult');
-            }
-        }
-
-        // View active tests
-        async function viewActiveTests() {
-            document.getElementById('abTestResult').innerHTML = '<div class="loading">Loading active tests...</div>';
-            
-            const result = await apiCall('ab-testing/active-tests');
-            
-            if (result.success && result.data.length > 0) {
-                let html = '<div class="alert alert-success">✅ Found active tests!</div>';
-                
-                result.data.forEach(test => {
-                    html += `
-                        <div class="result-box">
-                            <h4>${test.test_name}</h4>
-                            <p><strong>Status:</strong> ${test.status}</p>
-                            <p><strong>Created:</strong> ${new Date(test.created_at).toLocaleDateString()}</p>
-                            <button class="btn" onclick="viewTestDetails('${test.test_id}')">📊 View Details</button>
-                        </div>
-                    `;
-                });
-                
-                document.getElementById('abTestResult').innerHTML = html;
-            } else {
-                showAlert('info', 'ℹ️ No active tests found. Create one above!', 'abTestResult');
-            }
-        }
-
-        // View test details
-        async function viewTestDetails(testId) {
-            const result = await apiCall(`ab-testing/analyze-results/${testId}`);
-            
-            if (result.success) {
-                const variations = result.data.variations || [];
-                
-                let html = `
-                    <div class="alert alert-info">📊 Test Variations - Ready for Manual Testing</div>
-                `;
-                
-                variations.forEach((variation, index) => {
-                    html += `
-                        <div class="result-box">
-                            <h4>Variation ${String.fromCharCode(65 + index)}</h4>
-                            <p>${variation.content || variation.name}</p>
-                        </div>
-                    `;
-                });
-                
-                document.getElementById('abTestResult').innerHTML = html;
-            } else {
-                showAlert('error', `❌ Failed to load test details: ${result.error}`, 'abTestResult');
-            }
-        }
-
         // Test analytics
         async function testAnalytics() {
             document.getElementById('analyticsResult').innerHTML = '<div class="loading">Loading analytics...</div>';
@@ -549,8 +439,7 @@
             
             const endpoints = [
                 'manual-content/platform-guide',
-                'alternative-brand-voice/training-status',
-                'ab-testing/active-tests'
+                'alternative-brand-voice/training-status'
             ];
             
             let html = '<div class="alert alert-success">✅ System Status Check</div>';

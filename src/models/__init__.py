@@ -9,5 +9,4 @@ db = SQLAlchemy()
 from .user import User
 from .brand_voice import BrandVoice
 from .brand_voice_example import BrandVoiceExample
-from .ab_test_model import ABTest, ABTestVariation
 from .social_media import SocialMediaAccount, SocialMediaPost, AIImageGeneration, PostingSchedule
