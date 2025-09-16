@@ -1,14 +1,15 @@
 import re
 import json
-import requests
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from collections import Counter
 import statistics
 
+from .manual_content_service import ManualContentService
+
 class BrandVoiceService:
     """Service for analyzing and learning user's brand voice from social media content"""
-    
+
     def __init__(self):
         self.voice_profile = {
             'tone_indicators': {},
@@ -54,64 +55,47 @@ class BrandVoiceService:
             'investment opportunity', 'market analysis', 'property value'
         ]
     
-    def fetch_user_posts(self, access_token: str, platform: str = 'facebook', limit: int = 50) -> List[Dict]:
-        """
-        Fetch user's recent posts from Facebook/Instagram
-        
-        Args:
-            access_token: User's social media access token
-            platform: 'facebook' or 'instagram'
-            limit: Number of posts to fetch
-        
-        Returns:
-            List of post data dictionaries
-        """
-        posts = []
-        
+        self.manual_content_service = ManualContentService()
+
+    def fetch_user_posts(
+        self,
+        access_token: Optional[str] = None,
+        platform: str = 'manual',
+        limit: int = 50,
+        filters: Optional[Dict] = None,
+    ) -> List[Dict]:
+        """Load recent posts from the manually uploaded dataset."""
+
+        filters = filters or {}
+        posts: List[Dict] = []
+
         try:
-            if platform == 'facebook':
-                # Facebook Graph API endpoint for user's posts
-                url = f"https://graph.facebook.com/v18.0/me/posts"
-                params = {
-                    'access_token': access_token,
-                    'fields': 'message,created_time,engagement',
-                    'limit': limit
-                }
-                
-            elif platform == 'instagram':
-                # Instagram Basic Display API endpoint
-                url = f"https://graph.instagram.com/me/media"
-                params = {
-                    'access_token': access_token,
-                    'fields': 'caption,timestamp,like_count,comments_count',
-                    'limit': limit
-                }
-            
-            response = requests.get(url, params=params)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                for post in data.get('data', []):
-                    if platform == 'facebook':
-                        text_content = post.get('message', '')
-                    else:  # Instagram
-                        text_content = post.get('caption', '')
-                    
-                    if text_content:  # Only include posts with text content
-                        posts.append({
-                            'text': text_content,
-                            'created_time': post.get('created_time') or post.get('timestamp'),
-                            'engagement': post.get('engagement') or {
-                                'likes': post.get('like_count', 0),
-                                'comments': post.get('comments_count', 0)
-                            },
-                            'platform': platform
-                        })
-            
-        except Exception as e:
-            print(f"Error fetching posts: {str(e)}")
-        
+            manual_posts = self.manual_content_service.get_all_content(limit=limit)
+
+            filter_platform = filters.get('platform') or platform
+            if filter_platform and filter_platform != 'manual':
+                manual_posts = [
+                    post for post in manual_posts
+                    if (post.get('platform') or 'manual').lower() == filter_platform.lower()
+                ]
+
+            for post in manual_posts:
+                text_content = post.get('text') or post.get('caption') or post.get('content')
+                if not text_content:
+                    continue
+
+                posts.append({
+                    'text': text_content,
+                    'created_time': post.get('uploaded_at'),
+                    'engagement': post.get('engagement') or post.get('metrics') or {},
+                    'platform': post.get('platform') or 'manual',
+                    'hashtags': post.get('hashtags', []),
+                    'id': post.get('id'),
+                })
+
+        except Exception as exc:
+            print(f"Error loading manual posts: {exc}")
+
         return posts
     
     def analyze_writing_style(self, posts: List[Dict]) -> Dict:
