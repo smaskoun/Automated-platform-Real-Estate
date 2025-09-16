@@ -1,4 +1,7 @@
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from collections import defaultdict
@@ -9,6 +12,8 @@ from uuid import uuid4
 from .manual_content_service import ManualContentService
 
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
 
 # src/services/learning_algorithm_service.py - COMBINED VERSION
 
@@ -73,6 +78,7 @@ meta_automator_service = MetaAutomatorService()
 # --- EXISTING LEARNING ALGORITHM SERVICE (UNMODIFIED) ---
 
  main
+ main
 class LearningAlgorithmService:
     """Service for learning from engagement data and optimizing content generation"""
     
@@ -91,7 +97,10 @@ class LearningAlgorithmService:
             'likes': 1.0, 'comments': 2.0, 'shares': 3.0, 'saves': 2.5,
             'reach': 0.1, 'impressions': 0.05
         }
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
 
         # Manual content service provides the source data for learning
         self._manual_content_service = ManualContentService()
@@ -184,6 +193,8 @@ class LearningAlgorithmService:
             'hashtags': content.get('hashtags', []),
             'manual_source': True,
         }
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
 
     
     def fetch_post_performance(self, access_token: str, platform: str = 'facebook') -> List[Dict]:
@@ -193,6 +204,7 @@ class LearningAlgorithmService:
     def _process_post_data(self, post: Dict, platform: str) -> Optional[Dict]:
         # This logic will need to be adapted to use the new data format.
         pass
+ main
  main
     
     def update_performance_history(self, posts_data: List[Dict]):
@@ -204,7 +216,10 @@ class LearningAlgorithmService:
             else:
                 self.performance_history.append(post_data)
         cutoff_date = datetime.now() - timedelta(days=180)
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
         pruned_history = []
         for post in self.performance_history:
             created_str = post.get('created_time') or datetime.utcnow().isoformat()
@@ -217,11 +232,14 @@ class LearningAlgorithmService:
                 pruned_history.append(post)
 
         self.performance_history = pruned_history
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
 
         self.performance_history = [
             post for post in self.performance_history 
             if datetime.fromisoformat(post['created_time'].replace('Z', '+00:00')) > cutoff_date
         ]
+ main
  main
     
     def analyze_performance_patterns(self) -> Dict:

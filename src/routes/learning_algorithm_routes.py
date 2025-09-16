@@ -5,21 +5,30 @@ import io
 
 # --- FIX: Changed relative import to absolute ---
 from ..services.learning_algorithm_service import learning_algorithm_service
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
 from ..services.manual_content_service import ManualContentService
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
 manual_content_service = ManualContentService()
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
  main
 
+ main
 @learning_algorithm_bp.route('/fetch-performance', methods=['POST'])
 def fetch_post_performance():
     """Fetch performance data from social media platforms"""
     try:
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
         data = request.get_json(silent=True) or {}
         platform = data.get('platform', 'manual')
         limit = data.get('limit', 100)
@@ -50,6 +59,8 @@ def fetch_post_performance():
 
         learning_algorithm_service.update_performance_history(posts_data)
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+
 
         data = request.get_json()
         access_token = data.get('access_token')
@@ -68,19 +79,26 @@ def fetch_post_performance():
         learning_algorithm_service.update_performance_history(posts_data)
         
  main
+ main
         return jsonify({
             'success': True,
             'posts_fetched': len(posts_data),
             'platform': platform,
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
             'source': 'manual_content',
             'message': f'Successfully ingested {len(posts_data)} manual posts for performance analysis'
         })
+
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 
 
             'message': f'Successfully fetched performance data for {len(posts_data)} posts'
         })
         
+ main
  main
     except Exception as e:
         return jsonify({'error': f'Failed to fetch performance data: {str(e)}'}), 500

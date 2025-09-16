@@ -1,24 +1,33 @@
 import re
 import json
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
 
 import requests
+ main
  main
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from collections import Counter
 import statistics
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
 from .manual_content_service import ManualContentService
 
 class BrandVoiceService:
     """Service for analyzing and learning user's brand voice from social media content"""
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
 
 class BrandVoiceService:
     """Service for analyzing and learning user's brand voice from social media content"""
     
+ main
  main
     def __init__(self):
         self.voice_profile = {
@@ -65,7 +74,10 @@ class BrandVoiceService:
             'investment opportunity', 'market analysis', 'property value'
         ]
     
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
  codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
         self.manual_content_service = ManualContentService()
 
     def fetch_user_posts(
@@ -107,6 +119,8 @@ class BrandVoiceService:
         except Exception as exc:
             print(f"Error loading manual posts: {exc}")
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
 
     def fetch_user_posts(self, access_token: str, platform: str = 'facebook', limit: int = 50) -> List[Dict]:
         """
@@ -166,6 +180,7 @@ class BrandVoiceService:
         except Exception as e:
             print(f"Error fetching posts: {str(e)}")
         
+ main
  main
         return posts
     

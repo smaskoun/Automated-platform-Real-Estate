@@ -1,5 +1,3 @@
-# src/config.py (NEW FILE)
-
 import os
 from dotenv import load_dotenv
 
