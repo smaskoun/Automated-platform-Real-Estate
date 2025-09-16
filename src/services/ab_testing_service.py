@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 import statistics
 
-# CORRECTED: Changed to a relative import within the package
+# CORRECTED: Use absolute imports so the module works both standalone and via src.* namespace
 from ..models.ab_test_model import ABTest, ABTestVariation
 
 

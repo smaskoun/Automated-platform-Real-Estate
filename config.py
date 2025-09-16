@@ -1,5 +1,3 @@
-# src/config.py (NEW FILE)
-
 import os
 from dotenv import load_dotenv
 
@@ -10,7 +8,7 @@ class Config:
     """Set Flask configuration from environment variables."""
 
     # Database configuration
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Secret key for session management (good practice)
