@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 # --- FIX: Changed relative imports to absolute ---
-from services.ab_testing_service import ab_testing_service
-from services.seo_content_service import seo_content_service
+from ..services.ab_testing_service import ab_testing_service
+from ..services.seo_content_service import seo_content_service
 import json
 
 ab_testing_bp = Blueprint('ab_testing', __name__)
@@ -343,4 +343,70 @@ def get_performance_metrics():
             ],
             'reach_metrics': [
                 {
-                    'id':.
+                    'id': 'reach',
+                    'name': 'Reach',
+                    'description': 'Unique accounts who saw the content',
+                    'weight': 'high'
+                },
+                {
+                    'id': 'impressions',
+                    'name': 'Impressions',
+                    'description': 'Total times the content was displayed',
+                    'weight': 'medium'
+                },
+                {
+                    'id': 'frequency',
+                    'name': 'Frequency',
+                    'description': 'Average number of times each user saw the content',
+                    'weight': 'low'
+                }
+            ],
+            'conversion_metrics': [
+                {
+                    'id': 'profile_visits',
+                    'name': 'Profile Visits',
+                    'description': 'Number of profile visits generated from the content',
+                    'weight': 'high'
+                },
+                {
+                    'id': 'link_clicks',
+                    'name': 'Link Clicks',
+                    'description': 'Number of link clicks generated',
+                    'weight': 'medium'
+                },
+                {
+                    'id': 'leads',
+                    'name': 'Lead Submissions',
+                    'description': 'Number of leads or inquiries generated',
+                    'weight': 'very_high'
+                }
+            ],
+            'quality_metrics': [
+                {
+                    'id': 'sentiment',
+                    'name': 'Sentiment Score',
+                    'description': 'Overall sentiment of comments and interactions',
+                    'weight': 'medium'
+                },
+                {
+                    'id': 'watch_time',
+                    'name': 'Average Watch Time',
+                    'description': 'Average time viewers spent on video content',
+                    'weight': 'medium'
+                },
+                {
+                    'id': 'completion_rate',
+                    'name': 'Completion Rate',
+                    'description': 'Percentage of viewers who consumed the full content',
+                    'weight': 'high'
+                }
+            ]
+        }
+
+        return jsonify({
+            'success': True,
+            'metrics': metrics
+        })
+
+    except Exception as e:
+        return jsonify({'error': f'Failed to retrieve metrics: {str(e)}'}), 500

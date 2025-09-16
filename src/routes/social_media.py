@@ -2,11 +2,11 @@
 
 from flask import Blueprint, request, jsonify
 # --- FIX: Changed all relative imports to absolute ---
-from models import db
-from models.social_media import SocialMediaAccount, SocialMediaPost
-from models.brand_voice import BrandVoice
-from services.learning_algorithm_service import learning_algorithm_service, meta_automator_service
-from services.ai_content_service import ai_content_service
+from ..models import db
+from ..models.social_media import SocialMediaAccount, SocialMediaPost
+from ..models.brand_voice import BrandVoice
+from ..services.learning_algorithm_service import learning_algorithm_service, meta_automator_service
+from ..services.ai_content_service import ai_content_service
 import json
 from datetime import datetime
 import logging
