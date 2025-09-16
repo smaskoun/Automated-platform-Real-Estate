@@ -74,8 +74,8 @@ function BrandVoiceManager({ user }) {
     e.preventDefault();
     if (!selectedVoiceId) return;
     const examples = bulkExamples
-      .split('\n\n')
-      .map((p) => p.trim())
+      .split(/\r?\n\s*\r?\n/)
+      .map((p) => p.replace(/\r/g, '').trim())
       .filter((p) => p);
     if (examples.length === 0) return;
     try {
