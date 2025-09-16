@@ -17,8 +17,13 @@ class AIContentService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
-            raise ValueError("OPENAI_API_KEY environment variable not set.")
-        openai.api_key = self.api_key
+            logger.warning(
+                "OPENAI_API_KEY environment variable not set. AI content generation is disabled."
+            )
+            self.enabled = False
+        else:
+            openai.api_key = self.api_key
+            self.enabled = True
 
     def generate_optimized_post(
         self,
@@ -27,6 +32,9 @@ class AIContentService:
         performance_insights: dict,
     ) -> dict:
         """Generate an optimized social media post using OpenAI."""
+        if not self.api_key:
+            return {"error": "AI content generation is not configured."}
+
         if not topic or not brand_voice_example:
             raise ValueError("Topic and brand voice example cannot be empty.")
 

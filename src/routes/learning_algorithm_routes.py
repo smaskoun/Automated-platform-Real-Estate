@@ -1,37 +1,57 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
+from datetime import datetime
+import csv
+import io
+
 # --- FIX: Changed relative import to absolute ---
-from services.learning_algorithm_service import learning_algorithm_service
-import json
+from ..services.learning_algorithm_service import learning_algorithm_service
+from ..services.manual_content_service import ManualContentService
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
+manual_content_service = ManualContentService()
 
 @learning_algorithm_bp.route('/fetch-performance', methods=['POST'])
 def fetch_post_performance():
     """Fetch performance data from social media platforms"""
     try:
-        data = request.get_json()
-        access_token = data.get('access_token')
-        platform = data.get('platform', 'facebook')
-        
-        if not access_token:
-            return jsonify({'error': 'Access token is required'}), 400
-        
-        # Fetch performance data
-        posts_data = learning_algorithm_service.fetch_post_performance(access_token, platform)
-        
+        data = request.get_json(silent=True) or {}
+        platform = data.get('platform', 'manual')
+        limit = data.get('limit', 100)
+        content_ids = data.get('content_ids')
+        filters = data.get('filters') or {}
+
+        manual_posts = manual_content_service.get_all_content(limit=limit)
+
+        if content_ids:
+            id_set = {str(content_id) for content_id in content_ids}
+            manual_posts = [post for post in manual_posts if str(post.get('id')) in id_set]
+
+        filter_platform = filters.get('platform')
+        if filter_platform:
+            manual_posts = [
+                post for post in manual_posts
+                if (post.get('platform') or 'manual').lower() == filter_platform.lower()
+            ]
+
+        posts_data = learning_algorithm_service.fetch_post_performance(
+            platform=platform,
+            content_items=manual_posts,
+            limit=limit,
+        )
+
         if not posts_data:
-            return jsonify({'error': 'No performance data found or unable to fetch data'}), 404
-        
-        # Update performance history
+            return jsonify({'error': 'No manual content available for analysis'}), 404
+
         learning_algorithm_service.update_performance_history(posts_data)
-        
+
         return jsonify({
             'success': True,
             'posts_fetched': len(posts_data),
             'platform': platform,
-            'message': f'Successfully fetched performance data for {len(posts_data)} posts'
+            'source': 'manual_content',
+            'message': f'Successfully ingested {len(posts_data)} manual posts for performance analysis'
         })
-        
+
     except Exception as e:
         return jsonify({'error': f'Failed to fetch performance data: {str(e)}'}), 500
 
@@ -95,7 +115,7 @@ def get_learning_insights():
         })
         
     except Exception as e:
-        return jsonify({'error': f'Failed to retrieve insights: {str(e)}'}), 500
+        return jsonify({'error': f'Failed to export insights: {str(e)}'}), 500
 
 @learning_algorithm_bp.route('/performance-history', methods=['GET'])
 def get_performance_history():
@@ -310,9 +330,55 @@ def get_learning_status():
 def export_insights():
     """Export learning insights as downloadable data"""
     try:
-        export_format = request.args.get('format', 'json')
-        
+        export_format = request.args.get('format', 'json').lower()
+
+        if export_format not in {'json', 'csv'}:
+            return jsonify({
+                'success': False,
+                'error': 'Unsupported export format. Use "json" or "csv".'
+            }), 400
+
+        performance_history = list(learning_algorithm_service.performance_history)
+        insights = dict(learning_algorithm_service.learning_insights)
+
         export_data = {
-            'export_date': learning_algorithm_service.performance_history[-1]['created_time'] if learning_algorithm_service.performance_history else None,
-            'total_posts_analyzed': len(learning_algorithm_service.performance_history),
-            'insights': learning_algorithm_service.learning_insigh.
+            'exported_at': datetime.utcnow().isoformat() + 'Z',
+            'total_posts_analyzed': len(performance_history),
+            'insights': insights,
+            'performance_history': performance_history
+        }
+
+        if export_format == 'json':
+            return jsonify({
+                'success': True,
+                'format': 'json',
+                'data': export_data
+            })
+
+        with io.StringIO() as output:
+            fieldnames = ['post_id', 'platform', 'created_time', 'engagement_rate', 'total_engagement']
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for post in performance_history:
+                if not isinstance(post, dict):
+                    writer.writerow({fn: None for fn in fieldnames})
+                    continue
+
+                metrics = post.get('metrics', {}) if isinstance(post.get('metrics'), dict) else {}
+                writer.writerow({
+                    'post_id': post.get('post_id'),
+                    'platform': post.get('platform'),
+                    'created_time': post.get('created_time'),
+                    'engagement_rate': post.get('engagement_rate', metrics.get('engagement_rate')),
+                    'total_engagement': post.get('total_engagement', metrics.get('total_engagement')),
+                })
+
+            csv_response = make_response(output.getvalue())
+
+        csv_response.headers['Content-Disposition'] = 'attachment; filename=learning-insights.csv'
+        csv_response.headers['Content-Type'] = 'text/csv'
+        return csv_response
+
+    except Exception as e:
+        return jsonify({'error': f'Failed to export insights: {str(e)}'}), 500
