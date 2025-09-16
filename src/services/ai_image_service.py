@@ -1,6 +1,9 @@
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
  main
 """Generate AI imagery for social posts without relying on third-party services."""
 
@@ -150,6 +153,8 @@ class AIImageService:
 ai_image_service = AIImageService()
 
 __all__ = ["ai_image_service", "AIImageService"]
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
 =======
@@ -535,5 +540,6 @@ class AIImageService:
 # Global instance
 ai_image_service = AIImageService()
 
+ main
  main
  main

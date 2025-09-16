@@ -1,6 +1,9 @@
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
  main
 """Utilities for storing and analysing manually uploaded social content."""
 
@@ -377,6 +380,8 @@ class ManualContentService:
 
 
 __all__ = ["ManualContentService"]
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
 =======
@@ -735,5 +740,6 @@ class ManualContentService:
         
         return results
 
+ main
  main
  main

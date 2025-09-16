@@ -1,6 +1,9 @@
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
  main
 """HTTP endpoints for managing social media accounts and posts."""
 
@@ -246,6 +249,8 @@ def update_post(post_id: int) -> Any:
 def delete_post(post_id: int) -> Any:
     """Remove a post permanently."""
 
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
 =======
@@ -429,13 +434,17 @@ def update_post(post_id):
 def delete_post(post_id):
  main
  main
+ main
     post = SocialMediaPost.query.get_or_404(post_id)
     try:
         db.session.delete(post)
         db.session.commit()
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+ main
  main
     except Exception as exc:  # pragma: no cover - DB errors are logged at runtime
         db.session.rollback()
@@ -453,6 +462,8 @@ def approve_post(post_id: int) -> Any:
     if post.status != "draft":
         return jsonify({"error": "Post is not in draft status"}), 400
 
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
 =======
@@ -468,14 +479,18 @@ def approve_post(post_id):
     if post.status != "draft": return jsonify({"error": "Post is not in draft status"}), 400
  main
  main
+ main
     try:
         post.status = "approved"
         post.updated_at = datetime.utcnow()
         db.session.commit()
+        ] codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
  codex/fix-syntax-error-in-ab_testing_routes-tnow9p
  main
+[ main
     except Exception as exc:  # pragma: no cover
         db.session.rollback()
         LOGGER.error("Failed to approve post: %s", exc)
@@ -532,6 +547,8 @@ def _serialise_hashtags(hashtags: Any) -> str:
 
 
 __all__ = ["social_media_bp"]
+ codex/fix-syntax-error-in-ab_testing_routes-joluvh
+=======
  codex/fix-syntax-error-in-ab_testing_routes-8kiml8
 =======
 =======
@@ -554,5 +571,6 @@ def generate_image():
          ),
         501,
     )
+ main
  main
  main
