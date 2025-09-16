@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
 import logging
 
 from config import Config
@@ -13,6 +13,23 @@ from .routes.learning_algorithm_routes import learning_algorithm_bp
 from .routes.seo_routes import seo_bp
 from .routes.seo_tools_routes import seo_tools_bp
 from .routes.user import user_bp
+
+
+def _ensure_database_schema(app: Flask) -> None:
+    """Run database migrations (or create tables) to guarantee the schema exists."""
+
+    with app.app_context():
+        try:
+            upgrade()
+            app.logger.info("Database schema is up to date.")
+        except Exception as exc:  # pragma: no cover - defensive logging for production
+            app.logger.warning("Automatic database migration failed: %s", exc)
+            try:
+                db.create_all()
+                app.logger.info("Database tables ensured with create_all().")
+            except Exception:
+                app.logger.exception("Failed to ensure database schema.")
+                raise
 
 
 def create_app():
@@ -32,6 +49,8 @@ def create_app():
     app.register_blueprint(user_bp, url_prefix='/api')
 
     logging.basicConfig(level=logging.INFO)
+
+    _ensure_database_schema(app)
 
     @app.route('/')
     def index():
