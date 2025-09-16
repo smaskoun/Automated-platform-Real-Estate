@@ -84,6 +84,11 @@ def add_examples_batch(voice_id):
             return jsonify({"error": "No valid examples provided."}), 400
         db.session.add_all(new_examples)
         db.session.commit()
+        logging.info(
+            "Saved %d example(s) for brand voice %s.",
+            len(new_examples),
+            voice_id,
+        )
         return jsonify({
             "success": True,
             "examples": [e.to_dict() for e in new_examples]
