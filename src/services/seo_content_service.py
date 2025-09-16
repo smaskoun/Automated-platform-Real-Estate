@@ -672,6 +672,7 @@ class SEOContentService:
             "keyword_density": density,
             "suggestion": suggestion,
         }
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
 
     def evaluate_posts(self, posts: List[Dict], default_platform: str = 'instagram') -> Dict:
         """Evaluate manual or generated posts and return consolidated SEO insights."""
@@ -757,6 +758,9 @@ class SEOContentService:
             'summary': summary,
         }
 
+
+    
+ main
     def generate_content_calendar(self, days: int = 30, platform: str = 'instagram') -> List[Dict]:
         """Generate a content calendar with SEO-optimized posts"""
         

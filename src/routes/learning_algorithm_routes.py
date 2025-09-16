@@ -5,15 +5,21 @@ import io
 
 # --- FIX: Changed relative import to absolute ---
 from ..services.learning_algorithm_service import learning_algorithm_service
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
 from ..services.manual_content_service import ManualContentService
 
 learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
 manual_content_service = ManualContentService()
 
+
+learning_algorithm_bp = Blueprint('learning_algorithm', __name__)
+ main
+
 @learning_algorithm_bp.route('/fetch-performance', methods=['POST'])
 def fetch_post_performance():
     """Fetch performance data from social media platforms"""
     try:
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
         data = request.get_json(silent=True) or {}
         platform = data.get('platform', 'manual')
         limit = data.get('limit', 100)
@@ -44,14 +50,38 @@ def fetch_post_performance():
 
         learning_algorithm_service.update_performance_history(posts_data)
 
+
+        data = request.get_json()
+        access_token = data.get('access_token')
+        platform = data.get('platform', 'facebook')
+        
+        if not access_token:
+            return jsonify({'error': 'Access token is required'}), 400
+        
+        # Fetch performance data
+        posts_data = learning_algorithm_service.fetch_post_performance(access_token, platform)
+        
+        if not posts_data:
+            return jsonify({'error': 'No performance data found or unable to fetch data'}), 404
+        
+        # Update performance history
+        learning_algorithm_service.update_performance_history(posts_data)
+        
+ main
         return jsonify({
             'success': True,
             'posts_fetched': len(posts_data),
             'platform': platform,
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
             'source': 'manual_content',
             'message': f'Successfully ingested {len(posts_data)} manual posts for performance analysis'
         })
 
+
+            'message': f'Successfully fetched performance data for {len(posts_data)} posts'
+        })
+        
+ main
     except Exception as e:
         return jsonify({'error': f'Failed to fetch performance data: {str(e)}'}), 500
 
