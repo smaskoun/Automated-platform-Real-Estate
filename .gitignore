@@ -4,9 +4,12 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
 # Generated image artifacts
 static/generated_images/*
 !static/generated_images/.gitkeep
 
+
+ main
 # SQLite database file
 app.db

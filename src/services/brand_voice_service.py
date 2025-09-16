@@ -1,15 +1,34 @@
 import re
 import json
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+
+import requests
+ main
+ main
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from collections import Counter
 import statistics
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
 from .manual_content_service import ManualContentService
 
 class BrandVoiceService:
     """Service for analyzing and learning user's brand voice from social media content"""
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
+
+class BrandVoiceService:
+    """Service for analyzing and learning user's brand voice from social media content"""
+    
+ main
+ main
     def __init__(self):
         self.voice_profile = {
             'tone_indicators': {},
@@ -55,6 +74,10 @@ class BrandVoiceService:
             'investment opportunity', 'market analysis', 'property value'
         ]
     
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
+ codex/fix-syntax-error-in-ab_testing_routes-s2rdpm
+ main
         self.manual_content_service = ManualContentService()
 
     def fetch_user_posts(
@@ -96,6 +119,69 @@ class BrandVoiceService:
         except Exception as exc:
             print(f"Error loading manual posts: {exc}")
 
+ codex/fix-syntax-error-in-ab_testing_routes-tnow9p
+=======
+
+    def fetch_user_posts(self, access_token: str, platform: str = 'facebook', limit: int = 50) -> List[Dict]:
+        """
+        Fetch user's recent posts from Facebook/Instagram
+        
+        Args:
+            access_token: User's social media access token
+            platform: 'facebook' or 'instagram'
+            limit: Number of posts to fetch
+        
+        Returns:
+            List of post data dictionaries
+        """
+        posts = []
+        
+        try:
+            if platform == 'facebook':
+                # Facebook Graph API endpoint for user's posts
+                url = f"https://graph.facebook.com/v18.0/me/posts"
+                params = {
+                    'access_token': access_token,
+                    'fields': 'message,created_time,engagement',
+                    'limit': limit
+                }
+                
+            elif platform == 'instagram':
+                # Instagram Basic Display API endpoint
+                url = f"https://graph.instagram.com/me/media"
+                params = {
+                    'access_token': access_token,
+                    'fields': 'caption,timestamp,like_count,comments_count',
+                    'limit': limit
+                }
+            
+            response = requests.get(url, params=params)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                for post in data.get('data', []):
+                    if platform == 'facebook':
+                        text_content = post.get('message', '')
+                    else:  # Instagram
+                        text_content = post.get('caption', '')
+                    
+                    if text_content:  # Only include posts with text content
+                        posts.append({
+                            'text': text_content,
+                            'created_time': post.get('created_time') or post.get('timestamp'),
+                            'engagement': post.get('engagement') or {
+                                'likes': post.get('like_count', 0),
+                                'comments': post.get('comments_count', 0)
+                            },
+                            'platform': platform
+                        })
+            
+        except Exception as e:
+            print(f"Error fetching posts: {str(e)}")
+        
+ main
+ main
         return posts
     
     def analyze_writing_style(self, posts: List[Dict]) -> Dict:
