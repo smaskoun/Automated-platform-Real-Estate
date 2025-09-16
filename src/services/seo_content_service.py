@@ -1,22 +1,24 @@
+import json
+import os
 import random
 import re
 from collections import Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
-import json
-import os
 
-from textblob import TextBlob
-import textstat
 import language_tool_python
+import textstat
+from textblob import TextBlob
+
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 class SEOContentService:
     """Service for generating SEO-optimized social media content for real estate"""
 
     def __init__(self, config_path: Optional[str] = None):
-        self.config_path = config_path or os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "data", "seo_keywords.json")
-        )
+        self.config_path = config_path or os.path.join(DATA_DIR, "seo_keywords.json")
         self._load_config()
         # Hashtag trend scores for weighting selections
         self.trend_scores: Dict[str, float] = {}
@@ -294,9 +296,7 @@ class SEOContentService:
                 with urlopen(source) as response:  # nosec B310
                     data = json.loads(response.read().decode())
             else:
-                default_path = source or os.path.join(
-                    os.path.dirname(__file__), '..', 'data', 'trend_scores.json'
-                )
+                default_path = source or os.path.join(DATA_DIR, 'trend_scores.json')
                 with open(default_path, 'r') as f:
                     data = json.load(f)
             # normalize keys to maintain consistency

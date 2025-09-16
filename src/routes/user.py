@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 # --- FIX: Changed relative import to absolute ---
-from models import db, User
+from ..models import db, User
 
 # Create a Blueprint for user-related routes
 user_bp = Blueprint('user_bp', __name__)
