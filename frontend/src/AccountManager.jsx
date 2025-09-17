@@ -166,23 +166,32 @@ function AccountManager({ user }) {
       )}
 
       {/* Add Account Card */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white rounded-xl shadow-card p-8 mb-8 border border-gray-200">
         <h3 className="text-xl font-bold mb-4">Add New Account</h3>
-        <form onSubmit={handleAddAccount} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <form onSubmit={handleAddAccount} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             type="text"
             value={accountName}
             onChange={(e) => setAccountName(e.target.value)}
             placeholder="e.g., My Main Facebook Page"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md md:col-span-1"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium md:col-span-1"
             required
           />
-          <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md">
+          <select
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium"
+          >
             <option>Facebook</option>
             <option>Instagram</option>
             <option>Google Business Profile</option>
           </select>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">Add Account</Button>
+          <Button
+            type="submit"
+            className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors w-full md:w-auto"
+          >
+            Add Account
+          </Button>
         </form>
       </div>
 
