@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
+  Building2,
   LayoutDashboard,
   Megaphone,
   Search,
@@ -11,6 +12,7 @@ import {
 // You can define your navigation links here
 const navigation = [
   { name: 'Accounts', href: '/accounts', icon: Users },
+  { name: 'Properties', href: '/properties', icon: Building2 },
   { name: 'Brand Voices', href: '/brand-voices', icon: Megaphone },
   { name: 'Social Media Posts', href: '/social-media', icon: Share2 },
   { name: 'SEO Tools', href: '/seo-tools', icon: Search },
