@@ -1,5 +1,25 @@
 # Automated Platform Real Estate
 
+## Environment variables
+
+Create a `.env` file in the project root (or configure the variables in your
+hosting provider) with the following keys before running the backend or any of
+the scraper utilities:
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `APIFY_API_KEY` | When using Apify-hosted scrapers | API token used by the Apify client to trigger actors and datasets. |
+| `GOOGLE_MAPS_API_KEY` | When rendering Google Maps features | Maps API key used by the frontend to request geocoding, tiles, or place details. |
+
+Optional scraper settings allow you to fine-tune how local scraping runs:
+
+| Variable | Purpose |
+| --- | --- |
+| `SCRAPER_PROVIDER` | Select which scraping runtime to use (`apify`, `puppeteer`, or `playwright`). |
+| `SCRAPER_HEADLESS` | Set to `false` to watch browser automation run locally; defaults to headless mode. |
+| `PUPPETEER_EXECUTABLE_PATH` | Override the Chromium/Chrome binary Puppeteer should launch. |
+| `PLAYWRIGHT_BROWSERS_PATH` | Reuse an existing Playwright browser download (especially helpful in CI). |
+
 ## Database Migrations
 
 This project uses **Flask-Migrate** (Alembic) for database schema management. The migrations live in the `migrations/` directory.
