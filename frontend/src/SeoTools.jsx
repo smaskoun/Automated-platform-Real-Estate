@@ -12,11 +12,12 @@ function SeoTools({
   const [hashtagInput, setHashtagInput] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [error, setError] = useState('');
- codex/add-keyword-management-ui-features
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [savedBundles, setSavedBundles] = useState(() => initialSavedBundles ?? []);
   const [bundleName, setBundleName] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
+  const { savedKeywordSets, addKeywordSet, removeKeywordSet } = useKeywordSets();
 
   useEffect(() => {
     if (initialSavedBundles === undefined) {
@@ -36,13 +37,9 @@ function SeoTools({
     const timeoutId = setTimeout(() => setStatusMessage(''), 3000);
     return () => clearTimeout(timeoutId);
   }, [statusMessage]);
-=======
-  const [saveMessage, setSaveMessage] = useState('');
-  const { savedKeywordSets, addKeywordSet, removeKeywordSet } = useKeywordSets();
- main
 
   const handleAnalyze = async () => {
-    const keywords = keywordInput.split(',').map(k => k.trim()).filter(Boolean);
+    const keywords = keywordInput.split(',').map((k) => k.trim()).filter(Boolean);
     if (keywords.length === 0) {
       setError('Please enter at least one keyword.');
       setAnalysis(null);
@@ -172,7 +169,7 @@ function SeoTools({
   };
 
   const handleSaveKeywordSet = () => {
-    const keywords = keywordInput.split(',').map(k => k.trim()).filter(Boolean);
+    const keywords = keywordInput.split(',').map((k) => k.trim()).filter(Boolean);
     if (keywords.length === 0) {
       setError('Please enter keywords before saving.');
       return;
@@ -204,24 +201,9 @@ function SeoTools({
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
       <h2 className="text-2xl font-bold">SEO Keyword Analyzer</h2>
- codex/add-keyword-management-ui-features
-      <input
-        type="text"
-        value={keywordInput}
-        onChange={(e) => setKeywordInput(e.target.value)}
-        placeholder="Enter keywords separated by commas"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <button
-        type="button"
-        onClick={handleAnalyze}
-        className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700"
-      >
-        Analyze
-      </button>
       {error && <div className="text-red-600">{error}</div>}
       {statusMessage && <div className="text-green-600">{statusMessage}</div>}
-=======
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <input
@@ -262,7 +244,6 @@ function SeoTools({
             Analyze
           </button>
           {saveMessage && <div className="text-green-600 text-sm">{saveMessage}</div>}
-          {error && <div className="text-red-600">{error}</div>}
         </div>
 
         <div className="bg-gray-50 border rounded-lg p-4 space-y-3">
@@ -298,7 +279,7 @@ function SeoTools({
           )}
         </div>
       </div>
- main
+
       {analysis && (
         <div className="space-y-6">
           <div>
@@ -476,6 +457,7 @@ function SeoTools({
           </div>
         </div>
       )}
+
       <div className="space-y-3">
         <h3 className="font-semibold">Saved Keyword Bundles</h3>
         {savedBundles.length > 0 ? (
