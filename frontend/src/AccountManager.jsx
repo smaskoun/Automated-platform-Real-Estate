@@ -206,46 +206,49 @@ function AccountManager({ user }) {
               const createdAtLabel = formatCreatedAt(created_at);
               const platformIconClass = platformIconStyles[normalizedPlatform] || 'bg-gray-100 text-gray-600';
               const platformIconLabel = platformIconLabels[normalizedPlatform] || (normalizedPlatform ? normalizedPlatform.charAt(0).toUpperCase() : '?');
-              const statusClasses = is_active
-                ? 'px-3 py-1 bg-success-50 text-success-700 rounded-full text-xs font-medium'
-                : 'px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium';
+              const statusClasses = `inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
+              }`;
 
               return (
-                <li
-                  key={id}
-                  className="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all duration-200 p-6 border border-gray-200 mb-4 flex items-center justify-between gap-6 flex-col sm:flex-row"
-                >
-                  <div className="flex items-center w-full gap-4 sm:w-auto">
-                    <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-xl text-sm font-semibold ${platformIconClass}`}
-                    >
-                      {platformIconLabel}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-500">{normalizedPlatform || 'Unknown Platform'}</p>
-                      <h4 className="text-lg font-semibold text-gray-900">{account_name}</h4>
-                      {createdAtLabel && (
-                        <p className="text-sm text-gray-500">Added {createdAtLabel}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-end">
-                    <span className={statusClasses}>{is_active ? 'Active' : 'Inactive'}</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleStartEdit(account)}
-                        className="px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteAccount(id)}
-                        className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                      >
-                        Delete
-                      </button>
+                <li key={id}>
+                  <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200">
+                    <div className="flex flex-col gap-6 p-6">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-4 sm:items-center">
+                          <div
+                            className={`flex h-12 w-12 items-center justify-center rounded-xl text-sm font-semibold ${platformIconClass}`}
+                          >
+                            {platformIconLabel}
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="text-lg font-semibold text-gray-900">{account_name}</h4>
+                            <p className="text-sm font-medium text-gray-500">{normalizedPlatform || 'Unknown Platform'}</p>
+                          </div>
+                        </div>
+                        {createdAtLabel && (
+                          <p className="text-sm text-gray-500 sm:text-right">Added {createdAtLabel}</p>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <span className={statusClasses}>{is_active ? 'Active' : 'Inactive'}</span>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(account)}
+                            className="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAccount(id)}
+                            className="inline-flex h-10 items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </li>
