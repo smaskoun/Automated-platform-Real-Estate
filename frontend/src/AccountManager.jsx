@@ -17,6 +17,39 @@ function AccountManager({ user }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const platformStyles = {
+    Facebook: 'bg-blue-500 text-white',
+    Instagram: 'bg-pink-500 text-white',
+    'Google Business Profile': 'bg-yellow-500 text-white',
+  };
+
+  const normalizePlatform = (value = '') => {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+
+    const normalizedMap = {
+      facebook: 'Facebook',
+      instagram: 'Instagram',
+      'google business profile': 'Google Business Profile',
+    };
+
+    return normalizedMap[trimmed.toLowerCase()] || trimmed;
+  };
+
+  const formatCreatedAt = (timestamp) => {
+    if (!timestamp) return '';
+
+    try {
+      return new Date(timestamp).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (error) {
+      return '';
+    }
+  };
+
   // Form state for adding
   const [accountName, setAccountName] = useState('');
   const [platform, setPlatform] = useState('Facebook');
@@ -77,7 +110,8 @@ function AccountManager({ user }) {
   const handleStartEdit = (account) => {
     setEditingAccount(account);
     setEditName(account.account_name);
-    setEditPlatform(account.platform);
+    const normalized = normalizePlatform(account.platform);
+    setEditPlatform(normalized || account.platform || 'Facebook');
   };
 
   const handleCancelEdit = () => setEditingAccount(null);
@@ -94,13 +128,6 @@ function AccountManager({ user }) {
     } catch (err) {
       alert('Failed to save changes.');
     }
-  };
-
-  // Helper for platform-specific styling
-  const platformStyles = {
-    Facebook: 'bg-blue-500 text-white',
-    Instagram: 'bg-pink-500 text-white',
-    'Google Business Profile': 'bg-yellow-500 text-white',
   };
 
   return (
@@ -158,18 +185,47 @@ function AccountManager({ user }) {
         <h3 className="text-xl font-bold mb-4">Your Accounts</h3>
         {isLoading ? <p>Loading accounts...</p> : error ? <p className="text-red-500">{error}</p> : (
           <ul className="space-y-3">
-            {accounts.length > 0 ? accounts.map(acc => (
-              <li key={acc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md border">
-                <div className="flex items-center space-x-3">
-                  <span className={`px-2 py-1 text-xs font-bold rounded-full ${platformStyles[acc.platform]}`}>{acc.platform}</span>
-                  <span className="font-medium">{acc.account_name}</span>
-                </div>
-                <div className="flex space-x-2">
-                  <Button onClick={() => handleStartEdit(acc)} className="bg-yellow-500 hover:bg-yellow-600 text-sm">Edit</Button>
-                  <Button onClick={() => handleDeleteAccount(acc.id)} className="bg-red-600 hover:bg-red-700 text-sm">Delete</Button>
-                </div>
-              </li>
-            )) : <p>No accounts found. Add one using the form above.</p>}
+            {accounts.length > 0 ? accounts.map((account) => {
+              const { id, account_name, platform, is_active, created_at } = account;
+              const normalizedPlatform = normalizePlatform(platform);
+              const platformBadgeClass = platformStyles[normalizedPlatform] || 'bg-gray-200 text-gray-700';
+              const createdAtLabel = formatCreatedAt(created_at);
+
+              return (
+                <li key={id} className="p-3 bg-gray-50 rounded-md border">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start space-x-3">
+                      <span className={`px-2 py-1 text-xs font-bold rounded-full ${platformBadgeClass}`}>
+                        {normalizedPlatform || 'Unknown'}
+                      </span>
+                      <div className="space-y-1">
+                        <span className="block font-medium">{account_name}</span>
+                        {createdAtLabel && (
+                          <span className="block text-xs text-gray-500">Added {createdAtLabel}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 sm:justify-end">
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <div className="flex space-x-2">
+                        <Button onClick={() => handleStartEdit(account)} className="bg-yellow-500 hover:bg-yellow-600 text-sm">
+                          Edit
+                        </Button>
+                        <Button onClick={() => handleDeleteAccount(id)} className="bg-red-600 hover:bg-red-700 text-sm">
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              );
+            }) : <p>No accounts found. Add one using the form above.</p>}
           </ul>
         )}
       </div>
