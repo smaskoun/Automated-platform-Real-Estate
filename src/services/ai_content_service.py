@@ -54,10 +54,10 @@ class AIContentService:
                 Windsor-Essex, Ontario, Canada. All content, landmarks, and hashtags must be relevant to this area.
 
             3.  **Tone and Style Guide (Strictly follow this):**
-                Emulate the tone, voice, and structure of this example:
-                --- EXAMPLE START ---
+                Emulate the tone, voice, and structure demonstrated in the following examples. The block between <<<EXAMPLES START>>> and <<<EXAMPLES END>>> contains every sample the client provided (primary and uploaded). Do not copy verbatim—replicate the style, pacing, and personality instead.
+                <<<EXAMPLES START>>>
                 {brand_voice_example}
-                --- EXAMPLE END ---
+                <<<EXAMPLES END>>>
 
             4.  **Performance Optimization Rules (Apply these insights):**
                 - **Content Style:** {performance_insights.get('content_style_suggestions', 'General best practices apply.')}
