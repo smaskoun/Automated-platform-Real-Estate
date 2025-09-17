@@ -46,7 +46,7 @@ function NavItem({ item }) {
 
 function DashboardLayout({ user, onLogout }) {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 font-sans">
       {/* Static sidebar for desktop */}
       <aside className="bg-gray-900 text-white w-64 min-h-screen p-4 flex flex-col gap-6">
         <div className="flex items-center gap-3">
