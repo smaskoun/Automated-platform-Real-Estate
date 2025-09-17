@@ -17,10 +17,16 @@ function AccountManager({ user }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const platformStyles = {
-    Facebook: 'bg-blue-500 text-white',
-    Instagram: 'bg-pink-500 text-white',
-    'Google Business Profile': 'bg-yellow-500 text-white',
+  const platformIconStyles = {
+    Facebook: 'bg-blue-100 text-blue-600',
+    Instagram: 'bg-pink-100 text-pink-600',
+    'Google Business Profile': 'bg-yellow-100 text-yellow-600',
+  };
+
+  const platformIconLabels = {
+    Facebook: 'FB',
+    Instagram: 'IG',
+    'Google Business Profile': 'GB',
   };
 
   const normalizePlatform = (value = '') => {
@@ -184,43 +190,53 @@ function AccountManager({ user }) {
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-bold mb-4">Your Accounts</h3>
         {isLoading ? <p>Loading accounts...</p> : error ? <p className="text-red-500">{error}</p> : (
-          <ul className="space-y-3">
+          <ul className="space-y-4 mb-6">
             {accounts.length > 0 ? accounts.map((account) => {
               const { id, account_name, platform, is_active, created_at } = account;
               const normalizedPlatform = normalizePlatform(platform);
-              const platformBadgeClass = platformStyles[normalizedPlatform] || 'bg-gray-200 text-gray-700';
               const createdAtLabel = formatCreatedAt(created_at);
+              const platformIconClass = platformIconStyles[normalizedPlatform] || 'bg-gray-100 text-gray-600';
+              const platformIconLabel = platformIconLabels[normalizedPlatform] || (normalizedPlatform ? normalizedPlatform.charAt(0).toUpperCase() : '?');
+              const statusClasses = is_active
+                ? 'px-3 py-1 bg-success-50 text-success-700 rounded-full text-xs font-medium'
+                : 'px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium';
 
               return (
-                <li key={id} className="p-3 bg-gray-50 rounded-md border">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-start space-x-3">
-                      <span className={`px-2 py-1 text-xs font-bold rounded-full ${platformBadgeClass}`}>
-                        {normalizedPlatform || 'Unknown'}
-                      </span>
-                      <div className="space-y-1">
-                        <span className="block font-medium">{account_name}</span>
-                        {createdAtLabel && (
-                          <span className="block text-xs text-gray-500">Added {createdAtLabel}</span>
-                        )}
-                      </div>
+                <li
+                  key={id}
+                  className="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all duration-200 p-6 border border-gray-200 mb-4 flex items-center justify-between gap-6 flex-col sm:flex-row"
+                >
+                  <div className="flex items-center w-full gap-4 sm:w-auto">
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-xl text-sm font-semibold ${platformIconClass}`}
+                    >
+                      {platformIconLabel}
                     </div>
-                    <div className="flex items-center justify-between gap-3 sm:justify-end">
-                      <span
-                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                          is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
-                        }`}
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-500">{normalizedPlatform || 'Unknown Platform'}</p>
+                      <h4 className="text-lg font-semibold text-gray-900">{account_name}</h4>
+                      {createdAtLabel && (
+                        <p className="text-sm text-gray-500">Added {createdAtLabel}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-end">
+                    <span className={statusClasses}>{is_active ? 'Active' : 'Inactive'}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(account)}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors"
                       >
-                        {is_active ? 'Active' : 'Inactive'}
-                      </span>
-                      <div className="flex space-x-2">
-                        <Button onClick={() => handleStartEdit(account)} className="bg-yellow-500 hover:bg-yellow-600 text-sm">
-                          Edit
-                        </Button>
-                        <Button onClick={() => handleDeleteAccount(id)} className="bg-red-600 hover:bg-red-700 text-sm">
-                          Delete
-                        </Button>
-                      </div>
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAccount(id)}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 </li>
