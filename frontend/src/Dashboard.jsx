@@ -1,25 +1,34 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Megaphone,
+  Search,
+  Share2,
+  Users,
+} from 'lucide-react';
 
 // You can define your navigation links here
 const navigation = [
-  { name: 'Accounts', href: '/accounts' },
-  { name: 'Brand Voices', href: '/brand-voices' },
-  { name: 'Social Media Posts', href: '/social-media' },
-  { name: 'SEO Tools', href: '/seo-tools' },
+  { name: 'Accounts', href: '/accounts', icon: Users },
+  { name: 'Brand Voices', href: '/brand-voices', icon: Megaphone },
+  { name: 'Social Media Posts', href: '/social-media', icon: Share2 },
+  { name: 'SEO Tools', href: '/seo-tools', icon: Search },
 ];
 
 // This is a helper component for the navigation links to handle styling
 function NavItem({ item }) {
-  const baseClasses = "group flex items-center px-3 py-2 text-sm font-medium rounded-md";
+  const baseClasses = "group flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md";
   const activeClasses = "bg-gray-900 text-white";
   const inactiveClasses = "text-gray-300 hover:bg-gray-700 hover:text-white";
   const disabledClasses = "text-gray-500 cursor-not-allowed";
+  const Icon = item.icon;
 
   if (item.disabled) {
     return (
       <span className={`${baseClasses} ${disabledClasses}`} title="Coming Soon">
-        {item.name}
+        {Icon ? <Icon className="h-4 w-4" aria-hidden="true" /> : null}
+        <span>{item.name}</span>
       </span>
     );
   }
@@ -29,7 +38,8 @@ function NavItem({ item }) {
       to={item.href}
       className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
     >
-      {item.name}
+      {Icon ? <Icon className="h-4 w-4" aria-hidden="true" /> : null}
+      <span>{item.name}</span>
     </NavLink>
   );
 }
@@ -42,6 +52,7 @@ function DashboardLayout({ user, onLogout }) {
         <div className="flex w-64 flex-col bg-gray-800">
           <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
             <div className="flex flex-shrink-0 items-center px-4">
+              <LayoutDashboard className="mr-3 h-6 w-6 text-white" aria-hidden="true" />
               <h1 className="text-2xl font-bold text-white">Real Estate AI</h1>
             </div>
             <nav className="mt-5 flex-1 space-y-1 px-2">
