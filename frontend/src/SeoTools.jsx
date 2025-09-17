@@ -3,7 +3,7 @@ import api from './api.js';
 import { useKeywordSets } from './KeywordSetsContext.jsx';
 
 function SeoTools({
-  initialSavedBundles = [],
+  initialSavedBundles,
   onBundlesChange = () => {},
   onBundleSelected = () => {},
 }) {
@@ -14,11 +14,14 @@ function SeoTools({
   const [error, setError] = useState('');
  codex/add-keyword-management-ui-features
   const [selectedKeywords, setSelectedKeywords] = useState([]);
-  const [savedBundles, setSavedBundles] = useState(() => initialSavedBundles);
+  const [savedBundles, setSavedBundles] = useState(() => initialSavedBundles ?? []);
   const [bundleName, setBundleName] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
+    if (initialSavedBundles === undefined) {
+      return;
+    }
     setSavedBundles(initialSavedBundles);
   }, [initialSavedBundles]);
 
