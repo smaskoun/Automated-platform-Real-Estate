@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, request
 
 from ..models import db
 from ..models.brand_voice import BrandVoice
+from ..models.brand_voice_example import BrandVoiceExample
 from ..models.social_media import SocialMediaAccount, SocialMediaPost
 from ..services.ai_content_service import ai_content_service
 from ..services.ai_image_service import ai_image_service
@@ -18,6 +19,10 @@ from ..services.learning_algorithm_service import learning_algorithm_service
 
 LOGGER = logging.getLogger(__name__)
 social_media_bp = Blueprint("social_media", __name__)
+
+
+BRAND_VOICE_EXAMPLES_MAX_CHARS = 4000
+_EXAMPLE_DELIMITER = "\n\n"
 
 
 # ---------------------------------------------------------------------------
@@ -41,6 +46,54 @@ def _serialise_hashtags(hashtags: Any) -> str:
         return json.dumps([])
     filtered = [str(tag).strip() for tag in hashtags if str(tag).strip()]
     return json.dumps(filtered)
+
+
+def _build_voice_examples_block(
+    primary_example: str | None,
+    additional_examples: Iterable[str],
+    *,
+    max_chars: int | None = None,
+) -> str:
+    """Combine brand voice examples into a single prompt-friendly block."""
+
+    if max_chars is None:
+        max_chars = BRAND_VOICE_EXAMPLES_MAX_CHARS
+
+    texts: List[str] = []
+    primary_clean = (primary_example or "").strip()
+    if primary_clean:
+        texts.append(primary_clean)
+
+    for raw in additional_examples:
+        cleaned = (raw or "").strip()
+        if cleaned:
+            texts.append(cleaned)
+
+    if not texts:
+        return ""
+
+    if max_chars is None or max_chars <= 0:
+        return _EXAMPLE_DELIMITER.join(texts)
+
+    combined: List[str] = []
+    current_length = 0
+    for text in texts:
+        delimiter_length = len(_EXAMPLE_DELIMITER) if combined else 0
+        available = max_chars - current_length - delimiter_length
+        if available <= 0:
+            break
+
+        if len(text) > available:
+            truncated = text[:available].rstrip()
+            if truncated:
+                combined.append(truncated)
+                current_length += delimiter_length + len(truncated)
+            break
+
+        combined.append(text)
+        current_length += delimiter_length + len(text)
+
+    return _EXAMPLE_DELIMITER.join(combined)
 
 
 # ---------------------------------------------------------------------------
@@ -133,10 +186,20 @@ def generate_ai_post() -> Any:
         insights_used = False
         insights = {}
 
+    additional_examples = (
+        BrandVoiceExample.query.filter_by(brand_voice_id=brand_voice.id)
+        .order_by(BrandVoiceExample.created_at.asc())
+        .all()
+    )
+    combined_examples = _build_voice_examples_block(
+        brand_voice.post_example,
+        (example.content for example in additional_examples),
+    )
+
     try:
         generated = ai_content_service.generate_optimized_post(
             topic=payload["topic"],
-            brand_voice_example=brand_voice.post_example,
+            brand_voice_example=combined_examples or brand_voice.post_example,
             performance_insights=insights,
         )
     except Exception as exc:  # pragma: no cover - runtime failures are logged
