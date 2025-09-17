@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from './api.js';
+import { useKeywordSets } from './KeywordSetsContext.jsx';
 
 // Simple debounce utility
 function debounce(fn, delay) {
@@ -8,6 +9,19 @@ function debounce(fn, delay) {
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), delay);
   };
+}
+
+function normalizeHashtag(value) {
+  if (!value) return '';
+  const cleaned = value
+    .toString()
+    .trim()
+    .replace(/[#\s]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .join('');
+
+  return cleaned ? `#${cleaned}` : '';
 }
 
 function SocialMediaManager({ user }) {
@@ -31,12 +45,15 @@ function SocialMediaManager({ user }) {
   const [selectedBrandVoice, setSelectedBrandVoice] = useState('');
   const [primaryKeyword, setPrimaryKeyword] = useState('');
   const [seoResult, setSeoResult] = useState(null);
+  const [isKeywordPickerOpen, setIsKeywordPickerOpen] = useState(false);
 
   // Editing state
   const [editingPost, setEditingPost] = useState(null);
   const [editContent, setEditContent] = useState('');
   const [editHashtags, setEditHashtags] = useState('');
   const [editSchedule, setEditSchedule] = useState('');
+
+  const { savedKeywordSets } = useKeywordSets();
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -200,6 +217,25 @@ function SocialMediaManager({ user }) {
     setEditingPost(null);
   };
 
+  const applyKeywordSet = (keywordSet) => {
+    if (!keywordSet) return;
+    setPrimaryKeyword(keywordSet.primaryKeyword || keywordSet.keywords?.[0] || '');
+
+    if (Array.isArray(keywordSet.hashtags) && keywordSet.hashtags.length > 0) {
+      setHashtags(keywordSet.hashtags.map(normalizeHashtag).filter(Boolean));
+    } else if (Array.isArray(keywordSet.keywords)) {
+      const derived = keywordSet.keywords
+        .filter((kw) => kw && kw !== keywordSet.primaryKeyword)
+        .map(normalizeHashtag)
+        .filter(Boolean);
+      setHashtags(derived);
+    } else {
+      setHashtags([]);
+    }
+
+    setIsKeywordPickerOpen(false);
+  };
+
   if (isLoading) {
     return <div className="text-center p-8">Loading social media dashboard...</div>;
   }
@@ -221,13 +257,22 @@ function SocialMediaManager({ user }) {
             onChange={(e) => setTopic(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
-          <input
-            type="text"
-            placeholder="Primary keyword..."
-            value={primaryKeyword}
-            onChange={(e) => setPrimaryKeyword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+            <input
+              type="text"
+              placeholder="Primary keyword..."
+              value={primaryKeyword}
+              onChange={(e) => setPrimaryKeyword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            <button
+              type="button"
+              onClick={() => setIsKeywordPickerOpen(true)}
+              className="px-3 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+            >
+              Import Saved
+            </button>
+          </div>
           <select value={selectedBrandVoice} onChange={(e) => setSelectedBrandVoice(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md">
             <option value="" disabled>Select a Brand Voice</option>
             {brandVoices.map(bv => (
@@ -374,6 +419,62 @@ function SocialMediaManager({ user }) {
               <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
             </div>
           </form>
+        </div>
+      </div>
+    )}
+    {isKeywordPickerOpen && (
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-lg font-bold">Import Saved Keywords</h3>
+              <p className="text-sm text-gray-600">Select a keyword set saved from the SEO Tools page.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsKeywordPickerOpen(false)}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+          {savedKeywordSets.length === 0 ? (
+            <p className="text-sm text-gray-600">No keyword sets available yet. Save some from the SEO Tools page.</p>
+          ) : (
+            <ul className="space-y-3 max-h-72 overflow-y-auto">
+              {savedKeywordSets.map((set) => (
+                <li key={set.id} className="border rounded-md p-4 bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <p className="font-semibold text-gray-800">{set.name}</p>
+                      {set.primaryKeyword && (
+                        <p className="text-sm text-gray-600">Primary keyword: {set.primaryKeyword}</p>
+                      )}
+                      {set.keywords?.length > 0 && (
+                        <p className="text-xs text-gray-500">Keywords: {set.keywords.join(', ')}</p>
+                      )}
+                      {set.hashtags?.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {set.hashtags.map((tag, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => applyKeywordSet(set)}
+                      className="px-3 py-1 text-sm text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+                    >
+                      Use
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     )}
