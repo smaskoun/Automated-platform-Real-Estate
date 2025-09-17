@@ -166,8 +166,8 @@ function AccountManager({ user }) {
       )}
 
       {/* Add Account Card */}
-      <div className="bg-white rounded-xl shadow-card p-8 mb-8 border border-gray-200">
-        <h3 className="text-xl font-bold mb-4">Add New Account</h3>
+      <div className="bg-white rounded-xl shadow-sm p-8 mb-8 border border-gray-200">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">Add New Account</h3>
         <form onSubmit={handleAddAccount} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             type="text"
