@@ -8,6 +8,7 @@ import AccountManager from './AccountManager.jsx';
 import BrandVoiceManager from './BrandVoiceManager.jsx';
 import SocialMediaManager from './SocialMediaManager.jsx';
 import SeoTools from './SeoTools.jsx';
+import PropertiesPage from './pages/PropertiesPage.jsx';
 import { KeywordSetsProvider } from './KeywordSetsContext.jsx';
 
 // We will create a "mock" user to pass to the layout.
@@ -26,6 +27,7 @@ function App() {
 
             {/* All pages are now nested inside the layout and have their own paths */}
             <Route path="accounts" element={<AccountManager user={mockUser} />} />
+            <Route path="properties" element={<PropertiesPage user={mockUser} />} />
             <Route path="brand-voices" element={<BrandVoiceManager user={mockUser} />} />
             <Route path="social-media" element={<SocialMediaManager user={mockUser} />} />
             <Route path="seo-tools" element={<SeoTools user={mockUser} />} />
