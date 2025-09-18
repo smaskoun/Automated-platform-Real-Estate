@@ -1,4 +1,6 @@
-from flask import Flask
+import os
+
+from flask import Flask, abort, send_from_directory
 from flask_cors import CORS
 from flask_migrate import Migrate, upgrade
 import logging
@@ -54,8 +56,18 @@ def create_app():
 
     _ensure_database_schema(app)
 
-    @app.route('/')
-    def index():
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def index(path):
+        if path.startswith('api/'):
+            abort(404)
+
+        static_dir = app.static_folder
+        if path and static_dir:
+            full_path = os.path.join(static_dir, path)
+            if os.path.isfile(full_path):
+                return send_from_directory(static_dir, path)
+
         return app.send_static_file('index.html')
 
     return app
