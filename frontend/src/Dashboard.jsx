@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
   Building2,
   LayoutDashboard,
   Megaphone,
+  Menu,
   Search,
   Share2,
   Users,
+  X,
 } from 'lucide-react';
 
-// You can define your navigation links here
 const navigation = [
   { name: 'Accounts', href: '/accounts', icon: Users },
   { name: 'Properties', href: '/properties', icon: Building2 },
@@ -18,18 +19,13 @@ const navigation = [
   { name: 'SEO Tools', href: '/seo-tools', icon: Search },
 ];
 
-// This is a helper component for the navigation links to handle styling
-function NavItem({ item }) {
-  const baseClasses = "group flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-lg";
-  const activeClasses = "bg-gray-800 text-primary-400";
-  const inactiveClasses = "text-gray-300 hover:bg-gray-800 hover:text-white";
-  const disabledClasses = "text-gray-500 cursor-not-allowed";
+function NavItem({ item, onNavigate }) {
   const Icon = item.icon;
 
   if (item.disabled) {
     return (
-      <span className={`${baseClasses} ${disabledClasses}`} title="Coming Soon">
-        {Icon ? <Icon className="h-5 w-5" aria-hidden="true" /> : null}
+      <span className="nav-item disabled" title="Coming Soon">
+        {Icon ? <Icon className="nav-icon" aria-hidden="true" /> : null}
         <span>{item.name}</span>
       </span>
     );
@@ -38,50 +34,95 @@ function NavItem({ item }) {
   return (
     <NavLink
       to={item.href}
-      className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
+      className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+      onClick={onNavigate}
     >
-      {Icon ? <Icon className="h-5 w-5" aria-hidden="true" /> : null}
+      {Icon ? <Icon className="nav-icon" aria-hidden="true" /> : null}
       <span>{item.name}</span>
     </NavLink>
   );
 }
 
 function DashboardLayout({ user, onLogout }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const username = user?.username ?? 'User';
+  const userInitial = username.charAt(0).toUpperCase();
+
+  const handleToggleMenu = () => {
+    setMenuOpen((open) => !open);
+  };
+
+  const handleCloseMenu = () => {
+    setMenuOpen(false);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-100 font-sans">
-      {/* Static sidebar for desktop */}
-      <aside className="bg-gray-900 text-white w-64 min-h-screen p-4 flex flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 bg-primary-600 rounded-lg">
-            <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
+    <div className="dashboard-layout">
+      <aside className={`sidebar${menuOpen ? ' open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="brand">
+            <span className="brand-icon">
+              <LayoutDashboard aria-hidden="true" />
+            </span>
+            <div className="brand-name">
+              <span>Control</span>
+              <span>Real Estate AI</span>
+            </div>
           </div>
-          <h1 className="text-xl font-semibold">Real Estate AI</h1>
         </div>
-
-        <nav className="flex-1 flex flex-col gap-1">
-          {navigation.map((item) => (
-            <NavItem key={item.name} item={item} />
-          ))}
+        <nav className="nav-section" aria-label="Primary">
+          <span className="nav-label">Navigation</span>
+          <ul className="nav-list">
+            {navigation.map((item) => (
+              <li key={item.name}>
+                <NavItem item={item} onNavigate={handleCloseMenu} />
+              </li>
+            ))}
+          </ul>
         </nav>
-
-        <div className="border-t border-gray-800 pt-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white">{user.username}</span>
-            <button
-              onClick={onLogout}
-              className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-1 text-sm font-medium text-white shadow-sm hover:bg-red-700"
-            >
-              Logout
-            </button>
+        <div className="sidebar-footer">
+          <div className="user-card">
+            <span className="avatar" aria-hidden="true">
+              {userInitial}
+            </span>
+            <div className="user-meta">
+              <span className="user-name">{username}</span>
+              <span className="user-role">Administrator</span>
+            </div>
           </div>
+          <button type="button" className="logout-button" onClick={onLogout}>
+            Logout
+          </button>
         </div>
       </aside>
-
-      {/* Main content area */}
-      <main className="flex-1 overflow-y-auto bg-gray-200 p-8">
-        {/* The Outlet is where the different pages will be rendered */}
-        <Outlet />
-      </main>
+      {menuOpen ? <div className="sidebar-backdrop" onClick={handleCloseMenu} /> : null}
+      <div className="main-content">
+        <header className="header">
+          <button
+            type="button"
+            className={`menu-toggle${menuOpen ? ' open' : ''}`}
+            onClick={handleToggleMenu}
+            aria-label={`${menuOpen ? 'Close' : 'Open'} navigation menu`}
+          >
+            {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+          </button>
+          <div className="header-info">
+            <h1>Welcome back, {username}</h1>
+            <p>Manage your accounts, listings, and marketing automations from one hub.</p>
+          </div>
+          <div className="header-actions">
+            <div className="profile-chip">
+              <span className="avatar" aria-hidden="true">
+                {userInitial}
+              </span>
+              <span>{username}</span>
+            </div>
+          </div>
+        </header>
+        <section className="content-area">
+          <Outlet />
+        </section>
+      </div>
     </div>
   );
 }
