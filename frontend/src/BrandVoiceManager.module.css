@@ -1,0 +1,262 @@
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #e0e0e0;
+}
+
+.card {
+  background-color: #2d3139;
+  border-radius: 10px;
+  padding: 24px 28px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cardTitle {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.35rem;
+}
+
+.cardSubtitle {
+  margin: 6px 0 0;
+  color: #a8b0bc;
+  font-size: 0.95rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #c7ccd6;
+}
+
+.input,
+.textarea,
+.select {
+  background-color: #3a3f47;
+  border: 1px solid #555b65;
+  border-radius: 6px;
+  color: #f5f5f5;
+  padding: 12px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.textarea {
+  min-height: 200px;
+  resize: vertical;
+}
+
+.helperText {
+  color: #7f8898;
+  font-size: 0.75rem;
+}
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 12px;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  border: none;
+  border-radius: 6px;
+  padding: 12px 22px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primaryButton {
+  background-color: #61dafb;
+  color: #1a1d23;
+}
+
+.secondaryButton {
+  background-color: #454b55;
+  color: #ffffff;
+}
+
+.dangerButton {
+  background-color: #f05454;
+  color: #ffffff;
+}
+
+.primaryButton:hover,
+.secondaryButton:hover,
+.dangerButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.libraryList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.libraryItem {
+  background-color: #252932;
+  border-radius: 10px;
+  border: 1px solid #3a3f47;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.voiceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.voiceName {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.statusReady {
+  background-color: #3fa97c;
+  color: #0d271d;
+}
+
+.voiceDescription {
+  margin: 0;
+  color: #c7ccd6;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.postExample {
+  background-color: #1f2229;
+  border-radius: 8px;
+  border: 1px solid #3a3f47;
+  padding: 18px;
+}
+
+.postLabel {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #7f8898;
+  margin-bottom: 10px;
+}
+
+.postBody {
+  margin: 0;
+  color: #f1f3f7;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.libraryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timestamp {
+  font-size: 0.8rem;
+  color: #8c939f;
+}
+
+.libraryActions {
+  display: flex;
+  gap: 10px;
+}
+
+.emptyState {
+  color: #9aa4b4;
+  font-style: italic;
+  padding: 10px 0;
+}
+
+.loading,
+.errorBanner {
+  text-align: center;
+  padding: 40px;
+  border-radius: 10px;
+}
+
+.loading {
+  color: #9aa4b4;
+}
+
+.errorBanner {
+  background-color: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  color: #ff6b6b;
+}
+
+.bulkIntro {
+  margin-top: 6px;
+  color: #9aa4b4;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: 20px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .libraryMeta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardActions {
+    justify-content: stretch;
+  }
+
+  .cardActions button {
+    width: 100%;
+  }
+}

@@ -71,6 +71,22 @@
   gap: 15px;
 }
 
+.accountDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accountName {
+  font-weight: 600;
+  color: #f5f5f5;
+}
+
+.accountPlatform {
+  font-size: 0.85rem;
+  color: #a8b0bc;
+}
+
 .platform {
   padding: 5px 12px;
   border-radius: 15px;
@@ -87,6 +103,12 @@
   color: #ff6b6b;
 }
 
+.emptyState {
+  color: #a8b0bc;
+  font-style: italic;
+  padding: 15px 0;
+}
+
 /* --- NEW STYLES FOR BUTTONS AND MODAL --- */
 
 .accountActions {
@@ -101,6 +123,39 @@
   font-weight: bold;
   cursor: pointer;
   font-size: 14px;
+}
+
+.accountMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #8c939f;
+}
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.statusActive {
+  background-color: #3fa97c;
+  color: #0d271d;
+}
+
+.statusInactive {
+  background-color: #555b65;
+  color: #f1f1f1;
 }
 
 .editButton {
@@ -171,4 +226,9 @@
 .modalActions .cancelButton {
   background-color: #555;
   color: white;
+}
+
+.modalActions .saveButton {
+  background-color: #61dafb;
+  color: #282c34;
 }
