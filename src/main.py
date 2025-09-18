@@ -34,7 +34,7 @@ def _ensure_database_schema(app: Flask) -> None:
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='static', static_url_path='')
     app.config.from_object(Config)
     db.init_app(app)
     Migrate(app, db)
@@ -56,7 +56,7 @@ def create_app():
 
     @app.route('/')
     def index():
-        return "Backend is running!"
+        return app.send_static_file('index.html')
 
     return app
 
