@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from './api.js';
+import styles from './BrandVoiceManager.module.css';
 
 function BrandVoiceManager({ user }) {
   const [voices, setVoices] = useState([]);
@@ -88,169 +89,178 @@ function BrandVoiceManager({ user }) {
     }
   };
 
+  const formatDate = (value) => {
+    if (!value) return '';
+    try {
+      return new Date(value).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (err) {
+      console.error('Failed to parse date', err);
+      return '';
+    }
+  };
+
   if (isLoading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="text-lg font-medium text-gray-500">Loading Source Content...</div>
-      </div>
-    );
+    return <div className={styles.loading}>Loading source content...</div>;
   }
 
   if (error) {
-    return (
-      <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-        {error}
-      </div>
-    );
+    return <div className={styles.errorBanner}>{error}</div>;
   }
 
-  const inputClasses =
-    'w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500';
-
   return (
-    <div className="space-y-8">
-      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h3 className="mb-6 text-xl font-semibold text-gray-900">Add New Source Content</h3>
-        <form onSubmit={handleCreateVoice} className="space-y-6">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="voiceName" className="block text-sm font-medium text-gray-700">
-                Content Title
-              </label>
-              <input
-                id="voiceName"
-                type="text"
-                placeholder="e.g., 'Just Listed - 123 Main St'"
-                value={newVoiceName}
-                onChange={(e) => setNewVoiceName(e.target.value)}
-                className={inputClasses}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="voiceDesc" className="block text-sm font-medium text-gray-700">
-                Short Description
-              </label>
-              <input
-                id="voiceDesc"
-                type="text"
-                placeholder="e.g., 'Successful post from May 2024'"
-                value={newVoiceDesc}
-                onChange={(e) => setNewVoiceDesc(e.target.value)}
-                className={inputClasses}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="postExample" className="block text-sm font-medium text-gray-700">
-                Full Post Content
-              </label>
-              <textarea
-                id="postExample"
-                placeholder="Paste the full content of your successful post here..."
-                value={newPostExample}
-                onChange={(e) => setNewPostExample(e.target.value)}
-                className={`${inputClasses} min-h-[200px] resize-y`}
-                required
-                rows="8"
-              />
-            </div>
+    <div className={styles.container}>
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h3 className={styles.cardTitle}>Add New Source Content</h3>
+            <p className={styles.cardSubtitle}>
+              Curate your top-performing posts to train the AI brand voice engine.
+            </p>
           </div>
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
+        </div>
+        <form onSubmit={handleCreateVoice} className={styles.formGrid}>
+          <label htmlFor="voiceName" className={styles.label}>
+            Content Title
+            <input
+              id="voiceName"
+              type="text"
+              value={newVoiceName}
+              onChange={(e) => setNewVoiceName(e.target.value)}
+              placeholder="e.g., Luxury waterfront open house"
+              className={styles.input}
+              required
+            />
+          </label>
+          <label htmlFor="voiceDesc" className={styles.label}>
+            Short Description
+            <input
+              id="voiceDesc"
+              type="text"
+              value={newVoiceDesc}
+              onChange={(e) => setNewVoiceDesc(e.target.value)}
+              placeholder="What makes this content special?"
+              className={styles.input}
+              required
+            />
+          </label>
+          <label htmlFor="postExample" className={`${styles.label} ${styles.fullWidth}`}>
+            Full Post Content
+            <textarea
+              id="postExample"
+              value={newPostExample}
+              onChange={(e) => setNewPostExample(e.target.value)}
+              placeholder="Paste the full copy of the post you loved..."
+              className={styles.textarea}
+              required
+              rows="8"
+            />
+            <span className={styles.helperText}>Include emojis, formatting, and hashtags for the best training results.</span>
+          </label>
+          <div className={`${styles.cardActions} ${styles.fullWidth}`}>
+            <button type="submit" className={styles.primaryButton}>
               Add Content
             </button>
           </div>
         </form>
-      </div>
+      </section>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h3 className="mb-6 text-xl font-semibold text-gray-900">Upload Previous Posts in Bulk</h3>
-        <form onSubmit={handleUploadExamples} className="space-y-6">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="voiceSelect" className="block text-sm font-medium text-gray-700">
-                Select Voice
-              </label>
-              <select
-                id="voiceSelect"
-                value={selectedVoiceId}
-                onChange={(e) => setSelectedVoiceId(e.target.value)}
-                className={`${inputClasses} bg-white`}
-                required
-              >
-                <option value="" disabled>
-                  Select a voice
-                </option>
-                {voices.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="bulkExamples" className="block text-sm font-medium text-gray-700">
-                Posts (separate with blank lines)
-              </label>
-              <textarea
-                id="bulkExamples"
-                rows="6"
-                placeholder="Paste multiple posts here..."
-                value={bulkExamples}
-                onChange={(e) => setBulkExamples(e.target.value)}
-                className={`${inputClasses} min-h-[160px] resize-y`}
-                required
-              />
-            </div>
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h3 className={styles.cardTitle}>Upload Previous Posts in Bulk</h3>
+            <p className={styles.cardSubtitle}>
+              Paste multiple winning posts to fast-track your training dataset.
+            </p>
           </div>
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        </div>
+        <form onSubmit={handleUploadExamples} className={styles.formGrid}>
+          <label htmlFor="voiceSelect" className={styles.label}>
+            Select Source Content
+            <select
+              id="voiceSelect"
+              value={selectedVoiceId}
+              onChange={(e) => setSelectedVoiceId(e.target.value)}
+              className={styles.select}
+              required
             >
+              <option value="" disabled>
+                Choose a saved voice
+              </option>
+              {voices.map((voice) => (
+                <option key={voice.id} value={voice.id}>
+                  {voice.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label htmlFor="bulkExamples" className={`${styles.label} ${styles.fullWidth}`}>
+            Posts (separate with blank lines)
+            <textarea
+              id="bulkExamples"
+              value={bulkExamples}
+              onChange={(e) => setBulkExamples(e.target.value)}
+              placeholder="Paste each post on its own with a blank line between"
+              className={styles.textarea}
+              rows="6"
+              required
+            />
+            <span className={styles.helperText}>
+              We’ll split on blank lines so you can paste entire batches from your archives.
+            </span>
+          </label>
+          <div className={`${styles.cardActions} ${styles.fullWidth}`}>
+            <button type="submit" className={styles.secondaryButton}>
               Upload Posts
             </button>
           </div>
         </form>
-      </div>
+      </section>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h3 className="mb-6 text-xl font-semibold text-gray-900">Your Source Content Library</h3>
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h3 className={styles.cardTitle}>Source Content Library</h3>
+            <p className={styles.cardSubtitle}>
+              Review and manage the reference posts that power your automations.
+            </p>
+          </div>
+        </div>
         {voices.length > 0 ? (
-          <ul className="space-y-6">
+          <ul className={styles.libraryList}>
             {voices.map((voice) => (
-              <li
-                key={voice.id}
-                className="flex flex-col gap-4 rounded-lg border border-gray-200 p-6 md:flex-row md:items-start md:justify-between"
-              >
-                <div className="flex-1">
-                  <strong className="block text-lg font-semibold text-gray-900">{voice.name}</strong>
-                  <p className="mt-2 text-gray-600">{voice.description}</p>
-                  <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-800">
-                    {voice.post_example}
-                  </pre>
+              <li key={voice.id} className={styles.libraryItem}>
+                <div className={styles.voiceHeader}>
+                  <h4 className={styles.voiceName}>{voice.name}</h4>
+                  <span className={`${styles.statusChip} ${styles.statusReady}`}>Ready</span>
                 </div>
-                <div className="flex items-start md:flex-col md:items-end">
-                  <button
-                    onClick={() => handleDeleteVoice(voice.id)}
-                    className="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  >
-                    Delete
-                  </button>
+                <p className={styles.voiceDescription}>{voice.description}</p>
+                <div className={styles.postExample}>
+                  <span className={styles.postLabel}>Example Post</span>
+                  <p className={styles.postBody}>{voice.post_example}</p>
+                </div>
+                <div className={styles.libraryMeta}>
+                  <span className={styles.timestamp}>
+                    {voice.created_at ? `Added ${formatDate(voice.created_at)}` : 'Creation date unavailable'}
+                  </span>
+                  <div className={styles.libraryActions}>
+                    <button type="button" onClick={() => handleDeleteVoice(voice.id)} className={styles.dangerButton}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-gray-600">
-            You haven't added any source content yet. Use the form above to get started.
+          <p className={styles.emptyState}>
+            You haven&apos;t added any source content yet. Capture a post above to get started.
           </p>
         )}
-      </div>
+      </section>
     </div>
   );
 }

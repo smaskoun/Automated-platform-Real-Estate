@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from './api.js';
 import { useKeywordSets } from './KeywordSetsContext.jsx';
+import styles from './SeoTools.module.css';
 
 function SeoTools({
   initialSavedBundles,
@@ -199,232 +200,208 @@ function SeoTools({
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
-      <h2 className="text-2xl font-bold">SEO Keyword Analyzer</h2>
-      {error && <div className="text-red-600">{error}</div>}
-      {statusMessage && <div className="text-green-600">{statusMessage}</div>}
+    <div className={styles.container}>
+      <h2 className={styles.title}>SEO Keyword Analyzer</h2>
+      {error && <div className={`${styles.message} ${styles.error}`}>{error}</div>}
+      {statusMessage && <div className={`${styles.message} ${styles.status}`}>{statusMessage}</div>}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <input
-            type="text"
-            value={keywordInput}
-            onChange={(e) => setKeywordInput(e.target.value)}
-            placeholder="Enter keywords separated by commas"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-          <input
-            type="text"
-            value={hashtagInput}
-            onChange={(e) => setHashtagInput(e.target.value)}
-            placeholder="Optional hashtags (comma separated)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-3 sm:space-y-0">
-            <input
-              type="text"
-              value={keywordSetName}
-              onChange={(e) => setKeywordSetName(e.target.value)}
-              placeholder="Name this keyword set"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
-            />
-            <button
-              type="button"
-              onClick={handleSaveKeywordSet}
-              className="px-4 py-2 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700"
-            >
-              Save for Social Media
-            </button>
+      <div className={styles.grid}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h3 className={styles.cardTitle}>Discover High-Impact Keywords</h3>
+            <p className={styles.cardSubtitle}>
+              Run analysis on your seed keywords, capture hashtags, and save bundles for later.
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={handleAnalyze}
-            className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700"
-          >
-            Analyze
-          </button>
-          {saveMessage && <div className="text-green-600 text-sm">{saveMessage}</div>}
-        </div>
+          <div className={styles.inputGrid}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="keywordInput">Keywords</label>
+              <input
+                id="keywordInput"
+                type="text"
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                placeholder="Enter keywords separated by commas"
+                className={styles.textInput}
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="hashtagInput">Optional Hashtags</label>
+              <input
+                id="hashtagInput"
+                type="text"
+                value={hashtagInput}
+                onChange={(e) => setHashtagInput(e.target.value)}
+                placeholder="Comma-separated hashtags"
+                className={styles.textInput}
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="keywordSetName">Name this keyword set</label>
+              <div className={styles.buttonRow}>
+                <input
+                  id="keywordSetName"
+                  type="text"
+                  value={keywordSetName}
+                  onChange={(e) => setKeywordSetName(e.target.value)}
+                  placeholder="e.g., Spring Listings Push"
+                  className={styles.textInput}
+                />
+                <button type="button" onClick={handleSaveKeywordSet} className={styles.secondaryButton}>
+                  Save for Social Media
+                </button>
+              </div>
+              {saveMessage && <span className={styles.savedMessage}>{saveMessage}</span>}
+            </div>
+            <div className={styles.actionRow}>
+              <button type="button" onClick={handleAnalyze} className={styles.primaryButton}>
+                Analyze Keywords
+              </button>
+            </div>
+          </div>
+        </section>
 
-        <div className="bg-gray-50 border rounded-lg p-4 space-y-3">
-          <h3 className="text-lg font-semibold">Saved Keyword Sets</h3>
-          {savedKeywordSets.length === 0 ? (
-            <p className="text-sm text-gray-600">No keyword sets saved yet.</p>
-          ) : (
-            <ul className="space-y-3 max-h-64 overflow-y-auto">
-              {savedKeywordSets.map((set) => (
-                <li key={set.id} className="p-3 bg-white border rounded-md">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold">{set.name}</p>
-                      <p className="text-sm text-gray-600">Primary: {set.primaryKeyword}</p>
-                      {set.hashtags?.length > 0 && (
-                        <p className="text-xs text-gray-500">Hashtags: {set.hashtags.join(', ')}</p>
-                      )}
-                      {set.keywords?.length > 0 && (
-                        <p className="text-xs text-gray-500">Keywords: {set.keywords.join(', ')}</p>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSet(set.id)}
-                      className="text-sm text-red-600 hover:text-red-800"
-                    >
+        <aside className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h3 className={styles.cardTitle}>Saved Keyword Sets</h3>
+            <p className={styles.cardSubtitle}>Quickly reuse sets in the Social Media Manager.</p>
+          </div>
+          <div className={styles.keywordSetsCard}>
+            {savedKeywordSets.length === 0 ? (
+              <p className={styles.emptyState}>No keyword sets saved yet.</p>
+            ) : (
+              savedKeywordSets.map((set) => (
+                <div key={set.id} className={styles.keywordSetItem}>
+                  <div className={styles.keywordSetMeta}>
+                    <p>{set.name}</p>
+                    {set.primaryKeyword && <span>Primary: {set.primaryKeyword}</span>}
+                    {set.hashtags?.length > 0 && <span>Hashtags: {set.hashtags.join(', ')}</span>}
+                    {set.keywords?.length > 0 && <span>Keywords: {set.keywords.join(', ')}</span>}
+                  </div>
+                  <div className={styles.keywordSetActions}>
+                    <button type="button" className={styles.linkButton} onClick={() => handleRemoveSet(set.id)}>
                       Remove
                     </button>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                </div>
+              ))
+            )}
+          </div>
+        </aside>
       </div>
 
       {analysis && (
-        <div className="space-y-6">
+        <section className={styles.resultsCard}>
           <div>
-            <h3 className="font-semibold">Normalized Keywords</h3>
-            <p className="text-sm text-gray-700">{(analysis.input || []).join(', ')}</p>
+            <h3 className={styles.sectionTitle}>Normalized Keywords</h3>
+            <p className={styles.sectionText}>{(analysis.input || []).join(', ')}</p>
           </div>
+
           <div>
-            <h3 className="font-semibold">Suggestions</h3>
+            <h3 className={styles.sectionTitle}>Suggestions</h3>
             {(analysis.suggestions || []).length > 0 ? (
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
+              <>
+                <div className={styles.chipList}>
                   {analysis.suggestions.map((suggestion, idx) => {
                     const isSelected = selectedKeywords.includes(suggestion);
                     return (
-                      <div key={`${suggestion}-${idx}`} className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => toggleKeyword(suggestion)}
-                          className={`px-3 py-1 rounded-full border text-sm transition-colors ${
-                            isSelected
-                              ? 'bg-blue-100 border-blue-500 text-blue-700'
-                              : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                          }`}
-                        >
-                          {suggestion}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyKeywords(suggestion)}
-                          className="text-xs font-medium text-blue-600 hover:underline"
-                        >
-                          Copy
-                        </button>
+                      <div key={`${suggestion}-${idx}`} className={`${styles.chip} ${isSelected ? styles.chipActive : ''}`}>
+                        <span>{suggestion}</span>
+                        <div className={styles.chipActions}>
+                          <button type="button" className={styles.linkButton} onClick={() => toggleKeyword(suggestion)}>
+                            {isSelected ? 'Remove' : 'Select'}
+                          </button>
+                          <button type="button" className={styles.linkButton} onClick={() => handleCopyKeywords(suggestion)}>
+                            Copy
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className={styles.actionRow}>
                   <button
                     type="button"
                     onClick={() => handleCopyKeywords(analysis.suggestions)}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100"
+                    className={styles.secondaryButton}
                   >
                     Copy All Suggestions
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSelectAllSuggestions}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100"
-                  >
+                  <button type="button" onClick={handleSelectAllSuggestions} className={styles.secondaryButton}>
                     Select All Suggestions
                   </button>
                 </div>
-              </div>
+              </>
             ) : (
-              <p>No suggestions available.</p>
+              <p className={styles.sectionText}>No suggestions available.</p>
             )}
           </div>
+
           <div>
-            <h3 className="font-semibold">Scores</h3>
+            <h3 className={styles.sectionTitle}>Scores</h3>
             {Object.keys(analysis.scores || {}).length > 0 ? (
-              <div className="space-y-3">
-                <div className="space-y-2">
+              <>
+                <div className={styles.inputGrid}>
                   {Object.entries(analysis.scores || {}).map(([kw, score]) => {
                     const isSelected = selectedKeywords.includes(kw);
                     return (
-                      <div
-                        key={kw}
-                        className="flex flex-wrap items-center justify-between gap-2 border border-gray-200 rounded-md px-3 py-2"
-                      >
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => toggleKeyword(kw)}
-                            className={`px-3 py-1 rounded-full border text-sm transition-colors ${
-                              isSelected
-                                ? 'bg-blue-100 border-blue-500 text-blue-700'
-                                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            {kw}
-                          </button>
-                          <span className="text-sm text-gray-600">Score: {score}</span>
+                      <div key={kw} className={styles.scoreRow}>
+                        <div className={styles.chipActions}>
+                          <div className={`${styles.chip} ${isSelected ? styles.chipActive : ''}`}>
+                            <span>{kw}</span>
+                            <button type="button" className={styles.linkButton} onClick={() => toggleKeyword(kw)}>
+                              {isSelected ? 'Remove' : 'Select'}
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyKeywords(kw)}
-                          className="text-xs font-medium text-blue-600 hover:underline"
-                        >
+                        <span>Score: {score}</span>
+                        <button type="button" className={styles.linkButton} onClick={() => handleCopyKeywords(kw)}>
                           Copy
                         </button>
                       </div>
                     );
                   })}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className={styles.actionRow}>
                   <button
                     type="button"
                     onClick={() => handleCopyKeywords(Object.keys(analysis.scores || {}))}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100"
+                    className={styles.secondaryButton}
                   >
                     Copy All Score Keywords
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSelectAllScoreKeywords}
-                    className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100"
-                  >
+                  <button type="button" onClick={handleSelectAllScoreKeywords} className={styles.secondaryButton}>
                     Select All Score Keywords
                   </button>
                 </div>
-              </div>
+              </>
             ) : (
-              <p>No scores available.</p>
+              <p className={styles.sectionText}>No scores available.</p>
             )}
           </div>
+
           <div>
-            <h3 className="font-semibold">Selected Keywords</h3>
+            <h3 className={styles.sectionTitle}>Selected Keywords</h3>
             {selectedKeywords.length > 0 ? (
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className={styles.selectedChips}>
                 {selectedKeywords.map((keyword) => (
-                  <span
-                    key={keyword}
-                    className="inline-flex items-center gap-2 px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700"
-                  >
-                    {keyword}
-                    <button
-                      type="button"
-                      onClick={() => toggleKeyword(keyword)}
-                      className="text-xs font-semibold text-blue-600 hover:underline"
-                    >
+                  <div key={keyword} className={`${styles.chip} ${styles.chipActive}`}>
+                    <span>{keyword}</span>
+                    <button type="button" className={styles.linkButton} onClick={() => toggleKeyword(keyword)}>
                       Remove
                     </button>
-                  </span>
+                  </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No keywords selected yet.</p>
+              <p className={styles.sectionText}>No keywords selected yet.</p>
             )}
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className={styles.actionRow}>
               <button
                 type="button"
                 onClick={() => handleCopyKeywords(selectedKeywords)}
                 disabled={selectedKeywords.length === 0}
-                className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className={styles.secondaryButton}
               >
                 Copy Selected Keywords
               </button>
@@ -432,70 +409,62 @@ function SeoTools({
                 type="button"
                 onClick={handleClearSelected}
                 disabled={selectedKeywords.length === 0}
-                className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className={styles.secondaryButton}
               >
                 Clear Selection
               </button>
             </div>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className={styles.buttonRow}>
               <input
                 type="text"
                 value={bundleName}
                 onChange={(e) => setBundleName(e.target.value)}
                 placeholder="Name this bundle"
-                className="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md"
+                className={styles.textInput}
               />
               <button
                 type="button"
                 onClick={handleSaveBundle}
                 disabled={selectedKeywords.length === 0}
-                className="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700"
+                className={styles.primaryButton}
               >
                 Save Selected Keywords
               </button>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
-      <div className="space-y-3">
-        <h3 className="font-semibold">Saved Keyword Bundles</h3>
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h3 className={styles.cardTitle}>Saved Keyword Bundles</h3>
+          <p className={styles.cardSubtitle}>Reuse curated collections without starting from scratch.</p>
+        </div>
         {savedBundles.length > 0 ? (
-          <ul className="space-y-3">
+          <ul className={styles.bundleList}>
             {savedBundles.map((bundle) => (
-              <li key={bundle.id} className="border border-gray-200 rounded-md p-3">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-medium">{bundle.name}</p>
-                    <p className="text-sm text-gray-600 break-words">{bundle.keywords.join(', ')}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleCopyKeywords(bundle.keywords)}
-                      className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100"
-                    >
-                      Copy
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleLoadBundle(bundle)}
-                      className="px-3 py-1 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-100"
-                    >
-                      Load
-                    </button>
-                  </div>
+              <li key={bundle.id} className={styles.bundleItem}>
+                <div className={styles.bundleMeta}>
+                  <p>{bundle.name}</p>
+                  <span>{bundle.keywords.join(', ')}</span>
+                </div>
+                <div className={styles.bundleActions}>
+                  <button type="button" onClick={() => handleCopyKeywords(bundle.keywords)} className={styles.secondaryButton}>
+                    Copy
+                  </button>
+                  <button type="button" onClick={() => handleLoadBundle(bundle)} className={styles.primaryButton}>
+                    Load
+                  </button>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-500">No saved bundles yet. Save selections to reuse them later.</p>
+          <p className={styles.emptyState}>No saved bundles yet. Save selections to reuse them later.</p>
         )}
-      </div>
+      </section>
     </div>
   );
 }
 
 export default SeoTools;
-

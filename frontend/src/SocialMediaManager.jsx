@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from './api.js';
 import { useKeywordSets } from './KeywordSetsContext.jsx';
+import styles from './SocialMediaManager.module.css';
 
 // Simple debounce utility
 function debounce(fn, delay) {
@@ -236,249 +237,294 @@ function SocialMediaManager({ user }) {
     setIsKeywordPickerOpen(false);
   };
 
+  const getStatusClass = (status = '') => {
+    const normalized = status.toLowerCase();
+    if (normalized === 'draft') return styles.statusDraft;
+    if (normalized === 'scheduled') return styles.statusScheduled;
+    if (normalized === 'posted' || normalized === 'published' || normalized === 'approved') {
+      return styles.statusPublished;
+    }
+    return styles.statusDefault;
+  };
+
   if (isLoading) {
-    return <div className="text-center p-8">Loading social media dashboard...</div>;
+    return <div className={styles.loading}>Loading social media dashboard...</div>;
   }
 
   return (
-    <>
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Left Column: Form Card */}
-      <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md space-y-6">
-        <h3 className="text-xl font-bold">Create New Social Media Post</h3>
-        
-        {/* AI Generator Section */}
-        <div className="p-4 bg-gray-50 rounded-lg border space-y-3">
-          <h4 className="text-lg font-semibold">✨ AI Content Generator</h4>
-          <input
-            type="text"
-            placeholder="Enter post topic..."
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
-            <input
-              type="text"
-              placeholder="Primary keyword..."
-              value={primaryKeyword}
-              onChange={(e) => setPrimaryKeyword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
+    <div className={styles.manager}>
+      {error && <div className={styles.error}>{error}</div>}
+      {insightWarning && <div className={styles.warning}>{insightWarning}</div>}
+
+      <div className={styles.layout}>
+        <section className={styles.formCard}>
+          <h3>Create New Social Media Post</h3>
+
+          <div className={styles.aiSection}>
+            <h4>✨ AI Content Generator</h4>
+            <label className={styles.field}>
+              Post Topic
+              <input
+                type="text"
+                placeholder="Enter post topic..."
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+            </label>
+            <div className={styles.inlineRow}>
+              <input
+                type="text"
+                placeholder="Primary keyword..."
+                value={primaryKeyword}
+                onChange={(e) => setPrimaryKeyword(e.target.value)}
+              />
+              <button type="button" onClick={() => setIsKeywordPickerOpen(true)} className={styles.secondaryButton}>
+                Import Saved
+              </button>
+            </div>
+            <label className={styles.field}>
+              Brand Voice
+              <select value={selectedBrandVoice} onChange={(e) => setSelectedBrandVoice(e.target.value)}>
+                <option value="" disabled>
+                  Select a Brand Voice
+                </option>
+                {brandVoices.map((bv) => (
+                  <option key={bv.id} value={bv.id}>
+                    {bv.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button
               type="button"
-              onClick={() => setIsKeywordPickerOpen(true)}
-              className="px-3 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
+              onClick={handleGenerateContent}
+              disabled={isGenerating}
+              className={styles.primaryButton}
             >
-              Import Saved
+              {isGenerating ? 'Generating...' : 'Generate with AI'}
             </button>
           </div>
-          <select value={selectedBrandVoice} onChange={(e) => setSelectedBrandVoice(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md">
-            <option value="" disabled>Select a Brand Voice</option>
-            {brandVoices.map(bv => (
-              <option key={bv.id} value={bv.id}>{bv.name}</option>
-            ))}
-          </select>
-          <button type="button" onClick={handleGenerateContent} disabled={isGenerating} className="w-full px-4 py-2 font-semibold text-white bg-purple-600 rounded-md shadow-sm hover:bg-purple-700 disabled:bg-gray-400">
-            {isGenerating ? 'Generating...' : 'Generate with AI'}
-          </button>
-        </div>
-        
-        {error && <div className="p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
-        {insightWarning && <div className="p-3 bg-yellow-100 text-yellow-700 rounded-md">{insightWarning}</div>}
 
-        {/* Post Creation Form */}
-        <form onSubmit={handleCreatePost} className="space-y-4">
-          <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 rounded-md">
-            <option value="" disabled>Select an Account to Post To</option>
-            {accounts.map(acc => (
-              <option key={acc.id} value={acc.id}>{acc.account_name} ({acc.platform})</option>
-            ))}
-          </select>
-          <textarea
-            placeholder="AI-generated content will appear here..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-            rows={8}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-          {seoResult && (
-            <div className="p-3 bg-green-50 rounded-md text-sm space-y-1">
-              <p><strong>Keyword Density:</strong> {seoResult.keyword_density}%</p>
-              <p><strong>Keyword Count:</strong> {seoResult.keyword_count}</p>
-              <p><strong>Total Words:</strong> {seoResult.total_words}</p>
-              <p>{seoResult.suggestion}</p>
-            </div>
-          )}
-          <input
-            type="text"
-            placeholder="AI-generated image prompt will appear here..."
-            value={imagePrompt}
-            onChange={(e) => setImagePrompt(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-          
-          <div className="p-3 bg-gray-50 rounded-md min-h-[60px]">
-            <p className="text-sm font-medium text-gray-700 mb-2">Generated Hashtags:</p>
-            <div className="flex flex-wrap gap-2">
-              {hashtags.length > 0 ? (
-                hashtags.map((tag, index) => (
-                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">{tag}</span>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">Hashtags will appear here...</p>
-              )}
-            </div>
-          </div>
-
-          <input
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(e) => setScheduledAt(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-
-          <button type="submit" className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700">
-            Create & Schedule Post
-          </button>
-        </form>
-      </div>
-
-      {/* Right Column: List Card */}
-      <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-bold mb-4">Scheduled & Draft Posts</h3>
-        {posts.length > 0 ? (
-          <ul className="space-y-4">
-            {posts.map((post) => (
-              <li key={post.id} className={`p-4 rounded-lg border ${post.status === 'draft' ? 'bg-yellow-50' : 'bg-green-50'}`}>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-800">{post.content}</p>
-                    {post.hashtags && post.hashtags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {post.hashtags.map((tag, index) => (
-                          <span key={index} className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">{tag}</span>
-                        ))}
-                      </div>
-                    )}
-                    {post.image_prompt && (
-                      <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Image Prompt:</span> {post.image_prompt}</p>
-                    )}
-                    {post.scheduled_at && (
-                      <p className="text-xs text-gray-500 mt-2"><span className="font-semibold">Scheduled for:</span> {new Date(post.scheduled_at).toLocaleString()}</p>
-                    )}
-                  </div>
-                  <div className="ml-4 text-right">
-                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${post.status === 'draft' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>
-                      {post.status}
+          <form onSubmit={handleCreatePost} className={styles.postForm}>
+            <label className={styles.field}>
+              Select Account
+              <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} required>
+                <option value="" disabled>
+                  Select an account to post to
+                </option>
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.account_name} ({acc.platform})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={`${styles.field} ${styles.fullWidth}`}>
+              Post Copy
+              <textarea
+                placeholder="AI-generated content will appear here..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+                rows={8}
+              />
+            </label>
+            {seoResult && (
+              <div className={styles.seoResult}>
+                <p>
+                  <strong>Keyword Density:</strong> {seoResult.keyword_density}%
+                </p>
+                <p>
+                  <strong>Keyword Count:</strong> {seoResult.keyword_count}
+                </p>
+                <p>
+                  <strong>Total Words:</strong> {seoResult.total_words}
+                </p>
+                <p>{seoResult.suggestion}</p>
+              </div>
+            )}
+            <label className={styles.field}>
+              Image Prompt
+              <input
+                type="text"
+                placeholder="AI-generated image prompt will appear here..."
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+              />
+            </label>
+            <div className={styles.hashtagGroup}>
+              <span className={styles.fieldLabel}>Generated Hashtags</span>
+              <div className={styles.hashtagContainer}>
+                {hashtags.length > 0 ? (
+                  hashtags.map((tag, index) => (
+                    <span key={index} className={styles.hashtagItem}>
+                      {tag}
                     </span>
-                    <p className="text-xs text-gray-500 mt-1">{post.account_name}</p>
-                      
-                  </div>
-                </div>
-                <div className="mt-3 flex justify-end space-x-2">
-                  <button onClick={() => handleEditClick(post)} className="px-3 py-1 text-xs text-white bg-blue-600 rounded-md">Edit</button>
-                  <button onClick={() => handleDelete(post.id)} className="px-3 py-1 text-xs text-white bg-red-600 rounded-md">Delete</button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No posts found. Use the form on the left to create one.</p>
-        )}
-      </div>
-    </div>
-
-    {editingPost && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-          <h3 className="text-lg font-bold mb-4">Edit Post</h3>
-          <form onSubmit={handleUpdatePost} className="space-y-4">
-            <textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              rows={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-            <input
-              type="text"
-              value={editHashtags}
-              onChange={(e) => setEditHashtags(e.target.value)}
-              placeholder="Hashtags (comma separated)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-            <input
-              type="datetime-local"
-              value={editSchedule}
-              onChange={(e) => setEditSchedule(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-            <div className="flex justify-end space-x-2">
-              <button type="button" onClick={closeEditModal} className="px-4 py-2 bg-gray-300 rounded-md">Cancel</button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
+                  ))
+                ) : (
+                  <span className={styles.noHashtags}>Hashtags will appear here...</span>
+                )}
+              </div>
+            </div>
+            <label className={styles.field}>
+              Schedule
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              />
+            </label>
+            <div className={styles.formActions}>
+              <button type="submit" className={styles.primaryButton}>
+                Create &amp; Schedule Post
+              </button>
             </div>
           </form>
-        </div>
-      </div>
-    )}
-    {isKeywordPickerOpen && (
-      <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-lg font-bold">Import Saved Keywords</h3>
-              <p className="text-sm text-gray-600">Select a keyword set saved from the SEO Tools page.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsKeywordPickerOpen(false)}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Close
-            </button>
+        </section>
+
+        <section className={styles.listCard}>
+          <div className={styles.listHeader}>
+            <h3>Scheduled &amp; Draft Posts</h3>
+            <span className={styles.postCount}>{posts.length} total</span>
           </div>
-          {savedKeywordSets.length === 0 ? (
-            <p className="text-sm text-gray-600">No keyword sets available yet. Save some from the SEO Tools page.</p>
+          {posts.length > 0 ? (
+            <ul className={styles.postList}>
+              {posts.map((post) => {
+                const statusChip = `${styles.statusChip} ${getStatusClass(post.status)}`;
+                return (
+                  <li key={post.id} className={styles.postItem}>
+                    <div className={styles.postContent}>
+                      <p>{post.content}</p>
+                      {post.hashtags && post.hashtags.length > 0 && (
+                        <div className={styles.postHashtags}>
+                          {post.hashtags.map((tag, index) => (
+                            <span key={index} className={styles.hashtagItem}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {post.image_prompt && (
+                        <p className={styles.postMeta}>
+                          <span>Image Prompt:</span> {post.image_prompt}
+                        </p>
+                      )}
+                      {post.scheduled_at && (
+                        <p className={styles.postMeta}>
+                          <span>Scheduled for:</span> {new Date(post.scheduled_at).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className={styles.postSidebar}>
+                      <span className={statusChip}>{post.status}</span>
+                      <span className={styles.accountLabel}>{post.account_name}</span>
+                      <div className={styles.postActions}>
+                        <button type="button" onClick={() => handleEditClick(post)} className={styles.secondaryButton}>
+                          Edit
+                        </button>
+                        <button type="button" onClick={() => handleDelete(post.id)} className={styles.deleteButton}>
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           ) : (
-            <ul className="space-y-3 max-h-72 overflow-y-auto">
-              {savedKeywordSets.map((set) => (
-                <li key={set.id} className="border rounded-md p-4 bg-gray-50">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-gray-800">{set.name}</p>
+            <p className={styles.emptyState}>No posts found. Use the form to craft your first campaign.</p>
+          )}
+        </section>
+      </div>
+
+      {editingPost && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h3 className={styles.modalTitle}>Edit Post</h3>
+            <form onSubmit={handleUpdatePost}>
+              <label className={styles.field}>
+                Post Content
+                <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={6} />
+              </label>
+              <label className={styles.field}>
+                Hashtags (comma separated)
+                <input
+                  type="text"
+                  value={editHashtags}
+                  onChange={(e) => setEditHashtags(e.target.value)}
+                  placeholder="#realestate, #windsorhomes"
+                />
+              </label>
+              <label className={styles.field}>
+                Schedule
+                <input
+                  type="datetime-local"
+                  value={editSchedule}
+                  onChange={(e) => setEditSchedule(e.target.value)}
+                />
+              </label>
+              <div className={styles.modalActions}>
+                <button type="button" onClick={closeEditModal} className={styles.secondaryButton}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.primaryButton}>
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isKeywordPickerOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.keywordModal}>
+            <div className={styles.keywordHeader}>
+              <div>
+                <h3>Import Saved Keywords</h3>
+                <p>Select a keyword set saved from the SEO Tools page.</p>
+              </div>
+              <button type="button" onClick={() => setIsKeywordPickerOpen(false)} className={styles.closeButton}>
+                Close
+              </button>
+            </div>
+            {savedKeywordSets.length === 0 ? (
+              <p className={styles.emptyState}>No keyword sets available yet. Save some from the SEO Tools page.</p>
+            ) : (
+              <ul className={styles.keywordSetList}>
+                {savedKeywordSets.map((set) => (
+                  <li key={set.id} className={styles.keywordSetCard}>
+                    <div className={styles.keywordSetMeta}>
+                      <p className={styles.keywordSetName}>{set.name}</p>
                       {set.primaryKeyword && (
-                        <p className="text-sm text-gray-600">Primary keyword: {set.primaryKeyword}</p>
+                        <p className={styles.keywordSetDetail}>Primary keyword: {set.primaryKeyword}</p>
                       )}
                       {set.keywords?.length > 0 && (
-                        <p className="text-xs text-gray-500">Keywords: {set.keywords.join(', ')}</p>
+                        <p className={styles.keywordSetDetail}>Keywords: {set.keywords.join(', ')}</p>
                       )}
                       {set.hashtags?.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className={styles.savedHashtagContainer}>
                           {set.hashtags.map((tag, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                            <span key={idx} className={styles.savedHashtagItem}>
                               {tag}
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => applyKeywordSet(set)}
-                      className="px-3 py-1 text-sm text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
-                    >
-                      Use
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                    <div className={styles.keywordSetActions}>
+                      <button type="button" onClick={() => applyKeywordSet(set)} className={styles.primaryButton}>
+                        Use
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
-      </div>
-    )}
-    </>
+      )}
+    </div>
   );
 }
 

@@ -1,27 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from './api.js';
-
-// A simple, reusable button component for consistent styling
-const Button = ({ onClick, children, className, type = "button" }) => (
-  <button
-    type={type}
-    onClick={onClick}
-    className={`px-4 py-2 font-semibold text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${className}`}
-  >
-    {children}
-  </button>
-);
+import styles from './AccountManager.module.css';
 
 function AccountManager({ user }) {
   const [accounts, setAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const platformIconStyles = {
-    Facebook: 'bg-blue-100 text-blue-600',
-    Instagram: 'bg-pink-100 text-pink-600',
-    'Google Business Profile': 'bg-yellow-100 text-yellow-600',
-  };
 
   const platformIconLabels = {
     Facebook: 'FB',
@@ -136,127 +120,118 @@ function AccountManager({ user }) {
     }
   };
 
+  const getPlatformClassName = (value) => {
+    const normalized = normalizePlatform(value);
+    const key = normalized.replace(/\s+/g, '').toLowerCase();
+    return styles[key] ? `${styles.platform} ${styles[key]}` : styles.platform;
+  };
+
+  const renderAccounts = () => {
+    if (isLoading) {
+      return <p className={styles.emptyState}>Loading accounts...</p>;
+    }
+
+    if (error) {
+      return <p className={styles.error}>{error}</p>;
+    }
+
+    if (accounts.length === 0) {
+      return <p className={styles.emptyState}>No accounts yet. Connect your first profile above.</p>;
+    }
+
+    return (
+      <ul className={styles.accountList}>
+        {accounts.map((account) => {
+          const { id, account_name, platform, is_active, created_at } = account;
+          const normalizedPlatform = normalizePlatform(platform);
+          const platformLabel =
+            platformIconLabels[normalizedPlatform] || (normalizedPlatform ? normalizedPlatform.charAt(0).toUpperCase() : '?');
+          const createdAtLabel = formatCreatedAt(created_at);
+          const statusClass = `${styles.statusChip} ${is_active ? styles.statusActive : styles.statusInactive}`;
+
+          return (
+            <li key={id}>
+              <div className={styles.accountInfo}>
+                <div className={getPlatformClassName(platform)}>{platformLabel}</div>
+                <div className={styles.accountDetails}>
+                  <span className={styles.accountName}>{account_name}</span>
+                  <span className={styles.accountPlatform}>{normalizedPlatform || 'Unknown Platform'}</span>
+                </div>
+              </div>
+              <div className={styles.accountMeta}>
+                <span className={statusClass}>{is_active ? 'Active' : 'Inactive'}</span>
+                {createdAtLabel && <span className={styles.timestamp}>Added {createdAtLabel}</span>}
+                <div className={styles.accountActions}>
+                  <button type="button" onClick={() => handleStartEdit(account)} className={styles.editButton}>
+                    Edit
+                  </button>
+                  <button type="button" onClick={() => handleDeleteAccount(id)} className={styles.deleteButton}>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+
   return (
-    <div className="space-y-8">
-      {/* Edit Modal */}
+    <div className={styles.container}>
       {editingAccount && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Edit Account</h3>
-            <form onSubmit={handleSaveEdit} className="space-y-4">
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h3>Edit Account</h3>
+            <form onSubmit={handleSaveEdit}>
               <input
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Account name"
                 required
               />
-              <select value={editPlatform} onChange={(e) => setEditPlatform(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md">
+              <select value={editPlatform} onChange={(e) => setEditPlatform(e.target.value)}>
                 <option>Facebook</option>
                 <option>Instagram</option>
                 <option>Google Business Profile</option>
               </select>
-              <div className="flex justify-end space-x-3">
-                <Button onClick={handleCancelEdit} className="bg-gray-500 hover:bg-gray-600">Cancel</Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save Changes</Button>
+              <div className={styles.modalActions}>
+                <button type="button" onClick={handleCancelEdit} className={styles.cancelButton}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.saveButton}>
+                  Save Changes
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Add Account Card */}
-      <div className="bg-white rounded-xl shadow-sm p-8 mb-8 border border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-900 mb-6">Add New Account</h3>
-        <form onSubmit={handleAddAccount} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className={styles.card}>
+        <h3>Connect a New Account</h3>
+        <form onSubmit={handleAddAccount} className={styles.form}>
           <input
             type="text"
             value={accountName}
             onChange={(e) => setAccountName(e.target.value)}
-            placeholder="e.g., My Main Facebook Page"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium md:col-span-1"
+            placeholder="e.g., Main Facebook Page"
             required
           />
-          <select
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium"
-          >
+          <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
             <option>Facebook</option>
             <option>Instagram</option>
             <option>Google Business Profile</option>
           </select>
-          <Button
-            type="submit"
-            className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors w-full md:w-auto"
-          >
-            Add Account
-          </Button>
+          <button type="submit">Add Account</button>
         </form>
-      </div>
+      </section>
 
-      {/* Your Accounts Card */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-bold mb-4">Your Accounts</h3>
-        {isLoading ? <p>Loading accounts...</p> : error ? <p className="text-red-500">{error}</p> : (
-          <ul className="space-y-4 mb-6">
-            {accounts.length > 0 ? accounts.map((account) => {
-              const { id, account_name, platform, is_active, created_at } = account;
-              const normalizedPlatform = normalizePlatform(platform);
-              const createdAtLabel = formatCreatedAt(created_at);
-              const platformIconClass = platformIconStyles[normalizedPlatform] || 'bg-gray-100 text-gray-600';
-              const platformIconLabel = platformIconLabels[normalizedPlatform] || (normalizedPlatform ? normalizedPlatform.charAt(0).toUpperCase() : '?');
-              const statusClasses = `inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                is_active ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-600'
-              }`;
-
-              return (
-                <li key={id}>
-                  <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200">
-                    <div className="flex flex-col gap-6 p-6">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-start gap-4 sm:items-center">
-                          <div
-                            className={`flex h-12 w-12 items-center justify-center rounded-xl text-sm font-semibold ${platformIconClass}`}
-                          >
-                            {platformIconLabel}
-                          </div>
-                          <div className="space-y-1">
-                            <h4 className="text-lg font-semibold text-gray-900">{account_name}</h4>
-                            <p className="text-sm font-medium text-gray-500">{normalizedPlatform || 'Unknown Platform'}</p>
-                          </div>
-                        </div>
-                        {createdAtLabel && (
-                          <p className="text-sm text-gray-500 sm:text-right">Added {createdAtLabel}</p>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <span className={statusClasses}>{is_active ? 'Active' : 'Inactive'}</span>
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <button
-                            type="button"
-                            onClick={() => handleStartEdit(account)}
-                            className="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteAccount(id)}
-                            className="inline-flex h-10 items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              );
-            }) : <p>No accounts found. Add one using the form above.</p>}
-          </ul>
-        )}
-      </div>
+      <section className={styles.card}>
+        <h3>Your Connected Accounts</h3>
+        {renderAccounts()}
+      </section>
     </div>
   );
 }
