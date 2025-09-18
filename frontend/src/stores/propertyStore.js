@@ -40,6 +40,7 @@ const defaultState = {
   loading: false,
   error: null,
   lastUpdated: null,
+  dataSource: null,
   actions: {},
 };
 
@@ -625,6 +626,7 @@ function createPropertyStore() {
       const cached = JSON.parse(cachedRaw);
       const properties = prepareProperties(cached.properties);
       const lastUpdated = cached.lastUpdated ?? null;
+      const dataSource = cached.dataSource ?? null;
       const statistics =
         cached.statistics && typeof cached.statistics === 'object'
           ? { ...defaultStatistics, ...cached.statistics }
@@ -634,11 +636,12 @@ function createPropertyStore() {
         properties,
         statistics,
         lastUpdated,
+        dataSource,
         isLoading: false,
         loading: false,
       });
 
-      return { properties, statistics, lastUpdated };
+      return { properties, statistics, lastUpdated, dataSource };
     } catch (cacheError) {
       console.warn('Failed to load cached property data', cacheError);
       setState({
@@ -654,25 +657,27 @@ function createPropertyStore() {
     setState({ isLoading: true, loading: true, error: null });
 
     try {
-      const response = await realtorScrapingService.scrapeWindsorEssexProperties();
+      const payload = await realtorScrapingService.scrapeWindsorEssexProperties();
 
-      const rawProperties = Array.isArray(response)
-        ? response
-        : Array.isArray(response?.properties)
-          ? response.properties
+      const rawProperties = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.properties)
+          ? payload.properties
           : [];
 
       const properties = prepareProperties(rawProperties);
       const lastUpdated =
-        response?.lastUpdated ?? rawProperties?.[0]?.lastUpdated ?? new Date().toISOString();
+        payload?.lastUpdated ?? rawProperties?.[0]?.lastUpdated ?? new Date().toISOString();
       const statistics = computeStatistics(properties);
+      const dataSource = payload?.source ?? null;
 
-      persistToCache({ properties, lastUpdated, statistics });
+      persistToCache({ properties, lastUpdated, statistics, dataSource });
 
       setState({
         properties,
         statistics,
         lastUpdated,
+        dataSource,
         isLoading: false,
         loading: false,
         error: null,
@@ -698,6 +703,8 @@ function createPropertyStore() {
         statistics: { ...defaultStatistics },
         isLoading: false,
         loading: false,
+        lastUpdated: null,
+        dataSource: null,
         error:
           fetchError?.message ?? 'Failed to fetch property data. Please try again later.',
       });

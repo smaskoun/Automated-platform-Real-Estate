@@ -12,6 +12,7 @@ from .routes.manual_content_routes import manual_content_bp
 from .routes.learning_algorithm_routes import learning_algorithm_bp
 from .routes.seo_routes import seo_bp
 from .routes.seo_tools_routes import seo_tools_bp
+from .routes.realtor_routes import realtor_bp
 from .routes.user import user_bp
 
 
@@ -46,6 +47,7 @@ def create_app():
     app.register_blueprint(learning_algorithm_bp, url_prefix='/api/learning-algorithm')
     app.register_blueprint(seo_bp, url_prefix='/api/seo')
     app.register_blueprint(seo_tools_bp, url_prefix='/api/seo-tools')
+    app.register_blueprint(realtor_bp, url_prefix='/api/realtor')
     app.register_blueprint(user_bp, url_prefix='/api')
 
     logging.basicConfig(level=logging.INFO)

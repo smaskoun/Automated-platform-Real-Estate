@@ -18,3 +18,4 @@ beautifulsoup4
 textstat
 textblob
 language-tool-python
+apify-client
