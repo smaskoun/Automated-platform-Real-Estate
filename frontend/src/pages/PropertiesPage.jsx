@@ -148,7 +148,7 @@ const PropertyCard = ({ property, onGenerateContent, generationState, generatedC
     text: 'text-gray-600',
   };
 
-  const areaText = typeof property.area === 'number' ? property.area.toLocaleString() : '—';
+  const areaText = typeof property?.area === 'number' ? property.area.toLocaleString() : '—';
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
