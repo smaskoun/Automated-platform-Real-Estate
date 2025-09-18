@@ -4,6 +4,16 @@
 #
 #    pip-compile requirements.in
 #
+apify-client==2.1.0
+    # via -r requirements.in
+apify-shared==2.1.0
+    # via apify-client
+colorama==0.4.6
+    # via apify-client
+impit==0.7.1
+    # via apify-client
+more-itertools==10.8.0
+    # via apify-client
 alembic==1.16.5
     # via flask-migrate
 annotated-types==0.7.0
