@@ -45,6 +45,10 @@ WINDSOR_ESSEX_CITIES = [
 ]
 
 
+class MissingApifyApiKeyError(RuntimeError):
+    """Raised when the Apify API key is not configured for scraping."""
+
+
 class RealtorScraperService:
     """High-level interface responsible for orchestrating the Realtor.ca scrape."""
 
@@ -64,8 +68,10 @@ class RealtorScraperService:
     ) -> List[Dict[str, Any]]:
         """Scrape Realtor.ca for Windsor-Essex listings via Apify."""
 
-        if not self._apify_token:
-            raise RuntimeError("APIFY_API_KEY is not configured for the scraper service.")
+        if not self.is_configured:
+            raise MissingApifyApiKeyError(
+                "APIFY_API_KEY is not configured for the scraper service."
+            )
 
         client = ApifyClient(self._apify_token)
         run_input = {
@@ -102,6 +108,12 @@ class RealtorScraperService:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+    @property
+    def is_configured(self) -> bool:
+        """Return whether the scraper has a configured Apify API token."""
+
+        return bool(self._apify_token)
+
     def _wait_for_dataset_ready(
         self,
         client: ApifyClient,

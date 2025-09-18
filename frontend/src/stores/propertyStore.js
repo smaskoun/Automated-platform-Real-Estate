@@ -698,6 +698,10 @@ function createPropertyStore() {
         return cached.properties;
       }
 
+      const responseError = safeString(fetchError?.response?.data?.error);
+      const errorMessage =
+        responseError || fetchError?.message || 'Failed to fetch property data. Please try again later.';
+
       setState({
         properties: [],
         statistics: { ...defaultStatistics },
@@ -705,8 +709,7 @@ function createPropertyStore() {
         loading: false,
         lastUpdated: null,
         dataSource: null,
-        error:
-          fetchError?.message ?? 'Failed to fetch property data. Please try again later.',
+        error: errorMessage,
       });
 
       return [];
