@@ -59,7 +59,7 @@ def create_app():
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def index(path):
-        if path.startswith('api/'):
+        if path == 'api' or path.startswith('api/'):
             abort(404)
 
         static_dir = app.static_folder
