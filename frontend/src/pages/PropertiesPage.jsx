@@ -148,6 +148,8 @@ const PropertyCard = ({ property, onGenerateContent, generationState, generatedC
     text: 'text-gray-600',
   };
 
+  const areaText = typeof property.area === 'number' ? property.area.toLocaleString() : '—';
+
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-6 text-white">
@@ -188,7 +190,7 @@ const PropertyCard = ({ property, onGenerateContent, generationState, generatedC
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
             <Ruler className="h-4 w-4 text-gray-500" aria-hidden="true" />
-            <span className="font-semibold text-gray-900">{property.area.toLocaleString()} sq ft</span>
+            <span className="font-semibold text-gray-900">{areaText} sq ft</span>
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
             <Clock className="h-4 w-4 text-gray-500" aria-hidden="true" />
